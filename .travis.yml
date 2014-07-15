@@ -1,0 +1,31 @@
+language: cpp
+compiler:
+    - gcc
+before_install:
+    - sudo apt-get install python-yaml libphysfs-dev libyaml-dev build-essential valgrind
+    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+    - sudo apt-get update
+    - sudo apt-get install gcc-4.8 g++-4.8
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 20
+    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20
+    - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.8 20
+    - sudo update-alternatives --config gcc
+    - sudo update-alternatives --config g++
+    - sudo update-alternatives --config gcov
+    - sudo pip install cpp-coveralls libqt4-*
+script:
+    - qmake-qt4 "CONFIG+=g++"
+    - make
+    - ./yabs -h
+    - ./yabs -n
+    - ./yabs -debug
+after_script:
+notifications:
+    email:
+        recipients:
+            - albcoron@gmail.com
+        on_failure: always
+        on_success: change
+branches:
+    only:
+        - master
