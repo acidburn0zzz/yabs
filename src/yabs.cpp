@@ -1,6 +1,6 @@
+#include <iostream>
 #include "gen.h"
 #include "interface.h"
-#include <iostream>
 
 int main(int argc, char *argv[])
 {
@@ -22,7 +22,10 @@ int main(int argc, char *argv[])
 		}
 		if ((Args == "-debug") || (Args == "--debug")) {
 			Gen.CheckMake();
-			Gen.CheckFiles();
+			Gen.WriteMake();
+			Gen.GenMakeFromTemplate();
+			Gen.WalkDir(Gen.currentDir, ".\\.cpp$", FS_DEFAULT | FS_MATCHDIRS);
+			Gen.WalkDir(Gen.currentDir, ".\\.h$", FS_DEFAULT | FS_MATCHDIRS);
 		}
 	}
 	return 0;
