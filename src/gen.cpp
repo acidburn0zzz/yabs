@@ -2,15 +2,20 @@
 #ifdef __linux__
 #include <linux/limits.h>
 #endif
-#include <iostream>
-#include <fstream>
+
+#include <err.h>
+#include <errno.h>
+#include <dirent.h>
+#include <libgen.h>
+#include <regex.h>
 #include <string.h>
 #include <unistd.h>
-#include <libgen.h>
-#include <dirent.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <fstream>
+#include <iostream>
+#include <iomanip>
 #define BASEDIR DefineBaseDir()
 
 Generate::Generate() {};
@@ -18,44 +23,79 @@ Generate::~Generate() {};
 
 char *Generate::DefineBaseDir()
 {
-	char *currentDir = get_current_dir_name();
 	return currentDir;
 }
 
-void Generate::CheckFiles()
+enum {
+	FS_OK = 0,
+	FS_BADPattern,
+	FS_NAMETOOLONG,
+	FS_BADIO,
+};
+
+int Generate::WalkRecur(const char *DirName, regex_t *Expr, int Spec)
 {
-	struct dirent *ent;
-	DIR *dp;
-	char path[MAXPATHLEN];
-	dp = opendir(BASEDIR);
-	if (dp == NULL) {
-		printf("Error: Path doesn't exist\n");
-		return;
+	struct dirent *Ent;
+	DIR *Dir;
+	struct stat St;
+	char PathName[FILENAME_MAX];
+	int Res = FS_OK;
+	int len = strlen(DirName);
+	if (len >= FILENAME_MAX - 1)
+		return FS_NAMETOOLONG;
+
+	strcpy(PathName, DirName);
+	PathName[len++] = '/';
+
+	if (!(Dir = opendir(DirName))) {
+		warn("can't open %s", DirName);
+		return FS_BADIO;
 	}
-	while (1) {
-		ent = readdir(dp);
-		if (!ent) {
-			break;
+
+	errno = 0;
+	while ((Ent = readdir(Dir))) {
+		if (!(Spec & FS_DOTFILES) && Ent->d_name[0] == '.')
+			continue;
+		if (!strcmp(Ent->d_name, ".") || !strcmp(Ent->d_name, ".."))
+			continue;
+
+		strncpy(PathName + len, Ent->d_name, FILENAME_MAX - len);
+		if (lstat(PathName, &St) == -1) {
+			warn("Can't stat %s", PathName);
+			Res = FS_BADIO;
+			continue;
 		}
-		if (ent->d_type == DT_REG) {
-			printf("Regular file: %s\n", ent->d_name);
+
+		if (S_ISLNK(St.st_mode) && !(Spec & FS_FOLLOWLINK))
+			continue;
+
+		if (S_ISDIR(St.st_mode)) {
+			if ((Spec & FS_RECURSIVE))
+				WalkRecur(PathName, Expr, Spec);
+
+			if (!(Spec & FS_MATCHDIRS))
+				continue;
 		}
-		if (ent->d_type == DT_DIR) {
-			if (strcmp(ent->d_name, "..") != 0 &&
-			    strcmp(ent->d_name, ".") != 0) {
-				int path_len;
-				path_len = snprintf(path, MAXPATHLEN,
-						    "%s", ent->d_name);
-				printf("%s\n", path);
-				if (path_len >= MAXPATHLEN) {
-					printf("Error: Path length has gotten too long\n");
-				}
-			}
-		}
+
+		if (!regexec(Expr, PathName, 0, 0, 0))
+			printf("%s\n", PathName);
 	}
-	if (closedir(dp)) {
-		printf("Couldn't close '%s'\n", BASEDIR);
-	}
+
+	if (Dir)
+		closedir(Dir);
+	return Res ? Res : errno ? FS_BADIO : FS_OK;
+}
+
+int Generate::WalkDir(const char *DirName, char *Pattern, int Spec)
+{
+	regex_t r;
+	int Res;
+	if (regcomp(&r, Pattern, REG_EXTENDED | REG_NOSUB))
+		return FS_BADPattern;
+	Res = WalkRecur(DirName, &r, Spec);
+	regfree(&r);
+
+	return Res;
 }
 
 int Generate::CheckMake()
@@ -77,10 +117,46 @@ int Generate::CheckMake()
 	return 0;
 }
 
+int Generate::CheckConfigExists()
+{
+	char fileName[PATH_MAX];
+	snprintf(fileName, sizeof(fileName), "%s.ybf", basename(BASEDIR));
+	if (access(fileName, F_OK) != -1) {
+		return 1;
+	} else {
+		return -1;
+	}
+	return 0;
+}
+
 void Generate::GenBlankConfig()
 {
 	char fileName[PATH_MAX];
 	snprintf(fileName, sizeof(fileName), "%s.ybf", basename(BASEDIR));
 	printf("New build file written as: %s\n", fileName);
 	newConfig = fopen(fileName, "w+");
+}
+
+void Generate::WriteMake()
+{
+	if (CheckConfigExists() == 1) {
+		printf("yabs build file exists\n");
+		return;
+	} else {
+		printf("yabs build file does not exist\n");
+	}
+	return;
+}
+
+int Generate::GenMakeFromTemplate()
+{
+	if (CheckMake() != 1) {
+		std::cout << std::setfill('#') << std::setw(80) << "#" << std::endl;
+		std::cout << std::setfill('#') << std::setw(2) << "#"
+			  << "\t\t\tMakefile Generated with yabs" << std::endl;
+		std::cout << std::setfill('#') << std::setw(80) << "#" << std::endl;
+		return 1;
+	} else {
+		return -1;
+	}
 }
