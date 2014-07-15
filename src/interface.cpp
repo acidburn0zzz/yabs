@@ -1,5 +1,5 @@
-#include "interface.h"
 #include <stdio.h>
+#include "interface.h"
 
 void printHelp()
 {
