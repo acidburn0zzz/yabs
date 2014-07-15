@@ -1,8 +1,8 @@
 #ifndef _PARSER_H
 #define _PARSER_H
 
-#include <yaml.h>
 #include <fstream>
+#include <yaml.h>
 
 class Parser
 {
