@@ -1,10 +1,14 @@
 TARGET = yabs
 INCLUDEPATH += include
 CONFIG-= qt
-LIBS+=-lssh -lyaml
+LIBS+=-lssh2 -lyaml
 QMAKE_CXXFLAGS += -std=c++11
 
 QMAKE_CLEAN += yabs.ybf yabs
+
+win32: {
+	LIBS+= -lregex
+}
 
 g++ {
 	QMAKE_CXX = g++

@@ -9,6 +9,10 @@
 #define FS_DOTFILES (1 << 2)
 #define FS_MATCHDIRS (1 << 3)
 
+#ifdef __WIN32__
+#include <windows.h>
+#endif
+
 #include <regex.h>
 #include <unistd.h>
 #include <sys/param.h>
@@ -18,7 +22,12 @@ class Generate
 {
 public:
 	char cwd[MAXPATHLEN];
+#ifdef __linux__
 	char *currentDir = get_current_dir_name();
+#endif
+#ifdef __WIN32__
+	char *currentDir;
+#endif
 	const char *defaultMakefile;
 	FILE *Makefile;
 	FILE *newConfig;

@@ -1,2 +1,4 @@
 Makefile
 .clang-format
+*.o
+yabs

@@ -1,9 +1,10 @@
 #include "gen.h"
+
 #ifdef __linux__
 #include <linux/limits.h>
+#include <err.h>
 #endif
 
-#include <err.h>
 #include <errno.h>
 #include <dirent.h>
 #include <libgen.h>
@@ -37,50 +38,43 @@ int Generate::WalkRecur(const char *DirName, regex_t *Expr, int Spec)
 {
 	struct dirent *Ent;
 	DIR *Dir;
-	struct stat St;
 	char PathName[FILENAME_MAX];
 	int Res = FS_OK;
 	int len = strlen(DirName);
 	if (len >= FILENAME_MAX - 1)
 		return FS_NAMETOOLONG;
-
 	strcpy(PathName, DirName);
 	PathName[len++] = '/';
-
 	if (!(Dir = opendir(DirName))) {
-		warn("can't open %s", DirName);
+		printf("Error: Can't open %s", DirName);
 		return FS_BADIO;
 	}
-
 	errno = 0;
+#ifdef __linux__
+	struct stat St;
 	while ((Ent = readdir(Dir))) {
 		if (!(Spec & FS_DOTFILES) && Ent->d_name[0] == '.')
 			continue;
 		if (!strcmp(Ent->d_name, ".") || !strcmp(Ent->d_name, ".."))
 			continue;
-
 		strncpy(PathName + len, Ent->d_name, FILENAME_MAX - len);
 		if (lstat(PathName, &St) == -1) {
-			warn("Can't stat %s", PathName);
+			printf("Error: Can't stat %s", PathName);
 			Res = FS_BADIO;
 			continue;
 		}
-
 		if (S_ISLNK(St.st_mode) && !(Spec & FS_FOLLOWLINK))
 			continue;
-
 		if (S_ISDIR(St.st_mode)) {
 			if ((Spec & FS_RECURSIVE))
 				WalkRecur(PathName, Expr, Spec);
-
 			if (!(Spec & FS_MATCHDIRS))
 				continue;
 		}
-
 		if (!regexec(Expr, PathName, 0, 0, 0))
 			printf("%s\n", PathName);
 	}
-
+#endif
 	if (Dir)
 		closedir(Dir);
 	return Res ? Res : errno ? FS_BADIO : FS_OK;
