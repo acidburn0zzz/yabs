@@ -20,5 +20,5 @@ clang {
 	QMAKE_CC = clang
 }
 
-HEADERS += include/env.h include/gen.h include/interface.h include/parser.h include/playdef.h
+HEADERS += include/env.h include/gen.h include/interface.h include/parser.h include/platdef.h
 SOURCES += src/env.cpp src/gen.cpp src/interface.cpp src/parser.cpp src/yabs.cpp
