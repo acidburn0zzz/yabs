@@ -23,14 +23,14 @@ class Generate
 public:
 	char cwd[MAXPATHLEN];
 #ifdef __linux__
-	char *currentDir = get_current_dir_name();
+	char *current_dir = get_current_dir_name();
 #endif
 #ifdef __WIN32__
-	char *currentDir;
+	char *current_dir;
 #endif
-	const char *defaultMakefile;
-	FILE *Makefile;
-	FILE *newConfig;
+	const char *default_makefile;
+	FILE *makefile;
+	FILE *new_config;
 
 	Generate();
 	~Generate();
@@ -42,7 +42,7 @@ public:
 	int CheckConfigExists();
 	int CheckMake();
 	int GenMakeFromTemplate();
-	int WalkDir(const char *DirName, char *Pattern, int Spec);
-	int WalkRecur(const char *DirName, regex_t *Expr, int Spec);
+	int WalkDir(const char *dir_name, char *pattern, int spec);
+	int WalkRecur(const char *dir_name, regex_t *expr, int spec);
 };
 #endif
