@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unistd.h>
 #include "gen.h"
 #include "interface.h"
 
@@ -6,27 +7,27 @@ int main(int argc, char *argv[])
 {
 	Generate Gen;
 
-	std::string Args;
-	int i;
-	for (i = 1; i < argc; i++) {
-		if (argv[i] != NULL)
-			Args = argv[1];
-		if (argv[i] == NULL) {
+	opterr = 0;
+	int flag = 0;
+	int c;
+
+	while ((c = getopt (argc, argv, "dhnm")) != -1)
+		switch (c) {
+			case 'd':
+				Gen.CheckMake();
+				Gen.WriteMake();
+				Gen.GenMakeFromTemplate();
+				Gen.WalkDir(Gen.current_dir, ".\\.cpp$", FS_DEFAULT | FS_MATCHDIRS);
+				Gen.WalkDir(Gen.current_dir, ".\\.h$", FS_DEFAULT | FS_MATCHDIRS);
+				break;
+			case 'h':
+				printHelp();
+				break;
+			case 'n':
+				Gen.GenBlankConfig();
+				break;
+			case 'm':
+				break;
 		}
-		if ((Args == "-new") || (Args == "--new") || (Args == "-n")) {
-			Gen.GenBlankConfig();
-			return 1;
-		}
-		if ((Args == "-help") || (Args == "--help") || (Args == "-h")) {
-			printHelp();
-		}
-		if ((Args == "-debug") || (Args == "--debug")) {
-			Gen.CheckMake();
-			Gen.WriteMake();
-			Gen.GenMakeFromTemplate();
-			Gen.WalkDir(Gen.currentDir, ".\\.cpp$", FS_DEFAULT | FS_MATCHDIRS);
-			Gen.WalkDir(Gen.currentDir, ".\\.h$", FS_DEFAULT | FS_MATCHDIRS);
-		}
-	}
 	return 0;
 }
