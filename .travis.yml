@@ -16,9 +16,9 @@ before_install:
 script:
     - qmake-qt4 "CONFIG+=g++"
     - make
-    - ./yabs -h
+    - ./yabs -d
     - ./yabs -n
-    - ./yabs -debug
+    - ./yabs -h
 after_script:
 notifications:
     email:
