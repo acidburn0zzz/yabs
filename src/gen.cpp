@@ -51,6 +51,8 @@ int Generate::WalkRecur(const char *dir_name, regex_t *expr, int spec)
 		return FS_BADIO;
 	}
 	errno = 0;
+
+	// @lin_def is defined in platdef.h
 	if (lin_def == 1) {
 		struct stat St;
 		while ((ent = readdir(dir))) {
@@ -149,7 +151,7 @@ int Generate::GenMakeFromTemplate()
 	if (CheckMake() != 1) {
 		std::cout << std::setfill('#') << std::setw(80) << "#" << std::endl;
 		std::cout << std::setfill('#') << std::setw(2) << "#"
-			<< "\t\t\tMakefile Generated with yabs" << std::endl;
+			  << "\t\t\tMakefile Generated with yabs" << std::endl;
 		std::cout << std::setfill('#') << std::setw(80) << "#" << std::endl;
 		return 1;
 	} else {
