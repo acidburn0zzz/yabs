@@ -1,11 +1,11 @@
 CC	= gcc
 CXX 	= g++
 DEFINES =
-CFLAGS 	= -pipe -march=x86-64 -mtune=generic -O2 -pipe -fstack-protector --param=ssp-buffer-size=4 -Wall -W $(DEFINES)
-CXXFLAGS= -pipe -std=c++11 -march=x86-64 -mtune=generic -O2 -pipe -fstack-protector --param=ssp-buffer-size=4 -Wall -W $(DEFINES)
+CFLAGS 	= -pipe -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-protector --param=ssp-buffer-size=4 -Wall -W $(DEFINES)
+CXXFLAGS= -pipe -std=c++11 -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-protector -ftest-coverage --param=ssp-buffer-size=4 -Wall -W $(DEFINES)
 LINK 	= g++
-LFLAGS 	= -Wl
-LIBS 	= -lssh2 -lyaml
+LFLAGS 	= -Wl,-O1,--sort-common,--as-needed,-z,relro -Wl,-O1
+LIBS 	= -lssh2 -lyaml -lgcov
 INCPATH = -I/usr/include -Iinclude
 DEL	= rm -f
 DEL_R	= rm -r
@@ -43,7 +43,7 @@ first: all
 all: $(TRGT)
 
 $(TRGT): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(TRGT) $(OBJ) $(LIBS)
+	$(CXX) $(LFLAGS) -o $(TRGT) $(OBJ) $(LIBS)
 
 env.o: src/env.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o env.o src/env.cpp
@@ -64,3 +64,4 @@ clean:
 	$(DEL) $(OBJ)
 	$(DEL) yabs.ybf yabs
 	$(DEL) *~ core *.core
+	$(DEL) *.gcno *.gcda
