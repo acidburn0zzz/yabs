@@ -64,4 +64,4 @@ clean:
 	$(DEL) $(OBJ)
 	$(DEL) yabs.ybf yabs
 	$(DEL) *~ core *.core
-	$(DEL) *.gcno *.gcda
+	$(DEL) *.gcno *.gcda *.gcov
