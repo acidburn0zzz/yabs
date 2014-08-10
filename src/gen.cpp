@@ -1,11 +1,7 @@
-#include "gen.h"
-#include "platdef.h"
-
 #ifdef __linux__
 #include <linux/limits.h>
 #include <err.h>
 #endif
-
 #include <errno.h>
 #include <dirent.h>
 #include <libgen.h>
@@ -18,6 +14,8 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include "gen.h"
+#include "platdef.h"
 #define BASEDIR DefineBaseDir()
 
 enum {
@@ -83,7 +81,7 @@ int Generate::WalkRecur(const char *dir_name, regex_t *expr, int spec)
 	return res ? res : errno ? FS_BADIO : FS_OK;
 }
 
-int Generate::WalkDir(const char *dir_name, char *pattern, int spec)
+int Generate::WalkDir(const char *dir_name, const char *pattern, int spec)
 {
 	regex_t r;
 	int res;
@@ -97,12 +95,11 @@ int Generate::WalkDir(const char *dir_name, char *pattern, int spec)
 
 int Generate::CheckMake()
 {
-	default_makefile = MAKEFILE;
 	// Get current working directory
 	if (getcwd(cwd, MAXPATHLEN) != NULL) {
 		printf("Current working directory: %s\n", cwd);
 		struct stat buffer;
-		int exist = stat(default_makefile, &buffer);
+		int exist = stat(MAKEFILE, &buffer);
 		if (exist == 0) {
 			printf("Makefile present\n");
 			return 1;
@@ -126,24 +123,33 @@ int Generate::CheckConfigExists()
 	return 0;
 }
 
-void Generate::GenBlankConfig()
+void Generate::GenBlankConfig(int force_opt)
 {
-	if (CheckConfigExists() < 0) {
-		char file_name[PATH_MAX];
+	char file_name[PATH_MAX];
+	if ((CheckConfigExists() < 0) && (force_opt == 0)) {
 		snprintf(file_name, sizeof(file_name), "%s.ybf", basename(BASEDIR));
 		printf("New build file written as: %s\n", file_name);
 		new_config = fopen(file_name, "w+");
+	} else if (CheckConfigExists() > 0) {
+		snprintf(file_name, sizeof(file_name), "%s.ybf", basename(BASEDIR));
+		printf("Config file %s already exists\n", file_name);
+		if (force_opt > 0) {
+			snprintf(file_name, sizeof(file_name), "%s.ybf", basename(BASEDIR));
+			printf("New build file written as: %s\n", file_name);
+			new_config = fopen(file_name, "w+");
+		}
 	}
 }
 
-void Generate::WriteMake()
+int Generate::WriteMake()
 {
 	if (CheckConfigExists() == 1) {
-		return;
+		return 1;
 	} else {
 		printf("Error: yabs build file does not exist\n");
+		return -1;
 	}
-	return;
+	return 0;
 }
 
 int Generate::GenMakeFromTemplate()

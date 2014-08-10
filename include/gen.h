@@ -35,14 +35,14 @@ public:
 	Generate();
 	~Generate();
 	char *DefineBaseDir();
-	void WriteMake();
+	int WriteMake();
 	void Walk();
-	void GenBlankConfig();
+	void GenBlankConfig(int force_opt);
 	void CheckFiles();
 	int CheckConfigExists();
 	int CheckMake();
 	int GenMakeFromTemplate();
-	int WalkDir(const char *dir_name, char *pattern, int spec);
+	int WalkDir(const char *dir_name, const char *pattern, int spec);
 	int WalkRecur(const char *dir_name, regex_t *expr, int spec);
 };
 #endif
