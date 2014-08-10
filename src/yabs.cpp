@@ -28,7 +28,8 @@ int main(int argc, char *argv[])
 			Gen.GenMakeFromTemplate();
 			Gen.WalkDir(Gen.current_dir, ".\\.cpp$", FS_DEFAULT | FS_MATCHDIRS);
 			Gen.WalkDir(Gen.current_dir, ".\\.h$", FS_DEFAULT | FS_MATCHDIRS);
-			Prs.OpenConfig(argv[2]);
+			if (argv[2] != NULL)
+				Prs.OpenConfig(argv[2]);
 			break;
 		case 'h':
 			printHelp();
