@@ -2,3 +2,6 @@ Makefile
 .clang-format
 *.o
 yabs
+*.gcno
+*.gcda
+*.gcov
