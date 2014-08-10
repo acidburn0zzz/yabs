@@ -15,9 +15,9 @@ before_install:
     - sudo pip install cpp-coveralls
 script:
     - make
-    - ./yabs -d
-    - ./yabs -n
     - ./yabs -h
+    - ./yabs -n
+    - ./yabs -d yabs.ybf
 after_script:
     - gcov yabs.gcda
     - coveralls --exclude include
