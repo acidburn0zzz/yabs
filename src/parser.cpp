@@ -42,7 +42,6 @@ int Parser::AssertYML(const char *build_file)
 {
 	const char *ext;
 	ext = strrchr(build_file, '.') + 1;
-	printf("File extension: %s\n", ext);
 	if ((strcmp(ext, "yml") == 0) || (strcmp(ext, "yaml") == 0) || (strcmp(ext, "ybf") == 0)) {
 		return 1;
 	} else {
