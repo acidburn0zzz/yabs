@@ -18,6 +18,8 @@ script:
     - ./yabs -h
     - ./yabs -n
     - ./yabs -d yabs.ybf
+    - ./yabs -p yabs.pro
+    - ./yabs -p yabs.ybf
 after_script:
     - gcov yabs.gcda
     - coveralls --exclude include
