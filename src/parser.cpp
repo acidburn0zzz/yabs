@@ -45,6 +45,7 @@ int Parser::AssertYML(const char *build_file)
 	if ((strcmp(ext, "yml") == 0) || (strcmp(ext, "yaml") == 0) || (strcmp(ext, "ybf") == 0)) {
 		return 1;
 	} else {
+		printf("Error: %s is not a valid build file\n", build_file);
 		return -1;
 	}
 	return 0;
