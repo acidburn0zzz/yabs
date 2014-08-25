@@ -15,6 +15,7 @@ public:
 	int OpenConfig(const char *build_file);
 	int CloseConfig();
 	int ReadValues();
+	int AssertYML(const char *build_file);
 };
 
 #endif

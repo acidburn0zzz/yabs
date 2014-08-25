@@ -7,10 +7,15 @@ Parser::~Parser() {};
 
 int Parser::OpenConfig(const char *build_file)
 {
-	conf = fopen(build_file, "r");
-	ParseConfig();
-	ReadValues();
-	CloseConfig();
+	if (AssertYML(build_file) == 1) {
+		conf = fopen(build_file, "r");
+		ParseConfig();
+		ReadValues();
+		CloseConfig();
+		return 1;
+	} else {
+		return -1;
+	}
 	return 0;
 }
 
@@ -29,6 +34,19 @@ int Parser::CloseConfig()
 		yaml_parser_delete(&parser);
 	if (conf != NULL) {
 		fclose(conf);
+	}
+	return 0;
+}
+
+int Parser::AssertYML(const char *build_file)
+{
+	const char *ext;
+	ext = strrchr(build_file, '.') + 1;
+	printf("File extension: %s\n", ext);
+	if ((strcmp(ext, "yml") == 0) || (strcmp(ext, "yaml") == 0) || (strcmp(ext, "ybf") == 0)) {
+		return 1;
+	} else {
+		return -1;
 	}
 	return 0;
 }
