@@ -24,16 +24,19 @@ int Parser::ParseConfig()
 	if (conf != NULL) {
 		yaml_parser_initialize(&parser);
 		yaml_parser_set_input_file(&parser, conf);
+		return 1;
 	}
 	return 0;
 }
 
 int Parser::CloseConfig()
 {
-	if (&parser != NULL)
+	if ((&parser != NULL) && (conf !=NULL)) {
 		yaml_parser_delete(&parser);
-	if (conf != NULL) {
 		fclose(conf);
+		return 1;
+	} else {
+		return -1;
 	}
 	return 0;
 }
