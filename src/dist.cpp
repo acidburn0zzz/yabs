@@ -25,61 +25,76 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <archive.h>
+#include <archive_entry.h>
+#include <stdlib.h>
 #include <iostream>
-#include <unistd.h>
-#include <getopt.h>
 #include "dist.h"
-#include "gen.h"
-#include "interface.h"
-#include "parser.h"
 
-int main(int argc, char *argv[])
+int copy_data(struct archive *arch, struct archive *archive_write)
 {
-	Generate Gen;
-	Parser Prs;
-	int n_opt, p_opt;
-	char *n_opt_arg;
-	while (1) {
-		static struct option long_options[] = {
-			{ "new", optional_argument, &n_opt, 'n' },
-			{ "help", no_argument, 0, 'h' },
-			{ "debug", no_argument, 0, 'd' },
-			{ "parse", optional_argument, &p_opt, 'p' },
-			{ "extract", optional_argument, 0, 'e' },
-			{ 0, 0, 0, 0 }
-		};
-		int option_index = 0;
-		int c = getopt_long(argc, argv, ":d::p::hn::e::", long_options, &option_index);
-		if (c == -1)
-			break;
-		switch (c) {
-		case 'e':
-			if (argv[2] != NULL)
-				extract(argv[2]);
-			break;
-		case 'd':
-			Gen.CheckMake();
-			Gen.WriteMake();
-			Gen.GenMakeFromTemplate();
-			Gen.WalkDir(Gen.current_dir, ".\\.cpp$", FS_DEFAULT | FS_MATCHDIRS);
-			Gen.WalkDir(Gen.current_dir, ".\\.h$", FS_DEFAULT | FS_MATCHDIRS);
-			if (argv[2] != NULL)
-				Prs.OpenConfig(argv[2]);
-			break;
-		case 'h':
-			printHelp();
-			break;
-		case 'n':
-			Gen.GenBlankConfig(0);
-			n_opt_arg = optarg;
-			break;
-		case 'p':
-			if (argv[2] != NULL)
-				Prs.OpenConfig(argv[2]);
-			break;
-		case ':':
-			break;
+	int r;
+	const void *buff;
+	size_t size;
+	off_t offset;
+
+	for (;;) {
+		r = archive_read_data_block(arch, &buff, &size, &offset);
+		if (r == ARCHIVE_EOF)
+			return (ARCHIVE_OK);
+		if (r < ARCHIVE_OK)
+			return r;
+		r = archive_write_data_block(archive_write, buff, size, offset);
+		if (r < ARCHIVE_OK) {
+			printf("%s\n", archive_error_string(archive_write));
+			return r;
 		}
 	}
-	return 0;
+}
+
+void extract(const char *proj_path)
+{
+	struct archive *arch;
+	struct archive *ext;
+	struct archive_entry *ent;
+	int r;
+
+	arch = archive_read_new();
+	archive_read_support_format_all(arch);
+	ext = archive_write_disk_new();
+	archive_write_disk_set_options(ext, 0);
+	archive_write_disk_set_standard_lookup(ext);
+	if ((r = archive_read_open_filename(arch, proj_path, 10240)))
+		return;
+	for (;;) {
+		r = archive_read_next_header(arch, &ent);
+		if (r == ARCHIVE_EOF)
+			break;
+		if (r < ARCHIVE_OK)
+			printf("%s\n", archive_error_string(arch));
+		if (r < ARCHIVE_WARN)
+			return;
+		r = archive_write_header(ext, ent);
+		if (r < ARCHIVE_OK)
+			printf("%s\n", archive_error_string(ext));
+		else if (archive_entry_size(ent) > 0) {
+			r = copy_data(arch, ext);
+			if (r < ARCHIVE_OK)
+				printf("%s\n", archive_error_string(ext));
+			if (r < ARCHIVE_WARN)
+				return;
+		}
+		r = archive_write_finish_entry(ext);
+		if (r < ARCHIVE_OK)
+			printf("%s\n", archive_error_string(ext));
+		if (r < ARCHIVE_WARN)
+			return;
+	}
+	archive_read_close(arch);
+	archive_read_free(arch);
+	archive_write_close(ext);
+	archive_write_free(ext);
+	return;
 }
