@@ -5,16 +5,18 @@ CFLAGS 	= -pipe -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-pr
 CXXFLAGS= -pipe -std=c++11 -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-protector -ftest-coverage --param=ssp-buffer-size=4 -Wall -W $(DEFINES)
 LINK 	= g++
 LFLAGS 	= -Wl,-O1,--sort-common,--as-needed,-z,relro -Wl,-O1
-LIBS 	= -lssh2 -lyaml -lgcov
+LIBS 	= -lssh2 -lyaml -lgcov -larchive
 INCPATH = -I/usr/include -Iinclude
 DEL	= rm -f
 DEL_R	= rm -r
-SRC 	= src/env.cpp \
+SRC 	= src/dist.cpp \
+	  src/env.cpp \
 	  src/gen.cpp \
 	  src/interface.cpp \
 	  src/parser.cpp \
 	  src/yabs.cpp
-OBJ 	= env.o \
+OBJ 	= dist.o \
+	  env.o \
 	  gen.o \
 	  interface.o \
 	  parser.o \
@@ -44,6 +46,9 @@ all: $(TRGT)
 
 $(TRGT): $(OBJ)
 	$(CXX) $(LFLAGS) -o $(TRGT) $(OBJ) $(LIBS)
+
+dist.o: src/dist.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dist.o src/dist.cpp
 
 env.o: src/env.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o env.o src/env.cpp
