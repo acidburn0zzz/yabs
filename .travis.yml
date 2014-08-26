@@ -15,11 +15,13 @@ before_install:
     - sudo pip install cpp-coveralls
 script:
     - make
+    - tar cvf include.tar.gz include/
     - ./yabs -h
     - ./yabs -n
     - ./yabs -d yabs.ybf
     - ./yabs -p yabs.pro
     - ./yabs -p yabs.ybf
+    - ./yabs -e include.tar.gz
 after_script:
     - gcov yabs.gcda
     - coveralls --exclude include
