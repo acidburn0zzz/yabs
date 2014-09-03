@@ -71,12 +71,16 @@ int Parser::CloseConfig()
 int Parser::AssertYML(const char *build_file)
 {
 	const char *ext;
-	ext = strrchr(build_file, '.') + 1;
-	if ((strcmp(ext, "yml") == 0) || (strcmp(ext, "yaml") == 0) || (strcmp(ext, "ybf") == 0)) {
+	ext = strrchr(build_file, '.');
+	if (!ext) {
+		printf("Error: %s has no extension\n", build_file);
+		return -1;
+	}
+	if ((strcmp(ext + 1, "yml") == 0) || (strcmp(ext + 1, "yaml") == 0) || (strcmp(ext + 1, "ybf") == 0)) {
 		return 1;
 	} else {
 		printf("Error: %s is not a valid build file\n", build_file);
-		return -1;
+		return -2;
 	}
 	return 0;
 }
