@@ -49,8 +49,8 @@ class Generate
 {
 public:
 	char cwd[MAXPATHLEN];
-#ifdef __linux__
-	char *current_dir = get_current_dir_name();
+#ifdef __unix__
+	char *current_dir = getcwd(cwd, MAXPATHLEN);
 #endif
 #ifdef __WIN32__
 	char *current_dir;
