@@ -78,7 +78,7 @@ int Generate::WalkRecur(const char *dir_name, regex_t *expr, int spec)
 	errno = 0;
 
 	// @lin_def is defined in platdef.h
-	if (lin_def == 1) {
+	if (__unix__) {
 		struct stat St;
 		while ((ent = readdir(dir))) {
 			if (!(spec & FS_DOTFILES) && ent->d_name[0] == '.')
