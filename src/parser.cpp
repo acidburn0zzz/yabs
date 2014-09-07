@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <sys/types.h>
+#include <dirent.h>
 #include <fstream>
 #include <yaml.h>
 #include "parser.h"
@@ -72,6 +74,10 @@ int Parser::AssertYML(const char *build_file)
 {
 	const char *ext;
 	ext = strrchr(build_file, '.');
+	if (opendir(build_file) != NULL) {
+		printf("Error: %s is a directory\n", build_file);
+		return -3;
+	}
 	if (!ext) {
 		printf("Error: %s has no extension\n", build_file);
 		return -1;
