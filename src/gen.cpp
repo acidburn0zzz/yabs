@@ -76,33 +76,31 @@ int Generate::WalkRecur(const char *dir_name, regex_t *expr, int spec)
 		return FS_BADIO;
 	}
 	errno = 0;
-
-	// @lin_def is defined in platdef.h
-	if (__unix__) {
-		struct stat St;
-		while ((ent = readdir(dir))) {
-			if (!(spec & FS_DOTFILES) && ent->d_name[0] == '.')
-				continue;
-			if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
-				continue;
-			strncpy(path_name + len, ent->d_name, FILENAME_MAX - len);
-			if (lstat(path_name, &St) == -1) {
-				printf("Error: Can't stat %s", path_name);
-				res = FS_BADIO;
-				continue;
-			}
-			if (S_ISLNK(St.st_mode) && !(spec & FS_FOLLOWLINK))
-				continue;
-			if (S_ISDIR(St.st_mode)) {
-				if ((spec & FS_RECURSIVE))
-					WalkRecur(path_name, expr, spec);
-				if (!(spec & FS_MATCHDIRS))
-					continue;
-			}
-			if (!regexec(expr, path_name, 0, 0, 0))
-				printf("%s\n", path_name);
+#ifdef __unix__
+	struct stat St;
+	while ((ent = readdir(dir))) {
+		if (!(spec & FS_DOTFILES) && ent->d_name[0] == '.')
+			continue;
+		if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
+			continue;
+		strncpy(path_name + len, ent->d_name, FILENAME_MAX - len);
+		if (lstat(path_name, &St) == -1) {
+			printf("Error: Can't stat %s", path_name);
+			res = FS_BADIO;
+			continue;
 		}
+		if (S_ISLNK(St.st_mode) && !(spec & FS_FOLLOWLINK))
+			continue;
+		if (S_ISDIR(St.st_mode)) {
+			if ((spec & FS_RECURSIVE))
+				WalkRecur(path_name, expr, spec);
+			if (!(spec & FS_MATCHDIRS))
+				continue;
+		}
+		if (!regexec(expr, path_name, 0, 0, 0))
+			printf("%s\n", path_name);
 	}
+#endif
 	if (dir)
 		closedir(dir);
 	return res ? res : errno ? FS_BADIO : FS_OK;
@@ -184,7 +182,7 @@ int Generate::GenMakeFromTemplate()
 	if (CheckMake() != 1) {
 		std::cout << std::setfill('#') << std::setw(80) << "#" << std::endl;
 		std::cout << std::setfill('#') << std::setw(2) << "#"
-			  << "\t\t\tMakefile Generated with yabs" << std::endl;
+			<< "\t\t\tMakefile Generated with yabs" << std::endl;
 		std::cout << std::setfill('#') << std::setw(80) << "#" << std::endl;
 		return 1;
 	} else {
