@@ -38,6 +38,10 @@ int Parser::OpenConfig(const char *build_file)
 {
 	if (AssertYML(build_file) == 1) {
 		conf = fopen(build_file, "r");
+		if (conf == NULL) {
+			printf("Error: No file named %s\n", build_file);
+			return -2;
+		}
 		ParseConfig();
 		ReadValues();
 		CloseConfig();
