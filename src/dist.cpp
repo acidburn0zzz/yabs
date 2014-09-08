@@ -38,7 +38,7 @@ int copy_data(struct archive *arch, struct archive *archive_write)
 	int r;
 	const void *buff;
 	size_t size;
-	off_t offset;
+	int64_t offset;
 
 	for (;;) {
 		r = archive_read_data_block(arch, &buff, &size, &offset);
