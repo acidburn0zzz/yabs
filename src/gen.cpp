@@ -88,8 +88,12 @@ int Generate::WalkRecur(const char *dir_name, regex_t *expr, int spec)
 			if (!(spec & FS_MATCHDIRS))
 				continue;
 		}
-		if (!regexec(expr, path_name, 0, 0, 0))
+		if (!regexec(expr, path_name, 0, 0, 0)) {
+			file_count++;
 			printf("%s\n", path_name);
+			file_name = path_name;
+			GenFileList(RelPathName(file_name));
+		}
 	}
 #endif
 	if (dir)
@@ -107,6 +111,28 @@ int Generate::WalkDir(const char *dir_name, const char *pattern, int spec)
 	regfree(&r);
 
 	return res;
+}
+
+char *Generate::RelPathName(char *to_rel)
+{
+	char *perm = strstr(to_rel, REL_BASEDIR);
+	printf("Mutated path: %s\n", perm);
+	return perm;
+}
+
+void Generate::GenFileList(char *file_list)
+{
+	if (file_list != NULL) {
+		std::string fileList = file_list;
+		FileList.push_back(fileList);
+	}
+}
+
+void Generate::PrintFileList()
+{
+	for (int i = 0; i < file_count; i++) {
+		std::cout << "Vector file list: " << FileList[i] << "\n";
+	}
 }
 
 int Generate::CheckMake()
@@ -130,7 +156,7 @@ int Generate::CheckMake()
 int Generate::CheckConfigExists()
 {
 	char file_name[PATH_MAX];
-	snprintf(file_name, sizeof(file_name), "%s.ybf", basename(BASEDIR));
+	snprintf(file_name, sizeof(file_name), "%s.ybf", basename(REL_BASEDIR));
 	if (access(file_name, F_OK) != -1) {
 		return 1;
 	} else {
@@ -143,14 +169,17 @@ void Generate::GenBlankConfig(int force_opt)
 {
 	char file_name[PATH_MAX];
 	if ((CheckConfigExists() < 0) && (force_opt == 0)) {
-		snprintf(file_name, sizeof(file_name), "%s.ybf", basename(BASEDIR));
+		snprintf(file_name, sizeof(file_name), "%s.ybf",
+			 basename(BASEDIR));
 		printf("New build file written as: %s\n", file_name);
 		new_config = fopen(file_name, "w+");
 	} else if (CheckConfigExists() > 0) {
-		snprintf(file_name, sizeof(file_name), "%s.ybf", basename(BASEDIR));
+		snprintf(file_name, sizeof(file_name), "%s.ybf",
+			 basename(BASEDIR));
 		printf("Config file %s already exists\n", file_name);
 		if (force_opt > 0) {
-			snprintf(file_name, sizeof(file_name), "%s.ybf", basename(BASEDIR));
+			snprintf(file_name, sizeof(file_name), "%s.ybf",
+				 basename(BASEDIR));
 			printf("New build file written as: %s\n", file_name);
 			new_config = fopen(file_name, "w+");
 		}
@@ -171,10 +200,12 @@ int Generate::WriteMake()
 int Generate::GenMakeFromTemplate()
 {
 	if (CheckMake() != 1) {
-		std::cout << std::setfill('#') << std::setw(80) << "#" << std::endl;
+		std::cout << std::setfill('#') << std::setw(80) << "#"
+			  << std::endl;
 		std::cout << std::setfill('#') << std::setw(2) << "#"
-			<< "\t\t\tMakefile Generated with yabs" << std::endl;
-		std::cout << std::setfill('#') << std::setw(80) << "#" << std::endl;
+			  << "\t\t\tMakefile Generated with yabs" << std::endl;
+		std::cout << std::setfill('#') << std::setw(80) << "#"
+			  << std::endl;
 		return 1;
 	} else {
 		return -1;

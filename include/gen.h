@@ -35,36 +35,44 @@
 #define FS_DOTFILES (1 << 2)
 #define FS_MATCHDIRS (1 << 3)
 
-#ifdef __WIN32__
-#include <windows.h>
-#endif
-
 #include <regex.h>
 #include <unistd.h>
 #include <sys/param.h>
 #include <fstream>
+#include <string>
+#include <vector>
+
+enum { FS_OK = 0,
+       FS_BADPattern,
+       FS_NAMETOOLONG,
+       FS_BADIO,
+};
 
 class Generate
 {
-public:
+private:
 	char cwd[MAXPATHLEN];
 #ifdef __unix__
 	char *current_dir = getcwd(cwd, MAXPATHLEN);
 #endif
-#ifdef __WIN32__
-	char *current_dir;
-#endif
+	std::vector<std::string> FileList;
+	char *file_name;
 	const char *default_makefile;
+	int file_count = 0;
 	FILE *makefile;
 	FILE *new_config;
 
+public:
 	Generate();
 	~Generate();
-	char *DefineBaseDir();
+	char *GetCurrentDir();
+	char *RelPathName(char *to_rel);
 	int WriteMake();
 	void Walk();
+	void GenFileList(char *file_list);
 	void GenBlankConfig(int force_opt);
 	void CheckFiles();
+	void PrintFileList();
 	int CheckConfigExists();
 	int CheckMake();
 	int GenMakeFromTemplate();
