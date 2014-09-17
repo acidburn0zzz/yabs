@@ -40,24 +40,16 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <vector>
 #include "gen.h"
 #include "platdef.h"
-#define BASEDIR DefineBaseDir()
+#define BASEDIR GetCurrentDir()
+#define REL_BASEDIR strrchr(BASEDIR, '/') + 1
 
-enum {
-	FS_OK = 0,
-	FS_BADPattern,
-	FS_NAMETOOLONG,
-	FS_BADIO,
-};
+Generate::Generate(){};
+Generate::~Generate(){};
 
-Generate::Generate() {};
-Generate::~Generate() {};
-
-char *Generate::DefineBaseDir()
-{
-	return current_dir;
-}
+char *Generate::GetCurrentDir() { return current_dir; }
 
 int Generate::WalkRecur(const char *dir_name, regex_t *expr, int spec)
 {
