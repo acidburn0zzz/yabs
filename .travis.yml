@@ -21,6 +21,20 @@ script:
     - ./yabs -d yabs.ybf
     - ./yabs -p yabs.pro
     - ./yabs -p yabs.ybf
+    - ./yabs -p alias.yml
+    - ./yabs -p ball_clubs.yml
+    - ./yabs -p ball_players.yml
+    - ./yabs -p block_literal.yml
+    - ./yabs -p bool.yml
+    - ./yabs -p complex_key.yml
+    - ./yabs -p csv.yml
+    - ./yabs -p key-values.yml
+    - ./yabs -p map_map.yml
+    - ./yabs -p multi_line_scalar.yml
+    - ./yabs -p multiple_player_stat.yml
+    - ./yabs -p plain_scalar.yml
+    - ./yabs -p player_stat.yml
+    - ./yabs -p quoted_scalar.yml
     - ./yabs -e include.tar.gz
 after_script:
     - gcov yabs.gcda
