@@ -31,16 +31,26 @@
 
 class Parser
 {
-public:
+private:
+	enum spec {
+		error = 0,
+		key,
+		value,
+		block_entry,
+	};
+	spec prs;
 	FILE *conf;
 	yaml_parser_t parser;
 	yaml_token_t token;
+
+public:
 	Parser();
 	~Parser();
 	int ParseConfig();
 	int OpenConfig(const char *build_file);
 	int CloseConfig();
 	int ReadValues();
+	int ParseValues();
 	int AssertYML(const char *build_file);
 };
 

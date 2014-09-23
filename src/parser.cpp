@@ -24,15 +24,14 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-
 #include <sys/types.h>
 #include <dirent.h>
 #include <fstream>
 #include <yaml.h>
 #include "parser.h"
 
-Parser::Parser() {};
-Parser::~Parser() {};
+Parser::Parser(){};
+Parser::~Parser(){};
 
 int Parser::OpenConfig(const char *build_file)
 {
@@ -66,6 +65,7 @@ int Parser::CloseConfig()
 {
 	if ((&parser != NULL) && (conf != NULL)) {
 		yaml_parser_delete(&parser);
+		yaml_token_delete(&token);
 		fclose(conf);
 		return 1;
 	} else {
@@ -86,7 +86,8 @@ int Parser::AssertYML(const char *build_file)
 		printf("Error: %s has no extension\n", build_file);
 		return -1;
 	}
-	if ((strcmp(ext + 1, "yml") == 0) || (strcmp(ext + 1, "yaml") == 0) || (strcmp(ext + 1, "ybf") == 0)) {
+	if ((strcmp(ext + 1, "yml") == 0) || (strcmp(ext + 1, "yaml") == 0) ||
+	    (strcmp(ext + 1, "ybf") == 0)) {
 		return 1;
 	} else {
 		printf("Error: %s is not a valid build file\n", build_file);
@@ -103,55 +104,45 @@ int Parser::ReadValues()
 		case YAML_VERSION_DIRECTIVE_TOKEN:
 			break;
 		case YAML_NO_TOKEN:
-			printf("No token\n");
 			break;
 		case YAML_STREAM_START_TOKEN:
-			printf("Stream start\n");
 			break;
 		case YAML_STREAM_END_TOKEN:
-			printf("Stream end\n");
 			break;
 		case YAML_KEY_TOKEN:
-			printf("\tKey token: ");
+			prs = key;
 			break;
 		case YAML_VALUE_TOKEN:
-			printf("\t\tValue token: ");
+			prs = value;
 			break;
 		case YAML_TAG_DIRECTIVE_TOKEN:
 			printf("Tag directive: %s\n", token.data.scalar.value);
 			break;
 		case YAML_DOCUMENT_START_TOKEN:
-			printf("Document start\n");
+			printf("---\n");
 			break;
 		case YAML_DOCUMENT_END_TOKEN:
-			printf("Document end\n");
+			printf("...\n");
 			break;
 		case YAML_BLOCK_SEQUENCE_START_TOKEN:
-			printf("Block sequence start\n");
+			printf("\n");
 			break;
 		case YAML_BLOCK_END_TOKEN:
-			printf("Block sequence end\n");
 			break;
 		case YAML_BLOCK_MAPPING_START_TOKEN:
-			printf("Block Mapping start\n");
-			break;
-		case YAML_FLOW_SEQUENCE_START_TOKEN:
-			printf("Sequence start\n");
-			break;
-		case YAML_FLOW_SEQUENCE_END_TOKEN:
-			printf("Sequence end\n");
-			break;
-		case YAML_FLOW_MAPPING_START_TOKEN:
-			printf("Mapping start\n");
-			break;
-		case YAML_FLOW_MAPPING_END_TOKEN:
-			printf("Mapping end\n");
 			break;
 		case YAML_BLOCK_ENTRY_TOKEN:
-			printf("Block entry\n");
+			prs = block_entry;
+			break;
+		case YAML_FLOW_SEQUENCE_START_TOKEN:
+			break;
+		case YAML_FLOW_SEQUENCE_END_TOKEN:
+			break;
+		case YAML_FLOW_MAPPING_START_TOKEN:
+			break;
+		case YAML_FLOW_MAPPING_END_TOKEN:
 			break;
 		case YAML_FLOW_ENTRY_TOKEN:
-			printf("Block entry token: %s\n", token.data.scalar.value);
 			break;
 		case YAML_ALIAS_TOKEN:
 			printf("Alias token: %s\n", token.data.scalar.value);
@@ -163,10 +154,25 @@ int Parser::ReadValues()
 			printf("Tag token: %s\n", token.data.scalar.value);
 			break;
 		case YAML_SCALAR_TOKEN:
-			printf("%s\n", token.data.scalar.value);
+			switch (prs) {
+			case error:
+				printf("Error: There was an error parsing the file\n");
+				return -1;
+			case key:
+				printf("%s: ", token.data.scalar.value);
+				break;
+			case block_entry:
+				printf(" - %s\n", token.data.scalar.value);
+				break;
+			case value:
+				printf("%s\n", token.data.scalar.value);
+				break;
+			default:
+				printf("%s\n", token.data.scalar.value);
+				break;
+			}
 			break;
 		}
 	} while (token.type != YAML_STREAM_END_TOKEN);
-	yaml_token_delete(&token);
 	return 0;
 }
