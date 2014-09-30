@@ -8,7 +8,7 @@ files define Makefiles to be written that can be copied to a remote system or
 be completely built on a remote system.
 
 ## Status
-Nothing works the way it's mean to right now. c:
+Nothing works the way it's meant to right now. c:
 
 ## Building
 

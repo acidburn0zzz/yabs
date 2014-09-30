@@ -24,15 +24,20 @@ after-script:
 ...
 ```
 Where the key `include` would include another file with more values 
-for theproject, here `yabs-include.yml` is:
+for the project, here `yabs-include.yml` is:
 ```
 libs: yaml ssh2 git2 archive
 inc: /usr/include /usr/local/include
 libdir: /usr/lib /usr/local/lib
 ```
+Libraries used in the project do not have to be prepended with `-l` but they do 
+have to be valid library files. This also extends to include and library 
+directories where these would normally be prepended with `-L` and `-I` in a 
+`Makefile`.
+
 ## Keys and Values
 
-Valid keys for a project file are as follows:
+Valid options for a project file are as follows:
 ```
 - os: Operating system the project is being built for
 - remote: Remote that this project could either be built on or pushed to (git repos)
@@ -44,14 +49,9 @@ Valid keys for a project file are as follows:
 - {before, after}-script: Commads to be run either before the project's Makefile is written or after
 ```
 
-Libraries used in the project do not have to be prepended with `-l` but they do 
-have to be valid library files. This is also extends to include and library 
-directories where these would normally be prepended with `-L` and `-I` in a 
-`Makefile`.
-
 ## Multiple Documents
-Multiple documents in a yaml file can define multiple Makefiles, and inherintly,
-multiple operating systems for example:
+Multiple documents in a yaml file can define multiple Makefiles, and inherently,
+multiple operating systems, for example:
 ```
 ---
 os: linux
@@ -87,7 +87,7 @@ after-script:
 ```
 Note that the Makefiles produced are apended with the name of the operating 
 system and if multiple architectures for that operting system are defined 
-the architecture is also apended. As such the Makefiles produced by this project
-file would be `Makefile.linux-x86_64`,`Makefile.linux-i686`, 
+the architecture is also apended. As such the Makefiles produced by the project
+file about would be `Makefile.linux-x86_64`,`Makefile.linux-i686`, 
 and `Makefile.bsd-x86_64`. If no architecure is defined then the architecture 
-of the host is assumed.
+of the host is apended.
