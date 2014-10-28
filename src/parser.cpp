@@ -21,7 +21,7 @@ int Parser::OpenConfig(const char *build_file)
 			return -2;
 		}
 		ParseConfig();
-		ReadValues();
+		ParseValues();
 		CloseConfig();
 		return 1;
 	} else {
@@ -65,8 +65,8 @@ int Parser::AssertYML(const char *build_file)
 		printf("Error: %s has no extension\n", build_file);
 		return -1;
 	}
-	if ((strcmp(ext + 1, "yml") == 0) || (strcmp(ext + 1, "yaml") == 0) ||
-	    (strcmp(ext + 1, "ybf") == 0)) {
+	if ((strcasecmp(ext + 1, "yml") == 0) || (strcasecmp(ext + 1, "yaml") == 0) ||
+	    (strcasecmp(ext + 1, "ybf") == 0)) {
 		return 1;
 	} else {
 		printf("Error: %s is not a valid build file\n", build_file);
@@ -75,7 +75,15 @@ int Parser::AssertYML(const char *build_file)
 	return 0;
 }
 
-int Parser::ReadValues()
+const char *Parser::ParseValues()
+{
+	do {
+		ReadValues();
+	} while (token_return != 0);
+	return NULL;
+}
+
+const char *Parser::ReadValues()
 {
 	do {
 		yaml_parser_scan(&parser, &token);
@@ -98,13 +106,13 @@ int Parser::ReadValues()
 			printf("Tag directive: %s\n", token.data.scalar.value);
 			break;
 		case YAML_DOCUMENT_START_TOKEN:
-			printf("---\n");
+			IncDocNum();
 			break;
 		case YAML_DOCUMENT_END_TOKEN:
 			printf("...\n");
 			break;
 		case YAML_BLOCK_SEQUENCE_START_TOKEN:
-			printf("\n");
+			printf("Block Seq Start\n");
 			break;
 		case YAML_BLOCK_END_TOKEN:
 			break;
@@ -135,16 +143,30 @@ int Parser::ReadValues()
 		case YAML_SCALAR_TOKEN:
 			switch (prs) {
 			case error:
-				printf("Error: There was an error parsing the file\n");
-				return -1;
+				break;
 			case key:
 				printf("%s: ", token.data.scalar.value);
+				if (CompValid(token.data.scalar.value) == 1) {
+					key_value = ConvValue(token.data.scalar.value);
+					token_return = key;
+					break;
+				} else {
+					printf("Error: '%s' is not a valid configuration option\n", token.data.scalar.value);
+					token_return = error;
+					token.type = YAML_STREAM_END_TOKEN;
+					break;
+				}
 				break;
 			case block_entry:
 				printf(" - %s\n", token.data.scalar.value);
+				PopValidValue(key_value, ConvValue(token.data.scalar.value));
+				token_return = block_entry;
 				break;
 			case value:
 				printf("%s\n", token.data.scalar.value);
+				PopValidValue(key_value, ConvValue(token.data.scalar.value));
+				printf("Key Value: %s\n", key_value.c_str());
+				token_return = value;
 				break;
 			default:
 				printf("%s\n", token.data.scalar.value);
@@ -153,5 +175,6 @@ int Parser::ReadValues()
 			break;
 		}
 	} while (token.type != YAML_STREAM_END_TOKEN);
-	return 0;
+	token_return = error;
+	return NULL;
 }

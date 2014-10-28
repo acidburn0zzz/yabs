@@ -16,21 +16,23 @@ private:
 		key,
 		value,
 		block_entry,
-	};
-	spec prs;
+	} prs;
+	spec token_return;
 	FILE *conf;
+	int valid;
+	std::string key_value;
 	yaml_parser_t parser;
 	yaml_token_t token;
 
 public:
 	Parser();
 	~Parser();
+	int AssertYML(const char *build_file);
 	int ParseConfig();
 	int OpenConfig(const char *build_file);
 	int CloseConfig();
-	int ReadValues();
-	int ParseValues();
-	int AssertYML(const char *build_file);
+	const char *ReadValues();
+	const char *ParseValues();
 };
 
 #endif
