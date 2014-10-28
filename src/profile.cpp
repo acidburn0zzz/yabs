@@ -2,10 +2,8 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
-#include <regex.h>
 #include <string.h>
 #include <yaml.h>
-#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
