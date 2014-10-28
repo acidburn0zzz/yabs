@@ -4,7 +4,7 @@ CFLAGS 	= -pipe -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-pr
 CXXFLAGS= -pipe -std=c++11 -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-protector -ftest-coverage --param=ssp-buffer-size=4 -Wall
 LINK 	= g++
 LFLAGS 	= -Wl,-O1,--sort-common,--as-needed,-z,relro -Wl,-O1
-LIBS 	= -lssh2 -lyaml -lgcov -larchive -lgit2
+LIBS 	= -lssh2 -lyaml -lgcov -larchive
 INCPATH = -I/usr/include -Iinclude
 DEL	= rm -f
 DEL_R	= rm -r
