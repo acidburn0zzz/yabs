@@ -18,6 +18,8 @@ script:
     - tar cvf include.tar.gz include/
     - ./yabs -h
     - ./yabs -n
+    - ./yabs -p test/yabs.yml
+    - ./yabs -p test/yabs-include.yml
     - ./yabs -d yabs.ybf
     - ./yabs -p yabs.pro
     - ./yabs -p yabs.ybf

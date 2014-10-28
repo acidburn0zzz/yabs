@@ -1,0 +1,3 @@
+libs: yaml ssh2 git2 archive
+INCDIR: . /usr/include /usr/local/include
+libdir: /usr/lib /usr/local/lib

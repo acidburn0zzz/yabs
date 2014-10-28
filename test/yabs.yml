@@ -1,0 +1,37 @@
+%YAML 1.1
+---
+include: yabs-include.yml
+remote: git@git.0x1a.us:yabs-test-linux
+lang: c++
+os: linux
+arch:
+ - x86
+ - i686
+cc: gcc
+cxx: g++
+dist: yabs.tar.gz
+before-script:
+ - make -f Make.linux
+ - ./yabs --help
+...
+---
+include: yabs-include.yml
+remote: git@git.0x1a.us:yabs-test-bsd
+os: freebsd
+arch:
+ - x86
+ - i686
+cc: clang
+cxx: clang++
+...
+---
+include: yabs-include.yml
+remote: git@git.0x1a.us:yabs-test-linux
+os: linux
+arch:
+ - x86
+ - i686
+cc: gcc
+cxx: g++
+dist: yabs.tar.gz
+...
