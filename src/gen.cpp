@@ -68,7 +68,6 @@ int Generate::WalkRecur(const char *dir_name, regex_t *expr, int spec)
 		}
 		if (!regexec(expr, path_name, 0, 0, 0)) {
 			file_count++;
-			printf("%s\n", path_name);
 			file_name = path_name;
 			GenFileList(RelPathName(file_name));
 		}
@@ -94,7 +93,6 @@ int Generate::WalkDir(const char *dir_name, const char *pattern, int spec)
 char *Generate::RelPathName(char *to_rel)
 {
 	char *perm = strstr(to_rel, REL_BASEDIR);
-	printf("Mutated path: %s\n", perm);
 	return perm;
 }
 
@@ -143,25 +141,31 @@ int Generate::CheckConfigExists()
 	return 0;
 }
 
-void Generate::GenBlankConfig(int force_opt)
+int Generate::GenBlankConfig(int force_opt)
 {
 	char file_name[PATH_MAX];
 	if ((CheckConfigExists() < 0) && (force_opt == 0)) {
 		snprintf(file_name, sizeof(file_name), "%s.ybf",
 			 basename(BASEDIR));
-		printf("New build file written as: %s\n", file_name);
 		new_config = fopen(file_name, "w+");
+		if (new_config != NULL) {
+			printf("New build file written as: %s\n", file_name);
+		}
+		return 1;
 	} else if (CheckConfigExists() > 0) {
 		snprintf(file_name, sizeof(file_name), "%s.ybf",
 			 basename(BASEDIR));
 		printf("Config file %s already exists\n", file_name);
-		if (force_opt > 0) {
-			snprintf(file_name, sizeof(file_name), "%s.ybf",
-				 basename(BASEDIR));
-			printf("New build file written as: %s\n", file_name);
-			new_config = fopen(file_name, "w+");
-		}
+		return 2;
 	}
+	if (force_opt > 0) {
+		snprintf(file_name, sizeof(file_name), "%s.ybf",
+			 basename(BASEDIR));
+		printf("New build file written as: %s\n", file_name);
+		new_config = fopen(file_name, "w+");
+		return 3;
+	}
+	return 3;
 }
 
 int Generate::WriteMake()
