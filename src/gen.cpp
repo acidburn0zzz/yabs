@@ -20,7 +20,6 @@
 #include <iomanip>
 #include <vector>
 #include "gen.h"
-#include "platdef.h"
 #define BASEDIR GetCurrentDir()
 #define REL_BASEDIR strrchr(BASEDIR, '/') + 1
 
