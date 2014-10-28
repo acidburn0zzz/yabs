@@ -131,13 +131,3 @@ void Profile::PopValidValue(std::string &k_value, const char *v_value)
 		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 }
-
-int Profile::RegValues(const char *reg_value)
-{
-	regex_t exp;
-	if (regcomp(&exp, reg_value, 0)) {
-		return -1;
-	}
-	regfree(&exp);
-	return 0;
-}
