@@ -13,19 +13,19 @@
 int main(int argc, char *argv[])
 {
 	Yabs Ybs;
-	int n_opt, p_opt;
 	char *n_opt_arg;
+	char *p_arg;
+	signal(SIGINT, catchSig);
 	while (1) {
 		static struct option long_options[] = {
-			{ "new", optional_argument, &n_opt, 'n' },
-			{ "help", no_argument, 0, 'h' },
-			{ "debug", no_argument, 0, 'd' },
-			{ "parse", optional_argument, &p_opt, 'p' },
-			{ "extract", optional_argument, 0, 'e' },
-			{ 0, 0, 0, 0 }
-		};
+			{"new", optional_argument, NULL, 'n'},
+			{"help", no_argument, NULL, 'h'},
+			{"debug", no_argument, NULL, 'd'},
+			{"parse", optional_argument, NULL, 'p'},
+			{"extract", optional_argument, NULL, 'e'},
+			{0, 0, 0, 0}};
 		int option_index = 0;
-		int c = getopt_long(argc, argv, ":d::p::hn::e::", long_options, &option_index);
+		int c = getopt_long(argc, argv, ":d::p:hn::e::", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -47,16 +47,19 @@ int main(int argc, char *argv[])
 			printHelp();
 			break;
 		case 'n':
-			Ybs.GenBlankConfig(0);
 			n_opt_arg = optarg;
+			Ybs.GenBlankConfig(0);
+			if (n_opt_arg != NULL)
+				Ybs.GenBlankConfig(1);
 			break;
 		case 'p':
-			if (argv[2] != NULL)
+			p_arg = optarg;
+			if (p_arg != NULL)
 				Ybs.OpenConfig(argv[2]);
 			break;
 		case ':':
 			break;
 		}
 	}
-	return 0;
+	return EXIT_SUCCESS;
 }

@@ -15,3 +15,12 @@ void printHelp()
 	       "\t-p, --parse\tVerbosely parse configuration file\n"
 	       "\t-e, --extract\tExtract dist tarball\n");
 }
+
+void catchSig(int sig_num)
+{
+	switch (sig_num) {
+	case 2:
+		printf("Interrupt signal caught\n");
+	}
+	exit(sig_num);
+}
