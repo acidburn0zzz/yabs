@@ -2,7 +2,7 @@ language: cpp
 compiler:
     - gcc
 before_install:
-    - sudo apt-get install python-yaml libyaml-dev build-essential libssh2-1-dev libarchive-dev
+    - sudo apt-get install python-yaml libyaml-dev build-essential libssh2-1-dev libarchive-dev clang
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo apt-get update
     - sudo apt-get install gcc-4.8 g++-4.8
@@ -41,10 +41,14 @@ script:
 after_script:
     - gcov yabs.gcda
     - coveralls --exclude include
+    - make clean
+    - qmake-qt4 "CONFIG+=clang"
+    - make
 notifications:
     email:
         recipients:
             - albcoron@gmail.com
+            - alberto@0x1a.us
         on_failure: always
         on_success: change
 branches:
