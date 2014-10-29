@@ -4,7 +4,7 @@ CONFIG-= qt
 LIBS+=-lssh2 -lyaml -larchive
 QMAKE_CXXFLAGS += -std=c++11
 
-QMAKE_CLEAN += yabs.ybf yabs
+QMAKE_CLEAN += yabs
 
 win32: {
 	LIBS+= -lregex
@@ -20,5 +20,17 @@ clang {
 	QMAKE_CC = clang
 }
 
-HEADERS += include/env.h include/dist.h include/gen.h include/interface.h include/parser.h include/platdef.h
-SOURCES += src/env.cpp src/dist.cpp src/gen.cpp src/interface.cpp src/parser.cpp src/yabs.cpp
+HEADERS += 	include/env.h \
+		include/dist.h \
+		include/gen.h \
+		include/interface.h \
+		include/parser.h \
+		include/profile.h \
+		include/yabs.h
+SOURCES +=	src/env.cpp \
+		src/dist.cpp \
+		src/gen.cpp \
+		src/interface.cpp \
+		src/parser.cpp \
+		src/profile.cpp \
+		src/yabs.cpp
