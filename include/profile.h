@@ -54,6 +54,7 @@ public:
 	void ParseKey(const char *key);
 	void IncDocNum();
 	void PopValidValue(std::string &k_value, const char *v_value);
+	void PrintList(std::vector<std::string> vect);
 };
 
 #endif

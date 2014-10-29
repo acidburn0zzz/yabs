@@ -50,6 +50,8 @@ const char *Profile::PrependLink(const char *string, const char *pre)
 	std::string temp_string = string;
 	std::string temp_pre = pre;
 	std::string n_pre = " ";
+	temp_string = temp_pre + temp_string;
+	temp_pre = n_pre + temp_pre;
 	size_t start_pos = 0;
 	while ((start_pos = temp_string.find(n_pre, start_pos)) != std::string::npos) {
 		temp_string.replace(start_pos, n_pre.length(), temp_pre);
@@ -63,6 +65,13 @@ void Profile::OpenInclude(const char *file)
 	inc_conf = fopen(file, "r");
 	if (inc_conf == NULL) {
 		printf("Error: Couldn't open included file: %s\n", file);
+	}
+}
+
+void Profile::PrintList(std::vector<std::string> vect)
+{
+	for (unsigned int i = 0; i < vect.size(); i++) {
+		std::cout << vect[i] << std::endl;
 	}
 }
 
@@ -96,13 +105,13 @@ void Profile::PopValidValue(std::string &k_value, const char *v_value)
 		AfterScriptList.push_back(v_value);
 	}
 	if (strcasecmp("libs", k_value.c_str()) == 0) {
-		LibsList.push_back(PrependLink(v_value, " -l"));
+		LibsList.push_back(PrependLink(v_value, "-l"));
 	}
 	if (strcasecmp("incdir", k_value.c_str()) == 0) {
-		IncDirList.push_back(PrependLink(v_value, " -I"));
+		IncDirList.push_back(PrependLink(v_value, "-I"));
 	}
 	if (strcasecmp("libdir", k_value.c_str()) == 0) {
-		LibDirList.push_back(PrependLink(v_value, " -L"));
+		LibDirList.push_back(PrependLink(v_value, "-L"));
 	}
 	if (strcasecmp("target", k_value.c_str()) == 0) {
 		TargetList.push_back(v_value);
