@@ -3,6 +3,7 @@
 // 3-Clause license. For full terms please see the LICENSE file.
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "interface.h"
 
 void printHelp()
