@@ -50,6 +50,8 @@ const char *Profile::PrependLink(const char *string, const char *pre)
 	std::string temp_string = string;
 	std::string temp_pre = pre;
 	std::string n_pre = " ";
+	temp_string = temp_pre + temp_string;
+	temp_pre = n_pre + temp_pre;
 	size_t start_pos = 0;
 	while ((start_pos = temp_string.find(n_pre, start_pos)) != std::string::npos) {
 		temp_string.replace(start_pos, n_pre.length(), temp_pre);
@@ -66,66 +68,58 @@ void Profile::OpenInclude(const char *file)
 	}
 }
 
+void Profile::PrintList(std::vector<std::string> vect)
+{
+	for (unsigned int i = 0; i < vect.size(); i++) {
+		std::cout << vect[i] << std::endl;
+	}
+}
+
 void Profile::PopValidValue(std::string &k_value, const char *v_value)
 {
 	if (strcasecmp("os", k_value.c_str()) == 0) {
 		OSList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("arch", k_value.c_str()) == 0) {
 		ArchList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("cc", k_value.c_str()) == 0) {
 		CCList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("cxx", k_value.c_str()) == 0) {
 		CXXList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("include", k_value.c_str()) == 0) {
 		ConfIncList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("lang", k_value.c_str()) == 0) {
 		LangList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("dist", k_value.c_str()) == 0) {
 		DistList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("before-script", k_value.c_str()) == 0) {
 		BeforeScriptList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("after-script", k_value.c_str()) == 0) {
 		AfterScriptList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("libs", k_value.c_str()) == 0) {
-		LibsList.push_back(PrependLink(v_value, " -l"));
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
+		LibsList.push_back(PrependLink(v_value, "-l"));
 	}
 	if (strcasecmp("incdir", k_value.c_str()) == 0) {
-		IncDirList.push_back(PrependLink(v_value, " -I"));
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
+		IncDirList.push_back(PrependLink(v_value, "-I"));
 	}
 	if (strcasecmp("libdir", k_value.c_str()) == 0) {
-		LibDirList.push_back(PrependLink(v_value, " -L"));
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
+		LibDirList.push_back(PrependLink(v_value, "-L"));
 	}
 	if (strcasecmp("target", k_value.c_str()) == 0) {
 		TargetList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("remote", k_value.c_str()) == 0) {
 		RemoteList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 	if (strcasecmp("defines", k_value.c_str()) == 0) {
 		DefinesList.push_back(v_value);
-		printf("Adding value: %s to key: %s\n", v_value, k_value.c_str());
 	}
 }
