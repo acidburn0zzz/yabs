@@ -112,7 +112,7 @@ const char *Parser::ReadValues()
 			printf("...\n");
 			break;
 		case YAML_BLOCK_SEQUENCE_START_TOKEN:
-			printf("Block Seq Start\n");
+			printf("\n");
 			break;
 		case YAML_BLOCK_END_TOKEN:
 			break;
@@ -165,7 +165,6 @@ const char *Parser::ReadValues()
 			case value:
 				printf("%s\n", token.data.scalar.value);
 				PopValidValue(key_value, ConvValue(token.data.scalar.value));
-				printf("Key Value: %s\n", key_value.c_str());
 				token_return = value;
 				break;
 			default:
