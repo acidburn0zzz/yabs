@@ -52,7 +52,7 @@ public:
 	int CheckConfigExists();
 	int CheckMake();
 	int GenMakeFromTemplate();
-	int WalkDir(const char *dir_name, const char *pattern, int spec);
-	int WalkRecur(const char *dir_name, regex_t *expr, int spec);
+	int WalkDir(std::string dir_name, std::string pattern, int spec);
+	int WalkRecur(std::string dir_name, regex_t *expr, int spec);
 };
 #endif

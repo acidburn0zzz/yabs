@@ -23,24 +23,26 @@
 #define BASEDIR GetCurrentDir()
 #define REL_BASEDIR strrchr(BASEDIR, '/') + 1
 
+using std::string;
+
 Generate::Generate(){};
 Generate::~Generate(){};
 
 char *Generate::GetCurrentDir() { return current_dir; }
 
-int Generate::WalkRecur(const char *dir_name, regex_t *expr, int spec)
+int Generate::WalkRecur(string dir_name, regex_t *expr, int spec)
 {
 	struct dirent *ent;
 	DIR *dir;
 	char path_name[FILENAME_MAX];
 	int res = FS_OK;
-	int len = strlen(dir_name);
+	int len = strlen(dir_name.c_str());
 	if (len >= FILENAME_MAX - 1)
 		return FS_NAMETOOLONG;
-	strcpy(path_name, dir_name);
+	strcpy(path_name, dir_name.c_str());
 	path_name[len++] = '/';
-	if (!(dir = opendir(dir_name))) {
-		printf("Error: Can't open %s", dir_name);
+	if (!(dir = opendir(dir_name.c_str()))) {
+		printf("Error: Can't open %s", dir_name.c_str());
 		return FS_BADIO;
 	}
 	errno = 0;
@@ -77,11 +79,11 @@ int Generate::WalkRecur(const char *dir_name, regex_t *expr, int spec)
 	return res ? res : errno ? FS_BADIO : FS_OK;
 }
 
-int Generate::WalkDir(const char *dir_name, const char *pattern, int spec)
+int Generate::WalkDir(string dir_name, string pattern, int spec)
 {
 	regex_t r;
 	int res;
-	if (regcomp(&r, pattern, REG_EXTENDED | REG_NOSUB))
+	if (regcomp(&r, pattern.c_str(), REG_EXTENDED | REG_NOSUB))
 		return FS_BADPattern;
 	res = WalkRecur(dir_name, &r, spec);
 	regfree(&r);
