@@ -9,6 +9,8 @@
 #include <vector>
 #include "profile.h"
 
+using std::string;
+
 Profile::Profile()
 {
 	DocNum = 0;
@@ -28,54 +30,52 @@ int Profile::AssertConfig(unsigned char *value)
 	return 0;
 }
 
-const char *Profile::ConvValue(unsigned char *conv_value)
+string Profile::ConvValue(unsigned char *conv_value)
 {
-	std::string temp_value;
+	string temp_value;
 	temp_value.append(reinterpret_cast<const char *>(conv_value));
-	return temp_value.c_str();
+	return temp_value;
 }
 
 int Profile::CompValid(unsigned char *comp_value)
 {
 	for (int i = 0; i <= MAX_OPT - 1; i++) {
-		if (strcasecmp(STDValues[i], ConvValue(comp_value)) == 0) {
+		if (strcasecmp(STDValues[i].c_str(), ConvValue(comp_value).c_str()) == 0) {
 			return 1;
 		}
 	}
 	return 0;
 }
 
-const char *Profile::PrependLink(const char *string, const char *pre)
+string Profile::PrependLink(string to_pre, string pre)
 {
-	std::string temp_string = string;
-	std::string temp_pre = pre;
-	std::string n_pre = " ";
-	temp_string = temp_pre + temp_string;
-	temp_pre = n_pre + temp_pre;
+	string n_pre = " ";
+	to_pre = pre + to_pre;
+	pre = n_pre + pre;
 	size_t start_pos = 0;
-	while ((start_pos = temp_string.find(n_pre, start_pos)) != std::string::npos) {
-		temp_string.replace(start_pos, n_pre.length(), temp_pre);
-		start_pos += temp_pre.length();
+	while ((start_pos = to_pre.find(n_pre, start_pos)) != string::npos) {
+		to_pre.replace(start_pos, n_pre.length(), pre);
+		start_pos += pre.length();
 	}
-	return temp_string.c_str();
+	return to_pre;
 }
 
-void Profile::OpenInclude(const char *file)
+void Profile::OpenInclude(string file)
 {
-	inc_conf = fopen(file, "r");
+	inc_conf = fopen(file.c_str(), "r");
 	if (inc_conf == NULL) {
-		printf("Error: Couldn't open included file: %s\n", file);
+		printf("Error: Couldn't open included file: %s\n", file.c_str());
 	}
 }
 
-void Profile::PrintList(std::vector<std::string> vect)
+void Profile::PrintList(std::vector<string> vect)
 {
 	for (unsigned int i = 0; i < vect.size(); i++) {
 		std::cout << vect[i] << std::endl;
 	}
 }
 
-void Profile::PopValidValue(std::string &k_value, const char *v_value)
+void Profile::PopValidValue(string &k_value, string v_value)
 {
 	if (strcasecmp("os", k_value.c_str()) == 0) {
 		OSList.push_back(v_value);

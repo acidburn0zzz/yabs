@@ -33,13 +33,13 @@ private:
 	std::vector<std::string> DefinesList;
 	int DocNum;
 	FILE *inc_conf;
-	const char *STDValues[MAX_OPT] = {
+	std::string STDValues[MAX_OPT] = {
 		"os", "arch", "cc", "cxx",
 		"include", "lang", "dist", "before-script",
 		"after-script", "libs", "incdir", "libdir",
 		"target", "remote", "defines",
 	};
-	const char *temp_value;
+	std::string temp_value;
 
 public:
 	Profile();
@@ -47,13 +47,13 @@ public:
 	int CompValid(unsigned char *comp_value);
 	int PopLists(unsigned char *list_value);
 	int RegValues(const char *reg_value);
-	const char *ConvValue(unsigned char *conv_value);
-	const char *PrependLink(const char *link, const char *pre);
-	const char *PrintProfile();
-	void OpenInclude(const char *file);
-	void ParseKey(const char *key);
+	std::string ConvValue(unsigned char *conv_value);
+	std::string PrependLink(std::string link, std::string pre);
+	std::string PrintProfile();
+	void OpenInclude(std::string file);
+	void ParseKey(std::string key);
 	void IncDocNum();
-	void PopValidValue(std::string &k_value, const char *v_value);
+	void PopValidValue(std::string &k_value, std::string v_value);
 	void PrintList(std::vector<std::string> vect);
 };
 
