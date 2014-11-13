@@ -53,7 +53,7 @@ public:
 	void OpenInclude(std::string file);
 	void ParseKey(std::string key);
 	void IncDocNum();
-	void PopValidValue(std::string &k_value, std::string v_value);
+	void PopValidValue(std::string k_value, std::string v_value);
 	void PrintList(std::vector<std::string> vect);
 };
 
