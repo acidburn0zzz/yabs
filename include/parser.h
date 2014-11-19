@@ -29,10 +29,11 @@ public:
 	~Parser();
 	int AssertYML(const char *build_file);
 	int ParseConfig();
-	int OpenConfig(const char *build_file);
+	int OpenConfig(const char *build_file, int verb_flag);
 	int CloseConfig();
 	const char *ReadValues();
-	const char *ParseValues();
+	const char *ParseValues(int verb_flag);
+	void VerboseParser(int format);
 };
 
 #endif

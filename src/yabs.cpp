@@ -23,9 +23,10 @@ int main(int argc, char *argv[])
 			{"debug", no_argument, NULL, 'd'},
 			{"parse", optional_argument, NULL, 'p'},
 			{"extract", optional_argument, NULL, 'e'},
+			{"verbose", optional_argument, NULL, 'v'},
 			{0, 0, 0, 0}};
 		int option_index = 0;
-		int c = getopt_long(argc, argv, ":d::p:hn::e::", long_options, &option_index);
+		int c = getopt_long(argc, argv, ":d::p:hn::e::v::", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
 			Ybs.WalkDir(Ybs.GetCurrentDir(), ".\\.h$", FS_DEFAULT | FS_MATCHDIRS);
 			Ybs.PrintFileList();
 			if (argv[2] != NULL)
-				Ybs.OpenConfig(argv[2]);
+				Ybs.OpenConfig(argv[2], 0);
 			break;
 		case 'h':
 			printHelp();
@@ -55,8 +56,11 @@ int main(int argc, char *argv[])
 		case 'p':
 			p_arg = optarg;
 			if (p_arg != NULL)
-				Ybs.OpenConfig(argv[2]);
+				Ybs.OpenConfig(argv[2], 0);
 			break;
+		case 'v':
+			if (argv[2] != NULL)
+				Ybs.OpenConfig(argv[2], 1);
 		case ':':
 			break;
 		}
