@@ -38,6 +38,8 @@ script:
     - ./yabs -p test/player_stat.yml
     - ./yabs -p test/quoted_scalar.yml
     - ./yabs -e include.tar.gz
+    - ./yabs -v test/yabs.yml
+    - ./yabs -v test/yabs-include.yml
 after_script:
     - gcov yabs.gcda
     - coveralls --exclude include
