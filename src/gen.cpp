@@ -151,6 +151,7 @@ int Generate::GenBlankConfig(int force_opt)
 		new_config = fopen(file_name, "w+");
 		if (new_config != NULL) {
 			printf("New build file written as: %s\n", file_name);
+			fclose(new_config);
 		}
 		return 1;
 	} else if (CheckConfigExists() > 0) {
