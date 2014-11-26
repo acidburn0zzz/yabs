@@ -44,7 +44,6 @@ int Parser::CloseConfig()
 {
 	if ((&parser != NULL) && (conf != NULL)) {
 		yaml_parser_delete(&parser);
-		yaml_token_delete(&token);
 		fclose(conf);
 		return 1;
 	} else {
@@ -182,6 +181,8 @@ const char *Parser::ReadValues()
 			}
 			break;
 		}
+		if (token.type != YAML_STREAM_END_TOKEN)
+			yaml_token_delete(&token);
 	} while (token.type != YAML_STREAM_END_TOKEN);
 	token_return = error;
 	return NULL;
@@ -288,6 +289,8 @@ void Parser::VerboseParser(int format)
 			}
 			break;
 		}
+		if (token.type != YAML_STREAM_END_TOKEN)
+			yaml_token_delete(&token);
 	} while (token.type != YAML_STREAM_END_TOKEN);
 	token_return = error;
 }
