@@ -42,7 +42,7 @@ int Parser::ParseConfig()
 
 int Parser::CloseConfig()
 {
-	if ((&parser != NULL) && (conf != NULL)) {
+	if (conf != NULL) {
 		yaml_parser_delete(&parser);
 		fclose(conf);
 		return 1;
