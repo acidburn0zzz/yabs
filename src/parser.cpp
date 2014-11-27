@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <fstream>
 #include <yaml.h>
+#include "colors.h"
 #include "parser.h"
 #include "gen.h"
 
@@ -57,38 +58,37 @@ int Parser::AssertYML(const char *build_file)
 	const char *ext;
 	ext = strrchr(build_file, '.');
 	if (opendir(build_file) != NULL) {
-		printf("Error: %s is a directory\n", build_file);
+		printf("%sError: %s is a directory%s\n", RED, build_file, CRM);
 		return -3;
 	}
 	if (!ext) {
-		printf("Error: %s has no extension\n", build_file);
+		printf("%sError: %s has no extension%s\n", RED, build_file, CRM);
 		return -1;
 	}
 	if ((strcasecmp(ext + 1, "yml") == 0) || (strcasecmp(ext + 1, "yaml") == 0) ||
 	    (strcasecmp(ext + 1, "ybf") == 0)) {
 		return 1;
 	} else {
-		printf("Error: %s is not a valid build file\n", build_file);
+		printf("%sError: %s is not a valid build file%s\n", RED, build_file, CRM);
 		return -2;
 	}
 	return 0;
 }
 
-const char *Parser::ParseValues(int verb_flag)
+void Parser::ParseValues(int verb_flag)
 {
 	switch (verb_flag) {
-		case 0:
-			do {
-				ReadValues();
-			} while (token_return != 0);
-			break;
-		case 1:
-			do {
-				VerboseParser(0);
-			} while (token_return != 0);
-			break;
+	case 0:
+		do {
+			ReadValues();
+		} while (token_return != 0);
+		break;
+	case 1:
+		do {
+			VerboseParser(0);
+		} while (token_return != 0);
+		break;
 	}
-	return NULL;
 }
 
 const char *Parser::ReadValues()
@@ -120,7 +120,6 @@ const char *Parser::ReadValues()
 			printf("...\n");
 			break;
 		case YAML_BLOCK_SEQUENCE_START_TOKEN:
-			printf("\n");
 			break;
 		case YAML_BLOCK_END_TOKEN:
 			break;
@@ -153,19 +152,28 @@ const char *Parser::ReadValues()
 			case error:
 				break;
 			case key:
-				printf("%s: ", token.data.scalar.value);
 				if (CompValid(token.data.scalar.value) == 1) {
+					printf("%s: ", token.data.scalar.value);
 					key_value = ConvValue(token.data.scalar.value);
 					token_return = key;
 					break;
 				} else {
-					printf("Error: '%s' is not a valid configuration option\n", token.data.scalar.value);
+					printf("%s:\n", token.data.scalar.value);
+					printf("%sError: '%s' is not a valid configuration option%s\n", RED, token.data.scalar.value, CRM);
 					token_return = error;
 					token.type = YAML_STREAM_END_TOKEN;
 					break;
 				}
 				break;
 			case block_entry:
+				if (token_return != block_entry &&
+				    token_return != key &&
+				    token_return != block_seq_strt &&
+				    token_return != block_map_strt) {
+					token_return = error;
+					token.type = YAML_STREAM_END_TOKEN;
+					break;
+				}
 				printf(" - %s\n", token.data.scalar.value);
 				PopValidValue(key_value, ConvValue(token.data.scalar.value));
 				token_return = block_entry;
@@ -176,13 +184,18 @@ const char *Parser::ReadValues()
 				token_return = value;
 				break;
 			default:
-				printf("%s\n", token.data.scalar.value);
+				token_return = error;
 				break;
 			}
 			break;
 		}
+
+		if (token_return == error)
+			printf("%s%s\nError: Configuration parsing error%s\n", RED, token.data.scalar.value, CRM);
+
 		if (token.type != YAML_STREAM_END_TOKEN)
 			yaml_token_delete(&token);
+
 	} while (token.type != YAML_STREAM_END_TOKEN);
 	token_return = error;
 	return NULL;
@@ -220,12 +233,15 @@ void Parser::VerboseParser(int format)
 			printf("...\n");
 			break;
 		case YAML_BLOCK_SEQUENCE_START_TOKEN:
+			prs = block_seq_strt;
 			printf("\n[Block Sequence Start]\n");
 			break;
 		case YAML_BLOCK_END_TOKEN:
+			prs = block_seq_end;
 			printf("[Block Sequence End]\n");
 			break;
 		case YAML_BLOCK_MAPPING_START_TOKEN:
+			prs = block_map_strt;
 			printf("[Block Mapping Start]\n");
 			break;
 		case YAML_BLOCK_ENTRY_TOKEN:
@@ -257,30 +273,36 @@ void Parser::VerboseParser(int format)
 			break;
 		case YAML_SCALAR_TOKEN:
 			switch (prs) {
-			case error:
-				break;
 			case key:
-				printf("[Key Token]\t");
-				printf("%s: ", token.data.scalar.value);
+				printf("[Key Token]\t\t");
 				if (CompValid(token.data.scalar.value) == 1) {
+					printf("%s: ", token.data.scalar.value);
 					key_value = ConvValue(token.data.scalar.value);
 					token_return = key;
 					break;
 				} else {
-					printf("Error: '%s' is not a valid configuration option\n", token.data.scalar.value);
-					token_return = error;
+					printf("%s:\n", token.data.scalar.value);
+					printf("%sError: '%s' is not a valid configuration option%s\n", RED, token.data.scalar.value, CRM);
 					token.type = YAML_STREAM_END_TOKEN;
 					break;
 				}
 				break;
 			case block_entry:
-				printf("[Block Entry]\t\t");
+				if (token_return != block_entry &&
+				    token_return != key &&
+				    token_return != block_seq_strt &&
+				    token_return != block_map_strt) {
+					token_return = error;
+					token.type = YAML_STREAM_END_TOKEN;
+					break;
+				}
+				printf("[Block Entry]\t\t\t");
 				printf("- %s\n", token.data.scalar.value);
 				token_return = block_entry;
 				break;
 			case value:
-				printf("[Value Token]\t");
-				printf("%s\n", token.data.scalar.value);
+				printf("\n[Value Token]\t\t");
+				printf("\t%s\n", token.data.scalar.value);
 				token_return = value;
 				break;
 			default:
@@ -289,8 +311,13 @@ void Parser::VerboseParser(int format)
 			}
 			break;
 		}
+
+		if (token_return == error)
+			printf("%s%s\nError: Configuration parsing error%s\n", RED, token.data.scalar.value, CRM);
+
 		if (token.type != YAML_STREAM_END_TOKEN)
 			yaml_token_delete(&token);
+
 	} while (token.type != YAML_STREAM_END_TOKEN);
 	token_return = error;
 }

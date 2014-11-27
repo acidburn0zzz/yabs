@@ -16,10 +16,13 @@ private:
 		key,
 		value,
 		block_entry,
+		block_seq_strt,
+		block_seq_end,
+		block_map_strt,
+		block_map_end,
 	} prs;
 	spec token_return;
 	FILE *conf;
-	int valid;
 	std::string key_value;
 	yaml_parser_t parser;
 	yaml_token_t token;
@@ -32,7 +35,7 @@ public:
 	int OpenConfig(const char *build_file, int verb_flag);
 	int CloseConfig();
 	const char *ReadValues();
-	const char *ParseValues(int verb_flag);
+	void ParseValues(int verb_flag);
 	void VerboseParser(int format);
 };
 
