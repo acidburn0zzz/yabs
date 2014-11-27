@@ -16,30 +16,7 @@ before_install:
 script:
     - make
     - tar cvf include.tar.gz include/
-    - ./yabs -h
-    - ./yabs -n
-    - ./yabs -p test/yabs.yml
-    - ./yabs -p test/yabs-include.yml
-    - ./yabs -d yabs.ybf
-    - ./yabs -p yabs.pro
-    - ./yabs -p yabs.ybf
-    - ./yabs -p test/alias.yml
-    - ./yabs -p test/ball_clubs.yml
-    - ./yabs -p test/ball_players.yml
-    - ./yabs -p test/block_literal.yml
-    - ./yabs -p test/bool.yml
-    - ./yabs -p test/complex_key.yml
-    - ./yabs -p test/csv.yml
-    - ./yabs -p test/key-values.yml
-    - ./yabs -p test/map_map.yml
-    - ./yabs -p test/multi_line_scalar.yml
-    - ./yabs -p test/multiple_player_stat.yml
-    - ./yabs -p test/plain_scalar.yml
-    - ./yabs -p test/player_stat.yml
-    - ./yabs -p test/quoted_scalar.yml
-    - ./yabs -e include.tar.gz
-    - ./yabs -v test/yabs.yml
-    - ./yabs -v test/yabs-include.yml
+    - bash test/test-script.sh
 after_script:
     - gcov yabs.gcda
     - coveralls --exclude include
