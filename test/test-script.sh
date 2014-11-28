@@ -7,6 +7,8 @@ NC='\033[0m'
 ./yabs -n
 ./yabs -d
 ./yabs -e include.tar.gz
+./yabs -p test/test-script.sh
+./yabs -p test/yml
 
 for file in test/yml/*
 do
