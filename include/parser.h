@@ -37,6 +37,7 @@ public:
 	const char *ReadValues();
 	void ParseValues(int verb_flag);
 	void VerboseParser(int format);
+	void VoidToken();
 };
 
 #endif

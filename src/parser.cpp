@@ -81,14 +81,22 @@ void Parser::ParseValues(int verb_flag)
 	case 0:
 		do {
 			ReadValues();
-		} while (token_return != 0);
+		} while (token.type != YAML_STREAM_END_TOKEN);
 		break;
 	case 1:
 		do {
 			VerboseParser(0);
-		} while (token_return != 0);
+		} while (token.type != YAML_STREAM_END_TOKEN);
 		break;
 	}
+}
+
+void Parser::VoidToken()
+{
+	token_return = error;
+	yaml_token_delete(&token);
+	token.type = YAML_STREAM_END_TOKEN;
+
 }
 
 const char *Parser::ReadValues()
@@ -111,7 +119,7 @@ const char *Parser::ReadValues()
 			prs = value;
 			break;
 		case YAML_TAG_DIRECTIVE_TOKEN:
-			printf("Tag directive: %s\n", token.data.scalar.value);
+			printf("Tag directive\n");
 			break;
 		case YAML_DOCUMENT_START_TOKEN:
 			IncDocNum();
@@ -120,8 +128,10 @@ const char *Parser::ReadValues()
 			printf("...\n");
 			break;
 		case YAML_BLOCK_SEQUENCE_START_TOKEN:
+			prs = block_seq_strt;
 			break;
 		case YAML_BLOCK_END_TOKEN:
+			prs = block_seq_end;
 			break;
 		case YAML_BLOCK_MAPPING_START_TOKEN:
 			break;
@@ -139,13 +149,13 @@ const char *Parser::ReadValues()
 		case YAML_FLOW_ENTRY_TOKEN:
 			break;
 		case YAML_ALIAS_TOKEN:
-			printf("Alias token: %s\n", token.data.scalar.value);
+			printf("Alias token\n");
 			break;
 		case YAML_ANCHOR_TOKEN:
-			printf("Anchor token: %s\n", token.data.scalar.value);
+			printf("Anchor token\n");
 			break;
 		case YAML_TAG_TOKEN:
-			printf("Tag token: %s\n", token.data.scalar.value);
+			printf("Tag token\n");
 			break;
 		case YAML_SCALAR_TOKEN:
 			switch (prs) {
@@ -160,8 +170,7 @@ const char *Parser::ReadValues()
 				} else {
 					printf("%s:\n", token.data.scalar.value);
 					printf("%sError: '%s' is not a valid configuration option%s\n", RED, token.data.scalar.value, CRM);
-					token_return = error;
-					token.type = YAML_STREAM_END_TOKEN;
+					VoidToken();
 					break;
 				}
 				break;
@@ -170,8 +179,7 @@ const char *Parser::ReadValues()
 				    token_return != key &&
 				    token_return != block_seq_strt &&
 				    token_return != block_map_strt) {
-					token_return = error;
-					token.type = YAML_STREAM_END_TOKEN;
+					VoidToken();
 					break;
 				}
 				printf(" - %s\n", token.data.scalar.value);
@@ -184,20 +192,16 @@ const char *Parser::ReadValues()
 				token_return = value;
 				break;
 			default:
-				token_return = error;
+				VoidToken();
 				break;
 			}
 			break;
 		}
 
-		if (token_return == error)
-			printf("%s%s\nError: Configuration parsing error%s\n", RED, token.data.scalar.value, CRM);
-
 		if (token.type != YAML_STREAM_END_TOKEN)
 			yaml_token_delete(&token);
 
 	} while (token.type != YAML_STREAM_END_TOKEN);
-	token_return = error;
 	return NULL;
 }
 
@@ -223,7 +227,7 @@ void Parser::VerboseParser(int format)
 			prs = value;
 			break;
 		case YAML_TAG_DIRECTIVE_TOKEN:
-			printf("Tag directive: %s\n", token.data.scalar.value);
+			printf("[Tag directive]\n");
 			break;
 		case YAML_DOCUMENT_START_TOKEN:
 			printf("---\n");
@@ -263,13 +267,13 @@ void Parser::VerboseParser(int format)
 			printf("[Flow Entry]\n");
 			break;
 		case YAML_ALIAS_TOKEN:
-			printf("Alias token: %s\n", token.data.scalar.value);
+			printf("[Alias token]\n");
 			break;
 		case YAML_ANCHOR_TOKEN:
-			printf("Anchor token: %s\n", token.data.scalar.value);
+			printf("[Anchor token]\n");
 			break;
 		case YAML_TAG_TOKEN:
-			printf("Tag token: %s\n", token.data.scalar.value);
+			printf("[Tag token]\n");
 			break;
 		case YAML_SCALAR_TOKEN:
 			switch (prs) {
@@ -277,13 +281,12 @@ void Parser::VerboseParser(int format)
 				printf("[Key Token]\t\t");
 				if (CompValid(token.data.scalar.value) == 1) {
 					printf("%s: ", token.data.scalar.value);
-					key_value = ConvValue(token.data.scalar.value);
 					token_return = key;
 					break;
 				} else {
 					printf("%s:\n", token.data.scalar.value);
 					printf("%sError: '%s' is not a valid configuration option%s\n", RED, token.data.scalar.value, CRM);
-					token.type = YAML_STREAM_END_TOKEN;
+					VoidToken();
 					break;
 				}
 				break;
@@ -292,8 +295,7 @@ void Parser::VerboseParser(int format)
 				    token_return != key &&
 				    token_return != block_seq_strt &&
 				    token_return != block_map_strt) {
-					token_return = error;
-					token.type = YAML_STREAM_END_TOKEN;
+					VoidToken();
 					break;
 				}
 				printf("[Block Entry]\t\t\t");
@@ -306,18 +308,14 @@ void Parser::VerboseParser(int format)
 				token_return = value;
 				break;
 			default:
-				token_return = error;
+				VoidToken();
 				break;
 			}
 			break;
 		}
 
-		if (token_return == error)
-			printf("%s%s\nError: Configuration parsing error%s\n", RED, token.data.scalar.value, CRM);
-
 		if (token.type != YAML_STREAM_END_TOKEN)
 			yaml_token_delete(&token);
 
 	} while (token.type != YAML_STREAM_END_TOKEN);
-	token_return = error;
 }
