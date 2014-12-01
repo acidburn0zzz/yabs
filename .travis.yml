@@ -2,7 +2,7 @@ language: cpp
 compiler:
     - gcc
 before_install:
-    - sudo apt-get install python-yaml libyaml-dev build-essential libssh2-1-dev libarchive-dev clang
+    - sudo apt-get install valgrind python-yaml libyaml-dev build-essential libssh2-1-dev libarchive-dev clang
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo apt-get update
     - sudo apt-get install gcc-4.8 g++-4.8
