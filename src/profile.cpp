@@ -106,21 +106,12 @@ void Profile::PopValidValue(string k_value, string v_value)
 	}
 	if (strcasecmp("libs", k_value.c_str()) == 0) {
 		LibsList.push_back(PrependLink(v_value, "-l"));
-		for (unsigned int i = 0; i < LibsList.size(); i++) {
-			std::cout << LibsList[i] << "\n";
-		}
 	}
 	if (strcasecmp("incdir", k_value.c_str()) == 0) {
 		IncDirList.push_back(PrependLink(v_value, "-I"));
-		for (unsigned int i = 0; i < IncDirList.size(); i++) {
-			std::cout << IncDirList[i] << "\n";
-		}
 	}
 	if (strcasecmp("libdir", k_value.c_str()) == 0) {
 		LibDirList.push_back(PrependLink(v_value, "-L"));
-		for (unsigned int i = 0; i < LibDirList.size(); i++) {
-			std::cout << LibDirList[i] << "\n";
-		}
 	}
 	if (strcasecmp("target", k_value.c_str()) == 0) {
 		TargetList.push_back(v_value);
