@@ -21,3 +21,15 @@ do
 	echo -e "\n${GRN}yabs -v $file\n${NC}"
 	./yabs -v $file
 done
+
+for file in test/yml/*
+do
+	echo -e "\n${GRN}valgrind yabs -p $file\n${NC}"
+	valgrind --track-origins=yes ./yabs -p $file
+done
+
+for file in test/yml/*
+do
+	echo -e "\n${GRN}valgrind yabs -v $file\n${NC}"
+	valgrind --track-origins=yes ./yabs -v $file
+done
