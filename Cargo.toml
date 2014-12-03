@@ -1,0 +1,8 @@
+[package]
+
+name = "yabs"
+version = "0.0.1"
+authors = ["Alberto Corona <alberto@0x1a.us>"]
+
+[dependencies.toml]
+git = "https://github.com/alexcrichton/toml-rs"
