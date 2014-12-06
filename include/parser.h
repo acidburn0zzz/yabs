@@ -6,15 +6,20 @@
 #define _PARSER_H
 
 #include <yaml.h>
+#include <vector>
 #include "profile.h"
 
-class Parser : public Profile
+class Parser
 {
 private:
+	std::vector<Profile *> Profiles;
+	int e_num, p_num = 0;
 	enum spec {
 		error = 0,
 		key,
 		value,
+		doc_start,
+		doc_end,
 		block_entry,
 		block_seq_strt,
 		block_seq_end,
@@ -38,6 +43,8 @@ public:
 	void ParseValues(int verb_flag);
 	void VerboseParser(int format);
 	void VoidToken();
+	void DeleteProfiles();
+	void CheckDocStart();
 };
 
 #endif

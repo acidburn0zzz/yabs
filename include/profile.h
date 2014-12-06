@@ -15,7 +15,7 @@
 
 class Profile
 {
-private:
+public:
 	std::vector<std::string> OSList;
 	std::vector<std::string> ArchList;
 	std::vector<std::string> CCList;

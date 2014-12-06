@@ -2,9 +2,11 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
+#include <assert.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <fstream>
+#include <iostream>
 #include <yaml.h>
 #include "colors.h"
 #include "parser.h"
@@ -24,11 +26,19 @@ int Parser::OpenConfig(const char *build_file, int verb_flag)
 		ParseConfig();
 		ParseValues(verb_flag);
 		CloseConfig();
+		DeleteProfiles();
 		return 1;
 	} else {
 		return -1;
 	}
 	return 0;
+}
+
+void Parser::DeleteProfiles()
+{
+	for (int i = 0; i < (int) Profiles.size(); i++) {
+		delete Profiles[i];
+	}
 }
 
 int Parser::ParseConfig()
@@ -39,6 +49,14 @@ int Parser::ParseConfig()
 		return 1;
 	}
 	return 0;
+}
+
+void Parser::CheckDocStart()
+{
+	if (prs != doc_start) {
+		VoidToken();
+		printf("%sError: Must start with document start token%s\n", RED, CRM);
+	}
 }
 
 int Parser::CloseConfig()
@@ -122,10 +140,14 @@ const char *Parser::ReadValues()
 			printf("Tag directive\n");
 			break;
 		case YAML_DOCUMENT_START_TOKEN:
-			IncDocNum();
+			prs = doc_start;
+			printf("---\n");
+			Profiles.push_back(new Profile());
 			break;
 		case YAML_DOCUMENT_END_TOKEN:
+			prs = doc_end;
 			printf("...\n");
+			++e_num;
 			break;
 		case YAML_BLOCK_SEQUENCE_START_TOKEN:
 			prs = block_seq_strt;
@@ -134,6 +156,7 @@ const char *Parser::ReadValues()
 			prs = block_seq_end;
 			break;
 		case YAML_BLOCK_MAPPING_START_TOKEN:
+			CheckDocStart();
 			break;
 		case YAML_BLOCK_ENTRY_TOKEN:
 			prs = block_entry;
@@ -162,9 +185,9 @@ const char *Parser::ReadValues()
 			case error:
 				break;
 			case key:
-				if (CompValid(token.data.scalar.value) == 1) {
+				if (Profiles[p_num]->CompValid(token.data.scalar.value) == 1) {
 					printf("%s: ", token.data.scalar.value);
-					key_value = ConvValue(token.data.scalar.value);
+					key_value = Profiles[p_num]->ConvValue(token.data.scalar.value);
 					token_return = key;
 					break;
 				} else {
@@ -182,22 +205,22 @@ const char *Parser::ReadValues()
 					VoidToken();
 					break;
 				}
-				printf(" - %s\n", token.data.scalar.value);
-				PopValidValue(key_value, ConvValue(token.data.scalar.value));
+				Profiles[p_num]->PopValidValue(key_value, Profiles[p_num]->ConvValue(token.data.scalar.value));
+				printf("%s\n", token.data.scalar.value);
 				token_return = block_entry;
 				break;
 			case value:
+				Profiles[p_num]->PopValidValue(key_value, Profiles[p_num]->ConvValue(token.data.scalar.value));
 				printf("%s\n", token.data.scalar.value);
-				PopValidValue(key_value, ConvValue(token.data.scalar.value));
 				token_return = value;
 				break;
 			default:
+				CheckDocStart();
 				VoidToken();
 				break;
 			}
 			break;
 		}
-
 		if (token.type != YAML_STREAM_END_TOKEN)
 			yaml_token_delete(&token);
 
@@ -230,23 +253,27 @@ void Parser::VerboseParser(int format)
 			printf("[Tag directive]\n");
 			break;
 		case YAML_DOCUMENT_START_TOKEN:
+			prs = doc_start;
+			Profiles.push_back(new Profile());
 			printf("---\n");
-			IncDocNum();
 			break;
 		case YAML_DOCUMENT_END_TOKEN:
+			prs = doc_end;
+			++e_num;
 			printf("...\n");
 			break;
 		case YAML_BLOCK_SEQUENCE_START_TOKEN:
-			prs = block_seq_strt;
 			printf("\n[Block Sequence Start]\n");
+			prs = block_seq_strt;
 			break;
 		case YAML_BLOCK_END_TOKEN:
 			prs = block_seq_end;
 			printf("[Block Sequence End]\n");
 			break;
 		case YAML_BLOCK_MAPPING_START_TOKEN:
-			prs = block_map_strt;
 			printf("[Block Mapping Start]\n");
+			CheckDocStart();
+			prs = block_map_strt;
 			break;
 		case YAML_BLOCK_ENTRY_TOKEN:
 			prs = block_entry;
@@ -279,7 +306,7 @@ void Parser::VerboseParser(int format)
 			switch (prs) {
 			case key:
 				printf("[Key Token]\t\t");
-				if (CompValid(token.data.scalar.value) == 1) {
+				if (Profiles[p_num]->CompValid(token.data.scalar.value) == 1) {
 					printf("%s: ", token.data.scalar.value);
 					token_return = key;
 					break;
@@ -308,7 +335,7 @@ void Parser::VerboseParser(int format)
 				token_return = value;
 				break;
 			default:
-				VoidToken();
+				CheckDocStart();
 				break;
 			}
 			break;
