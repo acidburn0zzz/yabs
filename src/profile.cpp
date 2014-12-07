@@ -13,7 +13,6 @@ using std::string;
 
 Profile::Profile()
 {
-	DocNum = 0;
 }
 
 string Profile::ConvValue(unsigned char *conv_value)
