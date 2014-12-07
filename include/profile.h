@@ -31,7 +31,6 @@ public:
 	std::vector<std::string> TargetList;
 	std::vector<std::string> RemoteList;
 	std::vector<std::string> DefinesList;
-	int DocNum;
 	FILE *inc_conf;
 	std::string STDValues[MAX_OPT] = {
 		"os", "arch", "cc", "cxx",
@@ -43,7 +42,6 @@ public:
 
 public:
 	Profile();
-	int AssertConfig(unsigned char *value);
 	int CompValid(unsigned char *comp_value);
 	int PopLists(unsigned char *list_value);
 	int RegValues(const char *reg_value);
@@ -52,7 +50,6 @@ public:
 	std::string PrintProfile();
 	void OpenInclude(std::string file);
 	void ParseKey(std::string key);
-	void IncDocNum();
 	void PopValidValue(std::string k_value, std::string v_value);
 	void PrintList(std::vector<std::string> vect);
 };

@@ -16,20 +16,6 @@ Profile::Profile()
 	DocNum = 0;
 }
 
-void Profile::IncDocNum()
-{
-	DocNum++;
-}
-
-int Profile::AssertConfig(unsigned char *value)
-{
-	if (CompValid(value) != 1) {
-		printf("Error: invalid configuration option: %s\n", value);
-		return -1;
-	}
-	return 0;
-}
-
 string Profile::ConvValue(unsigned char *conv_value)
 {
 	string temp_value;
