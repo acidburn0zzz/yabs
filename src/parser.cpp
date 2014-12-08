@@ -36,7 +36,7 @@ int Parser::OpenConfig(const char *build_file, int verb_flag)
 
 void Parser::DeleteProfiles()
 {
-	for (int i = 0; i < (int) Profiles.size(); i++) {
+	for (int i = 0; i < (int)Profiles.size(); i++) {
 		delete Profiles[i];
 	}
 }
@@ -55,7 +55,8 @@ void Parser::CheckDocStart()
 {
 	if (prs != doc_start) {
 		VoidToken();
-		printf("%sError: Must start with document start token%s\n", RED, CRM);
+		printf("%sError: Must start with document start token%s\n", RED,
+		       CRM);
 	}
 }
 
@@ -80,14 +81,17 @@ int Parser::AssertYML(const char *build_file)
 		return -3;
 	}
 	if (!ext) {
-		printf("%sError: %s has no extension%s\n", RED, build_file, CRM);
+		printf("%sError: %s has no extension%s\n", RED, build_file,
+		       CRM);
 		return -1;
 	}
-	if ((strcasecmp(ext + 1, "yml") == 0) || (strcasecmp(ext + 1, "yaml") == 0) ||
+	if ((strcasecmp(ext + 1, "yml") == 0) ||
+	    (strcasecmp(ext + 1, "yaml") == 0) ||
 	    (strcasecmp(ext + 1, "ybf") == 0)) {
 		return 1;
 	} else {
-		printf("%sError: %s is not a valid build file%s\n", RED, build_file, CRM);
+		printf("%sError: %s is not a valid build file%s\n", RED,
+		       build_file, CRM);
 		return -2;
 	}
 	return 0;
@@ -114,7 +118,6 @@ void Parser::VoidToken()
 	token_return = error;
 	yaml_token_delete(&token);
 	token.type = YAML_STREAM_END_TOKEN;
-
 }
 
 const char *Parser::ReadValues()
@@ -185,14 +188,20 @@ const char *Parser::ReadValues()
 			case error:
 				break;
 			case key:
-				if (Profiles[p_num]->CompValid(token.data.scalar.value) == 1) {
+				if (Profiles[p_num]->CompValid(
+					token.data.scalar.value) == 1) {
 					printf("%s: ", token.data.scalar.value);
-					key_value = Profiles[p_num]->ConvValue(token.data.scalar.value);
+					key_value = Profiles[p_num]->ConvValue(
+					    token.data.scalar.value);
 					token_return = key;
 					break;
 				} else {
-					printf("%s:\n", token.data.scalar.value);
-					printf("%sError: '%s' is not a valid configuration option%s\n", RED, token.data.scalar.value, CRM);
+					printf("%s:\n",
+					       token.data.scalar.value);
+					printf("%sError: '%s' is not a valid "
+					       "configuration option%s\n",
+					       RED, token.data.scalar.value,
+					       CRM);
 					VoidToken();
 					break;
 				}
@@ -205,12 +214,16 @@ const char *Parser::ReadValues()
 					VoidToken();
 					break;
 				}
-				Profiles[p_num]->PopValidValue(key_value, Profiles[p_num]->ConvValue(token.data.scalar.value));
+				Profiles[p_num]->PopValidValue(
+				    key_value, Profiles[p_num]->ConvValue(
+						   token.data.scalar.value));
 				printf("%s\n", token.data.scalar.value);
 				token_return = block_entry;
 				break;
 			case value:
-				Profiles[p_num]->PopValidValue(key_value, Profiles[p_num]->ConvValue(token.data.scalar.value));
+				Profiles[p_num]->PopValidValue(
+				    key_value, Profiles[p_num]->ConvValue(
+						   token.data.scalar.value));
 				printf("%s\n", token.data.scalar.value);
 				token_return = value;
 				break;
@@ -306,13 +319,18 @@ void Parser::VerboseParser(int format)
 			switch (prs) {
 			case key:
 				printf("[Key Token]\t\t");
-				if (Profiles[p_num]->CompValid(token.data.scalar.value) == 1) {
+				if (Profiles[p_num]->CompValid(
+					token.data.scalar.value) == 1) {
 					printf("%s: ", token.data.scalar.value);
 					token_return = key;
 					break;
 				} else {
-					printf("%s:\n", token.data.scalar.value);
-					printf("%sError: '%s' is not a valid configuration option%s\n", RED, token.data.scalar.value, CRM);
+					printf("%s:\n",
+					       token.data.scalar.value);
+					printf("%sError: '%s' is not a valid "
+					       "configuration option%s\n",
+					       RED, token.data.scalar.value,
+					       CRM);
 					VoidToken();
 					break;
 				}

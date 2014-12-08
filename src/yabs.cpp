@@ -18,15 +18,16 @@ int main(int argc, char *argv[])
 	signal(SIGINT, catchSig);
 	while (1) {
 		static struct option long_options[] = {
-			{"new", optional_argument, NULL, 'n'},
-			{"help", no_argument, NULL, 'h'},
-			{"debug", no_argument, NULL, 'd'},
-			{"parse", optional_argument, NULL, 'p'},
-			{"extract", optional_argument, NULL, 'e'},
-			{"verbose", optional_argument, NULL, 'v'},
-			{0, 0, 0, 0}};
+		    {"new", optional_argument, NULL, 'n'},
+		    {"help", no_argument, NULL, 'h'},
+		    {"debug", no_argument, NULL, 'd'},
+		    {"parse", optional_argument, NULL, 'p'},
+		    {"extract", optional_argument, NULL, 'e'},
+		    {"verbose", optional_argument, NULL, 'v'},
+		    {0, 0, 0, 0}};
 		int option_index = 0;
-		int c = getopt_long(argc, argv, ":d::p:hn::e::v::", long_options, &option_index);
+		int c = getopt_long(argc, argv, ":d::p:hn::e::v::",
+				    long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -38,8 +39,10 @@ int main(int argc, char *argv[])
 			Ybs.CheckMake();
 			Ybs.WriteMake();
 			Ybs.GenMakeFromTemplate();
-			Ybs.WalkDir(Ybs.GetCurrentDir(), ".\\.cpp$", FS_DEFAULT | FS_MATCHDIRS);
-			Ybs.WalkDir(Ybs.GetCurrentDir(), ".\\.h$", FS_DEFAULT | FS_MATCHDIRS);
+			Ybs.WalkDir(Ybs.GetCurrentDir(), ".\\.cpp$",
+				    FS_DEFAULT | FS_MATCHDIRS);
+			Ybs.WalkDir(Ybs.GetCurrentDir(), ".\\.h$",
+				    FS_DEFAULT | FS_MATCHDIRS);
 			Ybs.PrintFileList();
 			if (argv[2] != NULL)
 				Ybs.OpenConfig(argv[2], 0);

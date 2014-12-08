@@ -11,9 +11,7 @@
 
 using std::string;
 
-Profile::Profile()
-{
-}
+Profile::Profile() {}
 
 string Profile::ConvValue(unsigned char *conv_value)
 {
@@ -25,7 +23,8 @@ string Profile::ConvValue(unsigned char *conv_value)
 int Profile::CompValid(unsigned char *comp_value)
 {
 	for (int i = 0; i <= MAX_OPT - 1; i++) {
-		if (strcasecmp(STDValues[i].c_str(), ConvValue(comp_value).c_str()) == 0) {
+		if (strcasecmp(STDValues[i].c_str(),
+			       ConvValue(comp_value).c_str()) == 0) {
 			return 1;
 		}
 	}
@@ -49,7 +48,8 @@ void Profile::OpenInclude(string file)
 {
 	inc_conf = fopen(file.c_str(), "r");
 	if (inc_conf == NULL) {
-		printf("Error: Couldn't open included file: %s\n", file.c_str());
+		printf("Error: Couldn't open included file: %s\n",
+		       file.c_str());
 	}
 }
 

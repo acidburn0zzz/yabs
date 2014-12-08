@@ -33,10 +33,9 @@ public:
 	std::vector<std::string> DefinesList;
 	FILE *inc_conf;
 	std::string STDValues[MAX_OPT] = {
-		"os", "arch", "cc", "cxx",
-		"include", "lang", "dist", "before-script",
-		"after-script", "libs", "incdir", "libdir",
-		"target", "remote", "defines",
+	    "os",     "arch",   "cc",		 "cxx",		 "include",
+	    "lang",   "dist",   "before-script", "after-script", "libs",
+	    "incdir", "libdir", "target",	"remote",       "defines",
 	};
 	std::string temp_value;
 
