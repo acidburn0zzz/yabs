@@ -16,7 +16,7 @@ before_install:
 script:
     - make
     - tar cvf include.tar.gz include/
-    - bash test/test-script.sh
+    - make tests
 after_script:
     - gcov yabs.gcda
     - coveralls --exclude include

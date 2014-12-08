@@ -79,3 +79,6 @@ clean:
 	$(DEL) yabs
 	$(DEL) *~ core *.core
 	$(DEL) *.gcno *.gcda *.gcov
+
+tests:
+	./test/test-script.sh all
