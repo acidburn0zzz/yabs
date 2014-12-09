@@ -26,6 +26,7 @@ HEADERS += 	include/env.h \
 		include/interface.h \
 		include/parser.h \
 		include/profile.h \
+		incldue/profile_tree.h \
 		include/yabs.h
 SOURCES +=	src/env.cpp \
 		src/dist.cpp \
@@ -33,4 +34,5 @@ SOURCES +=	src/env.cpp \
 		src/interface.cpp \
 		src/parser.cpp \
 		src/profile.cpp \
+		src/profile_tree.cpp \
 		src/yabs.cpp
