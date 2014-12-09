@@ -8,10 +8,31 @@
 #include <iostream>
 #include "dist.h"
 #include "interface.h"
+#include "profile_tree.h"
 #include "yabs.h"
 
 int main(int argc, char *argv[])
 {
+	ProfileTree Tree;
+	Tree.AddTreeChild("linux");
+	Tree.AddTreeChild("win32");
+	Tree.AddTreeChild("freebsd");
+	Tree.Root.HasChild();
+	Tree.Root.RemoveAllChildren();
+
+	ProfileNode Node;
+	Node.AddChild("linux");
+	Node.AddChild("freebsd");
+	Node.HasChild();
+	Node.RemoveAllChildren();
+	printf("%d\n", Node.child_count);
+
+	ProfileNode Node2;
+	Node2.HasChild();
+
+	ProfileTree Tree2;
+	Tree2.Root.HasChild();
+
 	Yabs Ybs;
 	char *n_opt_arg;
 	char *p_arg;
