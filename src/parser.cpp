@@ -12,7 +12,11 @@
 #include "parser.h"
 #include "gen.h"
 
-Parser::Parser(){};
+Parser::Parser()
+{
+	e_num = 0;
+	p_num = 0;
+}
 Parser::~Parser(){};
 
 int Parser::OpenConfig(const char *build_file, int verb_flag)
@@ -26,6 +30,7 @@ int Parser::OpenConfig(const char *build_file, int verb_flag)
 		ParseConfig();
 		ParseValues(verb_flag);
 		CloseConfig();
+		PrintAllProfiles();
 		DeleteProfiles();
 		return 1;
 	} else {
@@ -113,6 +118,14 @@ void Parser::ParseValues(int verb_flag)
 	}
 }
 
+void Parser::PrintAllProfiles()
+{
+	for (int i = 0; i < (int)Profiles.size(); i++) {
+		printf("\n\nProfile %d\n", i);
+		Profiles[i]->PrintProfile();
+	}
+}
+
 void Parser::VoidToken()
 {
 	token_return = error;
@@ -146,6 +159,8 @@ const char *Parser::ReadValues()
 			prs = doc_start;
 			printf("---\n");
 			Profiles.push_back(new Profile());
+			if (e_num != 0)
+				++p_num;
 			break;
 		case YAML_DOCUMENT_END_TOKEN:
 			prs = doc_end;
@@ -193,6 +208,7 @@ const char *Parser::ReadValues()
 					printf("%s: ", token.data.scalar.value);
 					key_value = Profiles[p_num]->ConvValue(
 					    token.data.scalar.value);
+
 					token_return = key;
 					break;
 				} else {

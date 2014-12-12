@@ -13,7 +13,7 @@ class Parser
 {
 private:
 	std::vector<Profile *> Profiles;
-	int e_num, p_num = 0;
+	int e_num, p_num;
 	enum spec {
 		error = 0,
 		key,
@@ -45,6 +45,7 @@ public:
 	void VoidToken();
 	void DeleteProfiles();
 	void CheckDocStart();
+	void PrintAllProfiles();
 };
 
 #endif
