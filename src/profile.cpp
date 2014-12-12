@@ -60,51 +60,71 @@ void Profile::PrintList(std::vector<string> vect)
 	}
 }
 
+void Profile::PrintProfile()
+{
+	printf("os: %s\n", os.c_str());
+	printf("cc: %s\n", cc.c_str());
+	printf("cxx: %s\n", cxx.c_str());
+	printf("arch: ");
+	PrintList(arch);
+	printf("dist: %s\n", dist.c_str());
+	printf("include: %s\n", include.c_str());
+	printf("libs: ");
+	PrintList(libs);
+	printf("incdir: ");
+	PrintList(incdir);
+	printf("libdir: ");
+	PrintList(libdir);
+	printf("remote: %s\n", remote.c_str());
+	printf("defines: %s\n", defines.c_str());
+	printf("before-script: ");
+	PrintList(before);
+	printf("after-script: ");
+	PrintList(after);
+}
+
 void Profile::PopValidValue(string k_value, string v_value)
 {
 	if (strcasecmp("os", k_value.c_str()) == 0) {
-		OSList.push_back(v_value);
+		os = v_value;
 	}
 	if (strcasecmp("arch", k_value.c_str()) == 0) {
-		ArchList.push_back(v_value);
+		arch.push_back(v_value);
 	}
 	if (strcasecmp("cc", k_value.c_str()) == 0) {
-		CCList.push_back(v_value);
+		cc = v_value;
 	}
 	if (strcasecmp("cxx", k_value.c_str()) == 0) {
-		CXXList.push_back(v_value);
+		cxx = v_value.c_str();
 	}
 	if (strcasecmp("include", k_value.c_str()) == 0) {
-		ConfIncList.push_back(v_value);
+		include = v_value;
 	}
 	if (strcasecmp("lang", k_value.c_str()) == 0) {
-		LangList.push_back(v_value);
+		lang = v_value;
 	}
 	if (strcasecmp("dist", k_value.c_str()) == 0) {
-		DistList.push_back(v_value);
+		dist = v_value;
 	}
 	if (strcasecmp("before-script", k_value.c_str()) == 0) {
-		BeforeScriptList.push_back(v_value);
+		before.push_back(v_value);
 	}
 	if (strcasecmp("after-script", k_value.c_str()) == 0) {
-		AfterScriptList.push_back(v_value);
+		after.push_back(v_value);
 	}
 	if (strcasecmp("libs", k_value.c_str()) == 0) {
-		LibsList.push_back(PrependLink(v_value, "-l"));
+		libs.push_back(PrependLink(v_value, "-l"));
 	}
 	if (strcasecmp("incdir", k_value.c_str()) == 0) {
-		IncDirList.push_back(PrependLink(v_value, "-I"));
+		incdir.push_back(PrependLink(v_value, "-I"));
 	}
 	if (strcasecmp("libdir", k_value.c_str()) == 0) {
-		LibDirList.push_back(PrependLink(v_value, "-L"));
-	}
-	if (strcasecmp("target", k_value.c_str()) == 0) {
-		TargetList.push_back(v_value);
+		libdir.push_back(PrependLink(v_value, "-L"));
 	}
 	if (strcasecmp("remote", k_value.c_str()) == 0) {
-		RemoteList.push_back(v_value);
+		remote = v_value;
 	}
 	if (strcasecmp("defines", k_value.c_str()) == 0) {
-		DefinesList.push_back(v_value);
+		defines = v_value;
 	}
 }

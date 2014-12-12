@@ -16,28 +16,27 @@
 class Profile
 {
 public:
-	std::vector<std::string> OSList;
-	std::vector<std::string> ArchList;
-	std::vector<std::string> CCList;
-	std::vector<std::string> CXXList;
-	std::vector<std::string> ConfIncList;
-	std::vector<std::string> LangList;
-	std::vector<std::string> DistList;
-	std::vector<std::string> BeforeScriptList;
-	std::vector<std::string> AfterScriptList;
-	std::vector<std::string> LibsList;
-	std::vector<std::string> IncDirList;
-	std::vector<std::string> LibDirList;
-	std::vector<std::string> TargetList;
-	std::vector<std::string> RemoteList;
-	std::vector<std::string> DefinesList;
+	std::string os;
+	std::string lang;
+	std::vector<std::string> arch;
+	std::string cc;
+	std::string cxx;
+	std::string dist;
+	std::string include;
+	std::vector<std::string> libs;
+	std::vector<std::string> incdir;
+	std::vector<std::string> libdir;
+	std::string remote;
+	std::string defines;
+	std::vector<std::string> before;
+	std::vector<std::string> after;
+
 	FILE *inc_conf;
 	std::string STDValues[MAX_OPT] = {
 	    "os",     "arch",   "cc",		 "cxx",		 "include",
 	    "lang",   "dist",   "before-script", "after-script", "libs",
 	    "incdir", "libdir", "target",	"remote",       "defines",
 	};
-	std::string temp_value;
 
 public:
 	Profile();
@@ -46,11 +45,11 @@ public:
 	int RegValues(const char *reg_value);
 	std::string ConvValue(unsigned char *conv_value);
 	std::string PrependLink(std::string link, std::string pre);
-	std::string PrintProfile();
 	void OpenInclude(std::string file);
 	void ParseKey(std::string key);
 	void PopValidValue(std::string k_value, std::string v_value);
 	void PrintList(std::vector<std::string> vect);
+	void PrintProfile();
 };
 
 #endif
