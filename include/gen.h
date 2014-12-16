@@ -12,6 +12,8 @@
 #define FS_FOLLOWLINK (1 << 1)
 #define FS_DOTFILES (1 << 2)
 #define FS_MATCHDIRS (1 << 3)
+#define DOC_START "---\n"
+#define DOC_END "...\n"
 
 #include <regex.h>
 #include <unistd.h>
@@ -20,19 +22,19 @@
 #include <string>
 #include <vector>
 
-enum { FS_OK = 0,
-       FS_BADPattern,
-       FS_NAMETOOLONG,
-       FS_BADIO,
-};
-
 class Generate
 {
 private:
+	enum { FS_OK = 0,
+	       FS_BADPattern,
+	       FS_NAMETOOLONG,
+	       FS_BADIO,
+	};
 	char cwd[MAXPATHLEN];
 	char *current_dir = getcwd(cwd, MAXPATHLEN);
 	std::vector<std::string> FileList;
-	char *file_name;
+	std::string file_name;
+	std::string rm_base;
 	const char *default_makefile;
 	int file_count = 0;
 	FILE *makefile;
@@ -42,11 +44,12 @@ public:
 	Generate();
 	~Generate();
 	char *GetCurrentDir();
-	char *RelPathName(char *to_rel);
+	std::string RelPathName(std::string to_rel);
+	char *RemoveBase(char *to_rm);
 	int WriteMake();
 	void Walk();
-	void GenFileList(char *file_list);
-	int GenBlankConfig(int force_opt);
+	void GenFileList(std::string file_list);
+	int GenConfig(int force_opt);
 	void CheckFiles();
 	void PrintFileList();
 	int CheckConfigExists();
@@ -55,4 +58,5 @@ public:
 	int WalkDir(std::string dir_name, std::string pattern, int spec);
 	int WalkRecur(std::string dir_name, regex_t *expr, int spec);
 };
+
 #endif

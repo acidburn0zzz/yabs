@@ -91,18 +91,17 @@ int Generate::WalkDir(string dir_name, string pattern, int spec)
 	return res;
 }
 
-char *Generate::RelPathName(char *to_rel)
+std::string Generate::RelPathName(std::string to_rel)
 {
-	char *perm = strstr(to_rel, REL_BASEDIR);
+	rm_base = REL_BASEDIR;
+	string perm = strstr(&to_rel[0], rm_base.c_str());
+	perm.erase(0, rm_base.length() + 1);
 	return perm;
 }
 
-void Generate::GenFileList(char *file_list)
+void Generate::GenFileList(std::string file_list)
 {
-	if (file_list != NULL) {
-		std::string fileList = file_list;
-		FileList.push_back(fileList);
-	}
+	FileList.push_back(file_list);
 }
 
 void Generate::PrintFileList()
@@ -114,7 +113,6 @@ void Generate::PrintFileList()
 
 int Generate::CheckMake()
 {
-	// Get current working directory
 	if (getcwd(cwd, MAXPATHLEN) != NULL) {
 		printf("Current working directory: %s\n", cwd);
 		struct stat buffer;
@@ -142,7 +140,7 @@ int Generate::CheckConfigExists()
 	return 0;
 }
 
-int Generate::GenBlankConfig(int force_opt)
+int Generate::GenConfig(int force_opt)
 {
 	char file_name[PATH_MAX];
 	if ((CheckConfigExists() < 0) && (force_opt == 0)) {
@@ -150,6 +148,8 @@ int Generate::GenBlankConfig(int force_opt)
 			 basename(BASEDIR));
 		new_config = fopen(file_name, "w+");
 		if (new_config != NULL) {
+			fprintf(new_config, DOC_START);
+			fprintf(new_config, DOC_END);
 			printf("New build file written as: %s\n", file_name);
 			fclose(new_config);
 		}
@@ -164,6 +164,8 @@ int Generate::GenBlankConfig(int force_opt)
 		snprintf(file_name, sizeof(file_name), "%s.ybf",
 			 basename(BASEDIR));
 		printf("New build file written as: %s\n", file_name);
+		fprintf(new_config, DOC_START);
+		fprintf(new_config, DOC_END);
 		new_config = fopen(file_name, "w+");
 		return 3;
 	}
@@ -181,17 +183,4 @@ int Generate::WriteMake()
 	return 0;
 }
 
-int Generate::GenMakeFromTemplate()
-{
-	if (CheckMake() != 1) {
-		std::cout << std::setfill('#') << std::setw(80) << "#"
-			  << std::endl;
-		std::cout << std::setfill('#') << std::setw(2) << "#"
-			  << "\t\t\tMakefile Generated with yabs" << std::endl;
-		std::cout << std::setfill('#') << std::setw(80) << "#"
-			  << std::endl;
-		return 1;
-	} else {
-		return -1;
-	}
-}
+int Generate::GenMakeFromTemplate() {}
