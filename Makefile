@@ -14,7 +14,6 @@ SRC 	= src/dist.cpp \
 	  src/interface.cpp \
 	  src/parser.cpp \
 	  src/profile.cpp \
-	  src/profile_tree.cpp \
 	  src/remote.cpp \
 	  src/yabs.cpp
 OBJ 	= dist.o \
@@ -23,7 +22,6 @@ OBJ 	= dist.o \
 	  interface.o \
 	  parser.o \
 	  profile.o \
-	  profile_tree.o \
 	  remote.o \
 	  yabs.o
 TRGT 	= yabs
@@ -69,9 +67,6 @@ parser.o: src/parser.cpp
 
 profile.o: src/profile.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o profile.o src/profile.cpp
-
-profile_tree.o: src/profile_tree.cpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o profile_tree.o src/profile_tree.cpp
 
 remote.o: src/remote.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o remote.o src/remote.cpp
