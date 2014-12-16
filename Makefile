@@ -9,7 +9,6 @@ INCPATH = -I/usr/include -Iinclude
 DEL	= rm -f
 DEL_R	= rm -r
 SRC 	= src/dist.cpp \
-	  src/env.cpp \
 	  src/gen.cpp \
 	  src/interface.cpp \
 	  src/parser.cpp \
@@ -17,7 +16,6 @@ SRC 	= src/dist.cpp \
 	  src/remote.cpp \
 	  src/yabs.cpp
 OBJ 	= dist.o \
-	  env.o \
 	  gen.o \
 	  interface.o \
 	  parser.o \
@@ -52,9 +50,6 @@ $(TRGT): $(OBJ)
 
 dist.o: src/dist.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dist.o src/dist.cpp
-
-env.o: src/env.cpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o env.o src/env.cpp
 
 gen.o: src/gen.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gen.o src/gen.cpp

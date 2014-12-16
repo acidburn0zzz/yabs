@@ -20,19 +20,15 @@ clang {
 	QMAKE_CC = clang
 }
 
-HEADERS += 	include/env.h \
-		include/dist.h \
+HEADERS += 	include/dist.h \
 		include/gen.h \
 		include/interface.h \
 		include/parser.h \
 		include/profile.h \
-		incldue/profile_tree.h \
 		include/yabs.h
-SOURCES +=	src/env.cpp \
-		src/dist.cpp \
+SOURCES +=	src/dist.cpp \
 		src/gen.cpp \
 		src/interface.cpp \
 		src/parser.cpp \
 		src/profile.cpp \
-		src/profile_tree.cpp \
 		src/yabs.cpp
