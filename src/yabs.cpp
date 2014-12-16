@@ -41,8 +41,6 @@ int main(int argc, char *argv[])
 			Ybs.GenMakeFromTemplate();
 			Ybs.WalkDir(Ybs.GetCurrentDir(), ".\\.cpp$",
 				    FS_DEFAULT | FS_MATCHDIRS);
-			Ybs.WalkDir(Ybs.GetCurrentDir(), ".\\.h$",
-				    FS_DEFAULT | FS_MATCHDIRS);
 			Ybs.PrintFileList();
 			if (argv[2] != NULL)
 				Ybs.OpenConfig(argv[2], 0);
@@ -52,9 +50,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'n':
 			n_opt_arg = optarg;
-			Ybs.GenBlankConfig(0);
+			Ybs.GenConfig(0);
 			if (n_opt_arg != NULL)
-				Ybs.GenBlankConfig(1);
+				Ybs.GenConfig(1);
 			break;
 		case 'p':
 			p_arg = optarg;
