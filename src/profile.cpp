@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <yaml.h>
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -18,6 +19,21 @@ string Profile::ConvValue(unsigned char *conv_value)
 	string temp_value;
 	temp_value.append(reinterpret_cast<const char *>(conv_value));
 	return temp_value;
+}
+
+void Profile::GetSysInfo()
+{
+#ifdef __linux__
+	plat = "linux";
+#elif __FreeBSD__
+	plat = "freebsd";
+#endif
+#ifdef __amd64__
+	p_arch = "x86_64";
+#endif
+#ifdef __i386__
+	p_arch = "i686";
+#endif
 }
 
 int Profile::CompValid(unsigned char *comp_value)
@@ -83,6 +99,25 @@ void Profile::PrintProfile()
 	PrintList(after);
 }
 
+void Profile::CheckBlankValues()
+{
+	GetSysInfo();
+	if (os.empty()) {
+		os = plat;
+	}
+	if (std::find(arch.begin(), arch.end(), p_arch) == arch.end()) {
+		arch.push_back(p_arch);
+	}
+	if (libdir.empty()) {
+		libdir.push_back("-L/usr/local/lib");
+		libdir.push_back("-L/usr/lib");
+	}
+	if (incdir.empty()) {
+		incdir.push_back("-I/usr/include");
+		incdir.push_back("-I/usr/local/include");
+	}
+}
+
 void Profile::PopValidValue(string k_value, string v_value)
 {
 	if (strcasecmp("os", k_value.c_str()) == 0) {
@@ -95,7 +130,7 @@ void Profile::PopValidValue(string k_value, string v_value)
 		cc = v_value;
 	}
 	if (strcasecmp("cxx", k_value.c_str()) == 0) {
-		cxx = v_value.c_str();
+		cxx = v_value;
 	}
 	if (strcasecmp("include", k_value.c_str()) == 0) {
 		include = v_value;

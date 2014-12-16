@@ -10,14 +10,13 @@
 #include <vector>
 
 #define MAX_OPT 15
-#ifdef __unix__
-#endif
 
 class Profile
 {
 public:
 	std::string os;
 	std::string lang;
+	std::string target;
 	std::vector<std::string> arch;
 	std::string cc;
 	std::string cxx;
@@ -30,8 +29,9 @@ public:
 	std::string defines;
 	std::vector<std::string> before;
 	std::vector<std::string> after;
-
 	FILE *inc_conf;
+	std::string plat;
+	std::string p_arch;
 	std::string STDValues[MAX_OPT] = {
 	    "os",     "arch",   "cc",		 "cxx",		 "include",
 	    "lang",   "dist",   "before-script", "after-script", "libs",
@@ -50,6 +50,8 @@ public:
 	void PopValidValue(std::string k_value, std::string v_value);
 	void PrintList(std::vector<std::string> vect);
 	void PrintProfile();
+	void CheckBlankValues();
+	void GetSysInfo();
 };
 
 #endif
