@@ -174,13 +174,114 @@ void Profile::PopValidValue(string k_value, string v_value)
 	if (strcasecmp("incdir", k_value.c_str()) == 0) {
 		incdir.push_back(PrependLink(v_value, "-I"));
 	}
-	if (strcasecmp("libdir", k_value.c_str()) == 0) {
-		libdir.push_back(PrependLink(v_value, "-L"));
-	}
 	if (strcasecmp("remote", k_value.c_str()) == 0) {
 		remote = v_value;
 	}
 	if (strcasecmp("defines", k_value.c_str()) == 0) {
 		defines = v_value;
 	}
+	if (strcasecmp("cxxflags", k_value.c_str()) == 0) {
+		cxxflags.push_back(PrependLink(v_value, "-"));
+	}
+}
+
+void Profile::CheckLang()
+{
+	if (lang == "c") {
+		WalkDir(GetCurrentDir(), ".\\.c$", FS_DEFAULT | FS_MATCHDIRS);
+	} else if (lang == "cpp") {
+		WalkDir(GetCurrentDir(), ".\\.cpp$", FS_DEFAULT | FS_MATCHDIRS);
+	}
+}
+
+int Profile::WriteMake(const char *makefile)
+{
+	CheckLang();
+	CheckBlankValues();
+	Makefile = fopen(makefile, "w+");
+	fprintf(Makefile, "TRGT\t= %s\n", target.c_str());
+	fprintf(Makefile, "LINK\t= %s\n", cxx.c_str());
+	fprintf(Makefile, "CC\t= %s\n", cc.c_str());
+	fprintf(Makefile, "CXX\t= %s\n", cxx.c_str());
+
+	for (int i = 0; i < (int)cxxflags.size(); i++) {
+		temp += cxxflags[i] += " ";
+	}
+	fprintf(Makefile, "CXXFLAGS= %s\n", temp.c_str());
+	temp.clear();
+
+	for (int i = 0; i < (int)libs.size(); i++) {
+		temp += libs[i] += " ";
+	}
+	fprintf(Makefile, "LIBS\t= %s\n", temp.c_str());
+	temp.clear();
+
+	for (int i = 0; i < (int)incdir.size(); i++) {
+		temp += incdir[i] += " ";
+	}
+	fprintf(Makefile, "INCPATH\t= %s\n", temp.c_str());
+	temp.clear();
+
+	fprintf(Makefile, "SRC\t=");
+	for (unsigned int i = 0; i < FileList.size(); i++) {
+		if (i == 0) {
+			fprintf(Makefile, " %s \\\n", FileList[i].c_str());
+		} else {
+			if (i == (FileList.size() - 1)) {
+				fprintf(Makefile, "\t  %s\n",
+					FileList[i].c_str());
+			} else {
+				fprintf(Makefile, "\t  %s \\\n",
+					FileList[i].c_str());
+			}
+		}
+	}
+
+	BuildObjList();
+	fprintf(Makefile, "OBJ\t=");
+	for (unsigned int i = 0; i < obj.size(); i++) {
+		if (i == 0) {
+			fprintf(Makefile, " %s \\\n", obj[i].c_str());
+		} else {
+			if (i == (obj.size() - 1)) {
+				fprintf(Makefile, "\t  %s\n", obj[i].c_str());
+			} else {
+				fprintf(Makefile, "\t  %s \\\n",
+					obj[i].c_str());
+			}
+		}
+	}
+	fprintf(Makefile, "DEL\t= rm -f\n");
+	fprintf(Makefile, "\n.SUFFIXES: .o .c .cpp .cc .cxx .C\n\n");
+	fprintf(
+	    Makefile,
+	    ".cpp.o:\n\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
+	fprintf(
+	    Makefile,
+	    ".cc.o:\n\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
+	fprintf(
+	    Makefile,
+	    ".cxx.o:\n\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
+	fprintf(
+	    Makefile,
+	    ".C.o:\n\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
+	fprintf(
+	    Makefile,
+	    ".c.o:\n\t$(CC) -c $(CXXFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
+
+	fprintf(Makefile, "all: $(TRGT)\n\n");
+	fprintf(Makefile, "$(TRGT): $(OBJ)\n\t$(CXX) $(LFLAGS) -o $(TRGT) "
+			  "$(OBJ) $(LIBS)\n\n");
+
+	for (int i = 0; i < (int)obj.size(); i++) {
+		fprintf(Makefile, "%s: %s\n", obj[i].c_str(),
+			FileList[i].c_str());
+		fprintf(Makefile,
+			"\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o %s %s\n\n",
+			obj[i].c_str(), FileList[i].c_str());
+	}
+	fprintf(Makefile, "clean:\n\t$(DEL) $(OBJ)\n\t$(DEL) $(TRGT)\n");
+
+	fclose(Makefile);
+	return 0;
 }

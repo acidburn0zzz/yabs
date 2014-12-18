@@ -10,14 +10,14 @@
 #include <yaml.h>
 #include "colors.h"
 #include "parser.h"
-#include "gen.h"
 
 Parser::Parser()
 {
 	e_num = 0;
 	p_num = 0;
 }
-Parser::~Parser(){};
+
+Parser::~Parser() { DeleteProfiles(); };
 
 int Parser::OpenConfig(const char *build_file, int verb_flag)
 {
@@ -31,12 +31,25 @@ int Parser::OpenConfig(const char *build_file, int verb_flag)
 		ParseValues(verb_flag);
 		CloseConfig();
 		PrintAllProfiles();
-		DeleteProfiles();
+		WriteProfileMakes();
 		return 1;
 	} else {
 		return -1;
 	}
 	return 0;
+}
+
+void Parser::WriteProfileMakes()
+{
+	if ((int)Profiles.size() == 1) {
+		Profiles[0]->WriteMake("Makefile");
+	} else {
+		for (int i = 0; i < (int)Profiles.size(); i++) {
+			std::string make_name = "Makefile-";
+			make_name += Profiles[i]->GetOS();
+			Profiles[i]->WriteMake(make_name.c_str());
+		}
+	}
 }
 
 void Parser::DeleteProfiles()
@@ -163,6 +176,7 @@ const char *Parser::ReadValues()
 				++p_num;
 			break;
 		case YAML_DOCUMENT_END_TOKEN:
+			Profiles[e_num]->CheckBlankValues();
 			prs = doc_end;
 			printf("...\n");
 			++e_num;

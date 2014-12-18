@@ -46,6 +46,7 @@ public:
 	void DeleteProfiles();
 	void CheckDocStart();
 	void PrintAllProfiles();
+	void WriteProfileMakes();
 };
 
 #endif
