@@ -30,8 +30,6 @@ int Parser::OpenConfig(const char *build_file, int verb_flag)
 		ParseConfig();
 		ParseValues(verb_flag);
 		CloseConfig();
-		PrintAllProfiles();
-		WriteProfileMakes();
 		return 1;
 	} else {
 		return -1;
@@ -43,12 +41,14 @@ void Parser::WriteProfileMakes()
 {
 	if ((int)Profiles.size() == 1) {
 		Profiles[0]->WriteMake("Makefile");
+		return;
 	} else {
 		for (int i = 0; i < (int)Profiles.size(); i++) {
 			std::string make_name = "Makefile-";
 			make_name += Profiles[i]->GetOS();
 			Profiles[i]->WriteMake(make_name.c_str());
 		}
+		return;
 	}
 }
 
@@ -170,7 +170,6 @@ const char *Parser::ReadValues()
 			break;
 		case YAML_DOCUMENT_START_TOKEN:
 			prs = doc_start;
-			printf("---\n");
 			Profiles.push_back(new Profile());
 			if (e_num != 0)
 				++p_num;
@@ -178,7 +177,6 @@ const char *Parser::ReadValues()
 		case YAML_DOCUMENT_END_TOKEN:
 			Profiles[e_num]->CheckBlankValues();
 			prs = doc_end;
-			printf("...\n");
 			++e_num;
 			break;
 		case YAML_BLOCK_SEQUENCE_START_TOKEN:
@@ -219,7 +217,6 @@ const char *Parser::ReadValues()
 			case key:
 				if (Profiles[p_num]->CompValid(
 					token.data.scalar.value) == 1) {
-					printf("%s: ", token.data.scalar.value);
 					key_value = Profiles[p_num]->ConvValue(
 					    token.data.scalar.value);
 
@@ -247,14 +244,12 @@ const char *Parser::ReadValues()
 				Profiles[p_num]->PopValidValue(
 				    key_value, Profiles[p_num]->ConvValue(
 						   token.data.scalar.value));
-				printf("%s\n", token.data.scalar.value);
 				token_return = block_entry;
 				break;
 			case value:
 				Profiles[p_num]->PopValidValue(
 				    key_value, Profiles[p_num]->ConvValue(
 						   token.data.scalar.value));
-				printf("%s\n", token.data.scalar.value);
 				token_return = value;
 				break;
 			default:
