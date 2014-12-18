@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 	while (1) {
 		static struct option long_options[] = {
 		    {"new", optional_argument, NULL, 'n'},
+		    {"make", optional_argument, NULL, 'm'},
 		    {"help", no_argument, NULL, 'h'},
 		    {"debug", no_argument, NULL, 'd'},
 		    {"parse", optional_argument, NULL, 'p'},
@@ -26,7 +27,7 @@ int main(int argc, char *argv[])
 		    {"verbose", optional_argument, NULL, 'v'},
 		    {0, 0, 0, 0}};
 		int option_index = 0;
-		int c = getopt_long(argc, argv, ":d::p:hn::e::v::",
+		int c = getopt_long(argc, argv, ":d::p:hn::m:e::v::",
 				    long_options, &option_index);
 		if (c == -1)
 			break;
@@ -37,8 +38,6 @@ int main(int argc, char *argv[])
 			break;
 		case 'd':
 			Ybs.CheckMake();
-			Ybs.WriteMake();
-			Ybs.GenMakeFromTemplate();
 			Ybs.WalkDir(Ybs.GetCurrentDir(), ".\\.cpp$",
 				    FS_DEFAULT | FS_MATCHDIRS);
 			Ybs.PrintFileList();
@@ -62,7 +61,17 @@ int main(int argc, char *argv[])
 		case 'v':
 			if (argv[2] != NULL)
 				Ybs.OpenConfig(argv[2], 1);
+			break;
+		case 'm':
+			p_arg = optarg;
+			if (p_arg != NULL) {
+				Ybs.OpenConfig(argv[2], 0);
+				Ybs.WriteProfileMakes();
+			}
+			break;
 		case ':':
+			break;
+		default:
 			break;
 		}
 	}
