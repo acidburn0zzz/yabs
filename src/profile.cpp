@@ -94,8 +94,11 @@ void Profile::PrintList(std::vector<string> vect)
 	}
 }
 
+std::string Profile::GetOS() const { return this->os; }
+
 void Profile::PrintProfile()
 {
+	printf("target: %s\n", target.c_str());
 	printf("os: %s\n", os.c_str());
 	printf("cc: %s\n", cc.c_str());
 	printf("cxx: %s\n", cxx.c_str());
