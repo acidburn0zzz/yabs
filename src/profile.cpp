@@ -68,6 +68,16 @@ string Profile::PrependLink(string to_pre, string pre)
 	return to_pre;
 }
 
+void Profile::BuildObjList()
+{
+	obj = FileList;
+	for (int i = 0; i < (int)obj.size(); i++) {
+		obj[i] = strrchr(&obj[i][0], '/') + 1;
+		size_t f = obj[i].find(lang);
+		obj[i].replace(f, lang.length(), "o");
+	}
+}
+
 void Profile::OpenInclude(string file)
 {
 	inc_conf = fopen(file.c_str(), "r");
