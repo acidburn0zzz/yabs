@@ -25,8 +25,16 @@ void Profile::GetSysInfo()
 {
 #ifdef __linux__
 	plat = "linux";
+	if (cc.empty())
+		cc = "gcc";
+	if (cxx.empty())
+		cxx = "g++";
 #elif __FreeBSD__
 	plat = "freebsd";
+	if (cc.empty())
+		cc = "clang";
+	if (cxx.empty())
+		cxx = "clang++";
 #endif
 #ifdef __amd64__
 	p_arch = "x86_64";
