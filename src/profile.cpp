@@ -110,8 +110,6 @@ void Profile::PrintProfile()
 	PrintList(libs);
 	printf("incdir: ");
 	PrintList(incdir);
-	printf("libdir: ");
-	PrintList(libdir);
 	printf("remote: %s\n", remote.c_str());
 	printf("defines: %s\n", defines.c_str());
 	printf("before-script: ");
@@ -129,13 +127,12 @@ void Profile::CheckBlankValues()
 	if (std::find(arch.begin(), arch.end(), p_arch) == arch.end()) {
 		arch.push_back(p_arch);
 	}
-	if (libdir.empty()) {
-		libdir.push_back("-L/usr/local/lib");
-		libdir.push_back("-L/usr/lib");
-	}
 	if (incdir.empty()) {
 		incdir.push_back("-I/usr/include");
 		incdir.push_back("-I/usr/local/include");
+	}
+	if (target.empty()) {
+		target = GetRelBase();
 	}
 }
 
@@ -152,6 +149,9 @@ void Profile::PopValidValue(string k_value, string v_value)
 	}
 	if (strcasecmp("cxx", k_value.c_str()) == 0) {
 		cxx = v_value;
+	}
+	if (strcasecmp("target", k_value.c_str()) == 0) {
+		target = v_value;
 	}
 	if (strcasecmp("include", k_value.c_str()) == 0) {
 		include = v_value;
