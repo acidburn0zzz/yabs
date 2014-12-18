@@ -32,10 +32,9 @@ private:
 	};
 	char cwd[MAXPATHLEN];
 	char *current_dir = getcwd(cwd, MAXPATHLEN);
-	std::vector<std::string> FileList;
+	const char *default_makefile;
 	std::string file_name;
 	std::string rm_base;
-	const char *default_makefile;
 	int file_count = 0;
 	FILE *makefile;
 	FILE *new_config;
@@ -43,15 +42,16 @@ private:
 public:
 	Generate();
 	~Generate();
-	char *GetCurrentDir();
+	std::vector<std::string> FileList;
 	std::string RelPathName(std::string to_rel);
+	std::string GetRelBase();
+	char *GetCurrentDir();
 	char *RemoveBase(char *to_rm);
-	int WriteMake();
 	void Walk();
 	void GenFileList(std::string file_list);
-	int GenConfig(int force_opt);
 	void CheckFiles();
 	void PrintFileList();
+	int GenConfig(int force_opt);
 	int CheckConfigExists();
 	int CheckMake();
 	int GenMakeFromTemplate();

@@ -30,6 +30,8 @@ Generate::~Generate(){};
 
 char *Generate::GetCurrentDir() { return current_dir; }
 
+std::string Generate::GetRelBase() { return REL_BASEDIR; }
+
 int Generate::WalkRecur(string dir_name, regex_t *expr, int spec)
 {
 	struct dirent *ent;
@@ -171,16 +173,3 @@ int Generate::GenConfig(int force_opt)
 	}
 	return 3;
 }
-
-int Generate::WriteMake()
-{
-	if (CheckConfigExists() == 1) {
-		return 1;
-	} else {
-		printf("Error: yabs build file does not exist\n");
-		return -1;
-	}
-	return 0;
-}
-
-int Generate::GenMakeFromTemplate() {}
