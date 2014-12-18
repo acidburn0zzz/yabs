@@ -1,0 +1,8 @@
+---
+lang: cpp
+cxx: g++
+libs: yaml archive
+target: yabs
+incdir: include /usr/include
+cxxflags: pipe std=c++11 march=x86-64 mtune=generic O2 pipe  fprofile-arcs fstack-protector ftest-coverage -param=ssp-buffer-size=4 Wall
+...
