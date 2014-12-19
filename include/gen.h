@@ -6,6 +6,7 @@
 #define _GEN_H
 
 #define MAKEFILE "Makefile"
+#define ENTRY_P "int main"
 #define FS_NONE 0
 #define FS_RECURSIVE (1 << 0)
 #define FS_DEFAULT FS_RECURSIVE
@@ -31,13 +32,16 @@ private:
 	       FS_BADIO,
 	};
 	char cwd[MAXPATHLEN];
-	char *current_dir = getcwd(cwd, MAXPATHLEN);
+	char temp[512];
+	char *current_dir;
 	const char *default_makefile;
 	std::string file_name;
 	std::string rm_base;
-	int file_count = 0;
+	int file_count;
+	int bin_num;
 	FILE *makefile;
 	FILE *new_config;
+	FILE *src_file;
 
 public:
 	Generate();
@@ -51,6 +55,7 @@ public:
 	void GenFileList(std::string file_list);
 	void CheckFiles();
 	void PrintFileList();
+	int SearchForMain(std::vector<std::string> vect);
 	int GenConfig(int force_opt);
 	int CheckConfigExists();
 	int CheckMake();

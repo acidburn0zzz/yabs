@@ -25,7 +25,13 @@
 
 using std::string;
 
-Generate::Generate(){};
+Generate::Generate()
+{
+	bin_num = 0;
+	file_count = 0;
+	current_dir = getcwd(cwd, MAXPATHLEN);
+}
+
 Generate::~Generate(){};
 
 char *Generate::GetCurrentDir() { return current_dir; }
@@ -79,6 +85,22 @@ int Generate::WalkRecur(string dir_name, regex_t *expr, int spec)
 	if (dir)
 		closedir(dir);
 	return res ? res : errno ? FS_BADIO : FS_OK;
+}
+
+int Generate::SearchForMain(std::vector<std::string> vect)
+{
+	for (int i = 0; i < (int)vect.size(); i++) {
+		if ((src_file = fopen(vect[i].c_str(), "r")) != NULL) {
+			while (fgets(temp, 512, src_file) != NULL) {
+				if (strstr(temp, ENTRY_P) != NULL) {
+					++bin_num;
+				}
+
+			}
+			fclose(src_file);
+		}
+	}
+	return bin_num;
 }
 
 int Generate::WalkDir(string dir_name, string pattern, int spec)
