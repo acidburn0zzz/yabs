@@ -76,4 +76,5 @@ clean:
 	$(DEL) *.gcno *.gcda *.gcov
 
 tests:
-	./test/test-script.sh all
+	./test/test-script.sh basic
+	./test/test-script.sh memory

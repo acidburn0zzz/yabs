@@ -20,6 +20,7 @@ script:
 after_script:
     - gcov yabs.gcda
     - coveralls --exclude include
+    - bash test/test-script.sh self
     - make clean
     - qmake-qt4 "CONFIG+=clang"
     - make
