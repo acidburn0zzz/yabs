@@ -39,6 +39,12 @@ memory() {
 	done
 }
 
+self() {
+	./yabs -m yabs.ybf
+	make clean
+	make
+}
+
 case $1 in
 	'basic')
 		basic
@@ -46,8 +52,12 @@ case $1 in
 	'memory')
 		memory
 		;;
+	'self')
+		self
+		;;
 	'all')
 		basic
 		memory
+		self
 		;;
 esac
