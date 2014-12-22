@@ -18,7 +18,6 @@ script:
     - tar cvf include.tar.gz include/
     - make tests
 after_script:
-    - bash test/test-script.sh self
     - gcov yabs.gcda
     - coveralls --exclude include
     - make clean

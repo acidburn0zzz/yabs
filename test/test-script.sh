@@ -10,6 +10,7 @@ NC='\033[0m'
 ./yabs -p test/test-script.sh
 ./yabs -p test/yml
 ./yabs -p no-file
+./yabs -m yabs.ybf
 
 basic() {
 	for file in test/yml/*
@@ -39,12 +40,6 @@ memory() {
 	done
 }
 
-self() {
-	./yabs -m yabs.ybf
-	make clean
-	make
-}
-
 case $1 in
 	'basic')
 		basic
@@ -52,12 +47,8 @@ case $1 in
 	'memory')
 		memory
 		;;
-	'self')
-		self
-		;;
 	'all')
 		basic
 		memory
-		self
 		;;
 esac
