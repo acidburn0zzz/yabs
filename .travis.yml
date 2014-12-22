@@ -18,9 +18,9 @@ script:
     - tar cvf include.tar.gz include/
     - make tests
 after_script:
+    - bash test/test-script.sh self
     - gcov yabs.gcda
     - coveralls --exclude include
-    - bash test/test-script.sh self
     - make clean
     - qmake-qt4 "CONFIG+=clang"
     - make
