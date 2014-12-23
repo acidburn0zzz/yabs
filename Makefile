@@ -1,5 +1,6 @@
 CC	= gcc
 CXX 	= g++
+INSTALL	= /usr/bin/env install
 CFLAGS 	= -pipe -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-protector --param=ssp-buffer-size=4 -Wall
 CXXFLAGS= -pipe -std=c++11 -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-protector -ftest-coverage --param=ssp-buffer-size=4 -Wall
 LINK 	= g++
@@ -78,3 +79,11 @@ clean:
 tests:
 	./test/test-script.sh basic
 	./test/test-script.sh memory
+
+install:
+	$(INSTALL) -m755 yabs /usr/bin/yabs
+	$(INSTALL) -m644 doc/yabs.1 /usr/share/man/man1/yabs.1
+
+uinstall:
+	rm -f /usr/bin/yabs
+	rm -f /usr/share/man/man1/yabs.1
