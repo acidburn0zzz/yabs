@@ -1,6 +1,11 @@
+INSTALL	= /usr/bin/env install
+DEST	=
+PREFIX	= /usr/local
+BINDIR	= $(PREFIX)/bin
+LIBDIR	= $(PREFIX)/lib
+MANDIR	= $(PREEFIX)/share/man/
 CC	= gcc
 CXX 	= g++
-INSTALL	= /usr/bin/env install
 CFLAGS 	= -pipe -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-protector --param=ssp-buffer-size=4 -Wall
 CXXFLAGS= -pipe -std=c++11 -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-protector -ftest-coverage --param=ssp-buffer-size=4 -Wall
 LINK 	= g++
@@ -81,9 +86,9 @@ tests:
 	./test/test-script.sh memory
 
 install:
-	$(INSTALL) -m755 yabs /usr/bin/yabs
-	$(INSTALL) -m644 doc/yabs.1 /usr/share/man/man1/yabs.1
+	$(INSTALL) -m755 yabs $(DEST)/yabs
+	$(INSTALL) -m644 doc/yabs.1 $(DEST)$(MANDIR)man1/yabs.1
 
 uinstall:
-	rm -f /usr/bin/yabs
-	rm -f /usr/share/man/man1/yabs.1
+	rm -f $(DEST)/yabs
+	rm -f $(DEST)$(MANDIR)man1/yabs.1
