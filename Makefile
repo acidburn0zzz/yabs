@@ -3,7 +3,7 @@ DEST	=
 PREFIX	= /usr/local
 BINDIR	= $(PREFIX)/bin
 LIBDIR	= $(PREFIX)/lib
-MANDIR	= $(PREEFIX)/share/man/
+MANDIR	= $(PREEFIX)/share/man
 CC	= gcc
 CXX 	= g++
 CFLAGS 	= -pipe -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-protector --param=ssp-buffer-size=4 -Wall
@@ -86,8 +86,11 @@ tests:
 	./test/test-script.sh memory
 
 install:
+	$(INSTALL) -d $(DEST)$(BINDIR)
+	$(INSTALL) -d $(DEST)$(LIBDIR)/yaourt
+	$(INSTALL) -d $(DEST)$(MANDIR)/man1
 	$(INSTALL) -m755 yabs $(DEST)/yabs
-	$(INSTALL) -m644 doc/yabs.1 $(DEST)$(MANDIR)man1/yabs.1
+	$(INSTALL) -m644 doc/yabs.1 $(DEST)$(MANDIR)/man1/yabs.1
 
 uinstall:
 	rm -f $(DEST)/yabs
