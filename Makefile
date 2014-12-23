@@ -3,7 +3,7 @@ DEST	=
 PREFIX	= /usr/local
 BINDIR	= $(PREFIX)/bin
 LIBDIR	= $(PREFIX)/lib
-MANDIR	= $(PREEFIX)/share/man
+MANDIR	= $(PREFIX)/share/man
 CC	= gcc
 CXX 	= g++
 CFLAGS 	= -pipe -march=x86-64 -mtune=generic -O2 -pipe -fprofile-arcs -fstack-protector --param=ssp-buffer-size=4 -Wall
