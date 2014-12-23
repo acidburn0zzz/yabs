@@ -89,7 +89,7 @@ install:
 	$(INSTALL) -d $(DEST)$(BINDIR)
 	$(INSTALL) -d $(DEST)$(LIBDIR)/yaourt
 	$(INSTALL) -d $(DEST)$(MANDIR)/man1
-	$(INSTALL) -m755 yabs $(DEST)/yabs
+	$(INSTALL) -m755 yabs $(DEST)$(BINDIR)/yabs
 	$(INSTALL) -m644 doc/yabs.1 $(DEST)$(MANDIR)/man1/yabs.1
 
 uinstall:
