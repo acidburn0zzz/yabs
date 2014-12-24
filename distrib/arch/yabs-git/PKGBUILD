@@ -1,0 +1,28 @@
+pkgname=yabs-git
+pkgver=0.1.0.12.g4233687
+pkgrel=1
+pkgdesc="Yet another build system"
+arch=("any")
+url="https://github.com/0X1A/yabs"
+license=('BSD')
+makedepends=('git')
+provides=('yabs')
+conflicts=('yabs')
+source=('git+https://github.com/0X1A/yabs.git')
+md5sums=('SKIP')
+_gitname=yabs
+
+pkgver() {
+	cd $_gitname
+	echo $(git describe --always | sed 's/-/./g')
+}
+
+build() {
+	cd $_gitname
+	make PREFIX=/usr
+}
+
+package() {
+	cd $_gitname
+	make PREFIX=/usr DEST="$pkgdir" install
+}
