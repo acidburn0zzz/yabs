@@ -1,0 +1,6 @@
+To install yabs in the non-local directory run:
+
+$ make PREFIX=/usr
+$ sudo make PREFIX=/usr install
+
+Otherwise yabs will be installed in `/usr/local`
