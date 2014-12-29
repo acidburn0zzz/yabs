@@ -72,9 +72,13 @@ void Profile::BuildObjList()
 {
 	obj = FileList;
 	for (int i = 0; i < (int)obj.size(); i++) {
-		obj[i] = strrchr(&obj[i][0], '/') + 1;
-		size_t f = obj[i].find(lang);
-		obj[i].replace(f, lang.length(), "o");
+		if (obj[i].c_str() != NULL) {
+			size_t f = obj[i].find(lang);
+			obj[i].replace(f, lang.length(), "o");
+		}
+		if (strchr(&obj[i][0], '/') != NULL) {
+			obj[i] = strrchr(&obj[i][0], '/') + 1;
+		}
 	}
 }
 
