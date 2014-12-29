@@ -86,6 +86,7 @@ case $1 in
 		memory
 		;;
 	'all')
-		all
+		basic
+		memory
 		;;
 esac
