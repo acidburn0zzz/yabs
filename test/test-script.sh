@@ -40,7 +40,7 @@ memory() {
 	done
 }
 
-basic-c() {
+_basic() {
 	for file in test/yml/*
 	do
 		echo -e "\n${GRN}yabs -p $file\n${NC}"
@@ -54,7 +54,7 @@ basic-c() {
 	done
 }
 
-memory-c() {
+_memory() {
 	for file in test/yml/*
 	do
 		echo -e "\n${GRN}valgrind yabs -p $file\n${NC}"
@@ -70,14 +70,14 @@ memory-c() {
 
 case $1 in
 	'basic-color')
-		basic-c
+		_basic
 		;;
 	'memory-color')
-		memory-c
+		_memory
 		;;
 	'all-color')
-		basic-c
-		memory-c
+		_basic
+		_memory
 		;;
 	'basic')
 		basic
