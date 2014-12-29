@@ -82,8 +82,8 @@ clean:
 	$(DEL) *.gcno *.gcda *.gcov
 
 tests:
-	./test/test-script.sh basic
-	./test/test-script.sh memory
+	./test/test-script.sh basic-color
+	./test/test-script.sh memory-color
 
 install:
 	$(INSTALL) -d $(DEST)$(BINDIR)

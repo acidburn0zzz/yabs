@@ -15,6 +15,34 @@ NC='\033[0m'
 basic() {
 	for file in test/yml/*
 	do
+		echo -e "\nyabs -p $file\n"
+		./yabs -p $file
+	done
+
+	for file in test/yml/*
+	do
+		echo -e "\nyabs -v $file\n"
+		./yabs -v $file
+	done
+}
+
+memory() {
+	for file in test/yml/*
+	do
+		echo -e "\nvalgrind yabs -p $file\n"
+		valgrind --track-origins=yes ./yabs -p $file
+	done
+
+	for file in test/yml/*
+	do
+		echo -e "\nvalgrind yabs -v $file\n"
+		valgrind --track-origins=yes ./yabs -v $file
+	done
+}
+
+basic-c() {
+	for file in test/yml/*
+	do
 		echo -e "\n${GRN}yabs -p $file\n${NC}"
 		./yabs -p $file
 	done
@@ -26,7 +54,7 @@ basic() {
 	done
 }
 
-memory() {
+memory-c() {
 	for file in test/yml/*
 	do
 		echo -e "\n${GRN}valgrind yabs -p $file\n${NC}"
@@ -41,6 +69,16 @@ memory() {
 }
 
 case $1 in
+	'basic-color')
+		basic-c
+		;;
+	'memory-color')
+		memory-c
+		;;
+	'all-color')
+		basic-c
+		memory-c
+		;;
 	'basic')
 		basic
 		;;
@@ -48,7 +86,6 @@ case $1 in
 		memory
 		;;
 	'all')
-		basic
-		memory
+		all
 		;;
 esac
