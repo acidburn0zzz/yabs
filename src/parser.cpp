@@ -15,6 +15,8 @@ Parser::Parser()
 {
 	e_num = 0;
 	p_num = 0;
+	prs = error;
+	token_return = error;
 }
 
 Parser::~Parser() { DeleteProfiles(); };
