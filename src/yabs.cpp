@@ -55,8 +55,10 @@ int main(int argc, char *argv[])
 			break;
 		case 'p':
 			p_arg = optarg;
-			if (p_arg != NULL)
+			if (p_arg != NULL) {
 				Ybs.OpenConfig(argv[2], 0);
+				Ybs.PrintAllProfiles();
+			}
 			break;
 		case 'v':
 			if (argv[2] != NULL)

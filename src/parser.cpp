@@ -134,8 +134,13 @@ void Parser::ParseValues(int verb_flag)
 void Parser::PrintAllProfiles()
 {
 	for (int i = 0; i < (int)Profiles.size(); i++) {
-		printf("\n\nProfile %d\n", i);
-		Profiles[i]->PrintProfile();
+		if (i == 0) {
+			printf("Profile %d\n", i);
+			Profiles[i]->PrintProfile();
+		} else {
+			printf("\n\nProfile %d\n", i);
+			Profiles[i]->PrintProfile();
+		}
 	}
 }
 
