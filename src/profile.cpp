@@ -93,8 +93,12 @@ void Profile::OpenInclude(string file)
 
 void Profile::PrintList(std::vector<string> vect)
 {
-	for (unsigned int i = 0; i < vect.size(); i++) {
-		std::cout << vect[i] << std::endl;
+	if (vect.size() == 0) {
+		printf("\n");
+	} else {
+		for (unsigned int i = 0; i < vect.size(); i++) {
+			std::cout << vect[i] << std::endl;
+		}
 	}
 }
 
