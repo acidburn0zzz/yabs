@@ -131,7 +131,7 @@ void Generate::GenFileList(std::string file_list)
 void Generate::PrintFileList()
 {
 	for (int i = 0; i < file_count; i++) {
-		std::cout << "Vector file list: " << FileList[i] << "\n";
+		printf("File list: %s\n", FileList[i].c_str());
 	}
 }
 

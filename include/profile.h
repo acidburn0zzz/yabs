@@ -56,8 +56,8 @@ public:
 	void OpenInclude(std::string file);
 	void ParseKey(std::string key);
 	void PopValidValue(std::string k_value, std::string v_value);
-	void PrintList(std::vector<std::string> vect);
-	void PrintProfile();
+	void PrintList(std::vector<std::string> vect) const;
+	void PrintProfile() const;
 	void CheckBlankValues();
 	void GetSysInfo();
 	void CheckLang();

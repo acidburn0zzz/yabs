@@ -91,20 +91,20 @@ void Profile::OpenInclude(string file)
 	}
 }
 
-void Profile::PrintList(std::vector<string> vect)
+void Profile::PrintList(std::vector<string> vect) const
 {
 	if (vect.size() == 0) {
-		printf("\n");
+		putchar('\n');
 	} else {
 		for (unsigned int i = 0; i < vect.size(); i++) {
-			std::cout << vect[i] << std::endl;
+			printf("%s\n", vect[i].c_str());
 		}
 	}
 }
 
 std::string Profile::GetOS() const { return this->os; }
 
-void Profile::PrintProfile()
+void Profile::PrintProfile() const
 {
 	printf("target: %s\n", target.c_str());
 	printf("os: %s\n", os.c_str());
