@@ -95,7 +95,6 @@ int Generate::SearchForMain(std::vector<std::string> vect)
 				if (strstr(temp, ENTRY_P) != NULL) {
 					++bin_num;
 				}
-
 			}
 			fclose(src_file);
 		}

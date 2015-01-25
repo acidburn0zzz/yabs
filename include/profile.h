@@ -10,7 +10,7 @@
 #include <vector>
 #include "gen.h"
 
-#define MAX_OPT 18
+#define MAX_OPT 20
 
 class Profile : public Generate
 {
@@ -31,6 +31,7 @@ private:
 	std::vector<std::string> libs;
 	std::vector<std::string> incdir;
 	std::vector<std::string> libdir;
+	std::vector<std::string> clean;
 	std::vector<std::string> lflags;
 	std::vector<std::string> before;
 	std::vector<std::string> after;
@@ -38,10 +39,10 @@ private:
 	std::string plat;
 	std::string p_arch;
 	std::string STDValues[MAX_OPT] = {
-	    "os",	    "arch",	 "cc",      "cxx",    "cflags",
-	    "cxxflags",      "lflags",       "include", "lang",   "dist",
-	    "before-script", "after-script", "libs",    "libdir", "incdir",
-	    "target",	"remote",       "defines",
+	    "os",	    "arch",	 "cc",      "cxx",     "cflags",
+	    "cxxflags",      "lflags",       "include", "lang",    "dist",
+	    "before-script", "after-script", "libs",    "libdir",  "incdir",
+	    "target",	"remote",       "clean",   "defines",
 	};
 	std::string temp;
 

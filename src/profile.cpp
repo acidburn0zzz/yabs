@@ -71,7 +71,7 @@ string Profile::PrependLink(string to_pre, string pre)
 void Profile::BuildObjList()
 {
 	obj = FileList;
-	for (int i = 0; i < (int)obj.size(); i++) {
+	for (unsigned i = 0; i < obj.size(); i++) {
 		if (obj[i].c_str() != NULL) {
 			size_t f = obj[i].find(lang);
 			obj[i].replace(f, lang.length(), "o");
@@ -126,6 +126,8 @@ void Profile::PrintProfile() const
 	PrintList(before);
 	printf("after-script: ");
 	PrintList(after);
+	printf("clean: ");
+	PrintList(clean);
 }
 
 void Profile::CheckBlankValues()
@@ -216,6 +218,10 @@ void Profile::PopValidValue(string k_value, string v_value)
 		cxxflags.push_back(PrependLink(v_value, "-"));
 		return;
 	}
+	if (strcasecmp("clean", k_value.c_str()) == 0) {
+		clean.push_back(v_value);
+		return;
+	}
 }
 
 void Profile::CheckLang()
@@ -263,7 +269,7 @@ int Profile::WriteMake(const char *makefile)
 	temp.clear();
 
 	fprintf(Makefile, "SRC\t=");
-	for (unsigned int i = 0; i < FileList.size(); i++) {
+	for (unsigned i = 0; i < FileList.size(); i++) {
 		if (i == 0) {
 			fprintf(Makefile, " %s \\\n", FileList[i].c_str());
 		} else {
@@ -273,6 +279,20 @@ int Profile::WriteMake(const char *makefile)
 			} else {
 				fprintf(Makefile, "\t  %s \\\n",
 					FileList[i].c_str());
+			}
+		}
+	}
+
+	fprintf(Makefile, "CLN\t=");
+	for (unsigned i = 0; i < clean.size(); i++) {
+		if (i == 0) {
+			fprintf(Makefile, " %s \\\n", clean[i].c_str());
+		} else {
+			if (i == (clean.size() - 1)) {
+				fprintf(Makefile, "\t  %s\n", clean[i].c_str());
+			} else {
+				fprintf(Makefile, "\t  %s \\\n",
+					clean[i].c_str());
 			}
 		}
 	}
@@ -320,7 +340,8 @@ int Profile::WriteMake(const char *makefile)
 			"\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o %s %s\n\n",
 			obj[i].c_str(), FileList[i].c_str());
 	}
-	fprintf(Makefile, "clean:\n\t$(DEL) $(OBJ)\n\t$(DEL) $(TRGT)\n");
+	fprintf(Makefile,
+		"clean:\n\t$(DEL) $(OBJ)\n\t$(DEL) $(CLN)\n\t$(DEL) $(TRGT)\n");
 
 	fclose(Makefile);
 	return 0;
