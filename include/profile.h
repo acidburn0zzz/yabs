@@ -30,6 +30,7 @@ private:
 	std::vector<std::string> cxxflags;
 	std::vector<std::string> libs;
 	std::vector<std::string> incdir;
+	std::vector<std::string> libdir;
 	std::vector<std::string> lflags;
 	std::vector<std::string> before;
 	std::vector<std::string> after;
@@ -39,8 +40,8 @@ private:
 	std::string STDValues[MAX_OPT] = {
 	    "os",	    "arch",	 "cc",      "cxx",    "cflags",
 	    "cxxflags",      "lflags",       "include", "lang",   "dist",
-	    "before-script", "after-script", "libs",    "incdir", "target",
-	    "remote",	"defines",
+	    "before-script", "after-script", "libs",    "libdir", "incdir",
+	    "target",	"remote",       "defines",
 	};
 	std::string temp;
 

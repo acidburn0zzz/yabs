@@ -118,6 +118,8 @@ void Profile::PrintProfile() const
 	PrintList(libs);
 	printf("incdir: ");
 	PrintList(incdir);
+	printf("libdir: ");
+	PrintList(libdir);
 	printf("remote: %s\n", remote.c_str());
 	printf("defines: %s\n", defines.c_str());
 	printf("before-script: ");
@@ -139,6 +141,10 @@ void Profile::CheckBlankValues()
 		incdir.push_back("-I/usr/include");
 		incdir.push_back("-I/usr/local/include");
 	}
+	if (libdir.empty()) {
+		libdir.push_back("-L/usr/lib");
+		libdir.push_back("-L/usr/local/lib");
+	}
 	if (target.empty()) {
 		target = GetRelBase();
 	}
@@ -148,48 +154,67 @@ void Profile::PopValidValue(string k_value, string v_value)
 {
 	if (strcasecmp("os", k_value.c_str()) == 0) {
 		os = v_value;
+		return;
 	}
 	if (strcasecmp("arch", k_value.c_str()) == 0) {
 		arch.push_back(v_value);
+		return;
 	}
 	if (strcasecmp("cc", k_value.c_str()) == 0) {
 		cc = v_value;
+		return;
 	}
 	if (strcasecmp("cxx", k_value.c_str()) == 0) {
 		cxx = v_value;
+		return;
 	}
 	if (strcasecmp("target", k_value.c_str()) == 0) {
 		target = v_value;
+		return;
 	}
 	if (strcasecmp("include", k_value.c_str()) == 0) {
 		include = v_value;
+		return;
 	}
 	if (strcasecmp("lang", k_value.c_str()) == 0) {
 		lang = v_value;
+		return;
 	}
 	if (strcasecmp("dist", k_value.c_str()) == 0) {
 		dist = v_value;
+		return;
 	}
 	if (strcasecmp("before-script", k_value.c_str()) == 0) {
 		before.push_back(v_value);
+		return;
 	}
 	if (strcasecmp("after-script", k_value.c_str()) == 0) {
 		after.push_back(v_value);
+		return;
 	}
 	if (strcasecmp("libs", k_value.c_str()) == 0) {
 		libs.push_back(PrependLink(v_value, "-l"));
+		return;
 	}
 	if (strcasecmp("incdir", k_value.c_str()) == 0) {
 		incdir.push_back(PrependLink(v_value, "-I"));
+		return;
+	}
+	if (strcasecmp("libdir", k_value.c_str()) == 0) {
+		libdir.push_back(PrependLink(v_value, "-L"));
+		return;
 	}
 	if (strcasecmp("remote", k_value.c_str()) == 0) {
 		remote = v_value;
+		return;
 	}
 	if (strcasecmp("defines", k_value.c_str()) == 0) {
 		defines = v_value;
+		return;
 	}
 	if (strcasecmp("cxxflags", k_value.c_str()) == 0) {
 		cxxflags.push_back(PrependLink(v_value, "-"));
+		return;
 	}
 }
 
@@ -197,6 +222,7 @@ void Profile::CheckLang()
 {
 	if (lang == "c") {
 		WalkDir(GetCurrentDir(), ".\\.c$", FS_DEFAULT | FS_MATCHDIRS);
+		return;
 	} else if (lang == "cpp") {
 		WalkDir(GetCurrentDir(), ".\\.cpp$", FS_DEFAULT | FS_MATCHDIRS);
 	}
@@ -212,22 +238,28 @@ int Profile::WriteMake(const char *makefile)
 	fprintf(Makefile, "CC\t= %s\n", cc.c_str());
 	fprintf(Makefile, "CXX\t= %s\n", cxx.c_str());
 
-	for (int i = 0; i < (int)cxxflags.size(); i++) {
+	for (unsigned i = 0; i < cxxflags.size(); i++) {
 		temp += cxxflags[i] += " ";
 	}
 	fprintf(Makefile, "CXXFLAGS= %s\n", temp.c_str());
 	temp.clear();
 
-	for (int i = 0; i < (int)libs.size(); i++) {
+	for (unsigned i = 0; i < libs.size(); i++) {
 		temp += libs[i] += " ";
 	}
 	fprintf(Makefile, "LIBS\t= %s\n", temp.c_str());
 	temp.clear();
 
-	for (int i = 0; i < (int)incdir.size(); i++) {
+	for (unsigned i = 0; i < incdir.size(); i++) {
 		temp += incdir[i] += " ";
 	}
 	fprintf(Makefile, "INCPATH\t= %s\n", temp.c_str());
+	temp.clear();
+
+	for (unsigned i = 0; i < libdir.size(); i++) {
+		temp += libdir[i] += " ";
+	}
+	fprintf(Makefile, "LIBDIR\t= %s\n", temp.c_str());
 	temp.clear();
 
 	fprintf(Makefile, "SRC\t=");
@@ -279,9 +311,9 @@ int Profile::WriteMake(const char *makefile)
 
 	fprintf(Makefile, "all: $(TRGT)\n\n");
 	fprintf(Makefile, "$(TRGT): $(OBJ)\n\t$(CXX) $(LFLAGS) -o $(TRGT) "
-			  "$(OBJ) $(LIBS)\n\n");
+			  "$(OBJ) $(LIBDIR) $(LIBS)\n\n");
 
-	for (int i = 0; i < (int)obj.size(); i++) {
+	for (unsigned i = 0; i < obj.size(); i++) {
 		fprintf(Makefile, "%s: %s\n", obj[i].c_str(),
 			FileList[i].c_str());
 		fprintf(Makefile,
