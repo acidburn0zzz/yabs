@@ -4,7 +4,7 @@ are not properly
 interpreted.
 
 A valid project file would look something like:
-```
+```YAML
 ---
 os: linux
 include: yabs-include.yml
@@ -25,7 +25,7 @@ after-script:
 ```
 Where the key `include` would include another file with more values 
 for the project, here `yabs-include.yml` is:
-```
+```YAML
 libs: yaml ssh2 git2 archive
 inc: /usr/include /usr/local/include
 libdir: /usr/lib /usr/local/lib
@@ -52,7 +52,7 @@ Valid options for a project file are as follows:
 ## Multiple Documents
 Multiple documents in a yaml file can define multiple Makefiles, and inherently,
 multiple operating systems, for example:
-```
+```YAML
 ---
 os: linux
 include: yabs-include.yml
