@@ -11,7 +11,16 @@ define Makefiles to be written that can be copied to a remote system or be
 completely built on a remote system.
 
 ## Status
-Nothing works the way it's meant to right now. c:
+yabs can currently self host. Major things that are left to implement are:
+
+- Remote jobs (ssh and or git)
+- Better language detection (& add more languages)
+- Better distribution tarballs
+- Pre/Post scripting
+- Direct building (omitting Make)
+
+Yabs currently only works well with C and C++ and only with certain file 
+extensions
 
 ## Building
 
