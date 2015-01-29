@@ -59,6 +59,10 @@ public:
 	void ParseKey(std::string key);
 	void PopValidValue(std::string k_value, std::string v_value);
 	void PrintList(std::vector<std::string> vect) const;
+	void WriteListToMake(std::vector<std::string> vect,
+			     std::string out_name);
+	void SwapTempValues(std::vector<std::string> to_swap,
+			    std::string out_name);
 	void PrintProfile() const;
 	void CheckBlankValues();
 	void GetSysInfo();

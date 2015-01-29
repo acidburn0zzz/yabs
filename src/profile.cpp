@@ -224,6 +224,44 @@ void Profile::PopValidValue(string k_value, string v_value)
 	}
 }
 
+void Profile::WriteListToMake(std::vector<std::string> vect,
+			      std::string out_name)
+{
+	fprintf(Makefile, "%s\t=", out_name.c_str());
+	if (vect.size() == 0) {
+		fprintf(Makefile, "\n");
+	} else {
+		for (unsigned i = 0; i < vect.size(); i++) {
+			if (vect.size() == 1) {
+				fprintf(Makefile, " %s\n", vect[i].c_str());
+				break;
+			}
+			if (i == 0) {
+				fprintf(Makefile, " %s \\\n", vect[i].c_str());
+			} else {
+				if (i == (vect.size() - 1)) {
+					fprintf(Makefile, "\t  %s\n",
+						vect[i].c_str());
+				} else {
+					fprintf(Makefile, "\t  %s \\\n",
+						vect[i].c_str());
+				}
+			}
+		}
+	}
+}
+
+void Profile::SwapTempValues(std::vector<std::string> to_swap,
+			     std::string out_name)
+{
+	temp.clear();
+	for (unsigned i = 0; i < to_swap.size(); i++) {
+		temp += to_swap[i] += " ";
+	}
+	fprintf(Makefile, "%s\t= %s\n", out_name.c_str(), temp.c_str());
+	temp.clear();
+}
+
 void Profile::CheckLang()
 {
 	if (lang == "c") {
@@ -244,73 +282,15 @@ int Profile::WriteMake(const char *makefile)
 	fprintf(Makefile, "CC\t= %s\n", cc.c_str());
 	fprintf(Makefile, "CXX\t= %s\n", cxx.c_str());
 
-	for (unsigned i = 0; i < cxxflags.size(); i++) {
-		temp += cxxflags[i] += " ";
-	}
-	fprintf(Makefile, "CXXFLAGS= %s\n", temp.c_str());
-	temp.clear();
+	SwapTempValues(cxxflags, "CXXFLAGS");
+	SwapTempValues(libs, "LIBS");
+	SwapTempValues(incdir, "INCPATH");
+	SwapTempValues(libdir, "LIBDIR");
 
-	for (unsigned i = 0; i < libs.size(); i++) {
-		temp += libs[i] += " ";
-	}
-	fprintf(Makefile, "LIBS\t= %s\n", temp.c_str());
-	temp.clear();
-
-	for (unsigned i = 0; i < incdir.size(); i++) {
-		temp += incdir[i] += " ";
-	}
-	fprintf(Makefile, "INCPATH\t= %s\n", temp.c_str());
-	temp.clear();
-
-	for (unsigned i = 0; i < libdir.size(); i++) {
-		temp += libdir[i] += " ";
-	}
-	fprintf(Makefile, "LIBDIR\t= %s\n", temp.c_str());
-	temp.clear();
-
-	fprintf(Makefile, "SRC\t=");
-	for (unsigned i = 0; i < FileList.size(); i++) {
-		if (i == 0) {
-			fprintf(Makefile, " %s \\\n", FileList[i].c_str());
-		} else {
-			if (i == (FileList.size() - 1)) {
-				fprintf(Makefile, "\t  %s\n",
-					FileList[i].c_str());
-			} else {
-				fprintf(Makefile, "\t  %s \\\n",
-					FileList[i].c_str());
-			}
-		}
-	}
-
-	fprintf(Makefile, "CLN\t=");
-	for (unsigned i = 0; i < clean.size(); i++) {
-		if (i == 0) {
-			fprintf(Makefile, " %s \\\n", clean[i].c_str());
-		} else {
-			if (i == (clean.size() - 1)) {
-				fprintf(Makefile, "\t  %s\n", clean[i].c_str());
-			} else {
-				fprintf(Makefile, "\t  %s \\\n",
-					clean[i].c_str());
-			}
-		}
-	}
-
+	WriteListToMake(clean, "CLN");
 	BuildObjList();
-	fprintf(Makefile, "OBJ\t=");
-	for (unsigned int i = 0; i < obj.size(); i++) {
-		if (i == 0) {
-			fprintf(Makefile, " %s \\\n", obj[i].c_str());
-		} else {
-			if (i == (obj.size() - 1)) {
-				fprintf(Makefile, "\t  %s\n", obj[i].c_str());
-			} else {
-				fprintf(Makefile, "\t  %s \\\n",
-					obj[i].c_str());
-			}
-		}
-	}
+	WriteListToMake(obj, "OBJ");
+
 	fprintf(Makefile, "DEL\t= rm -f\n");
 	fprintf(Makefile, "\n.SUFFIXES: .o .c .cpp .cc .cxx .C\n\n");
 	fprintf(
