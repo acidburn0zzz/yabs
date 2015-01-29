@@ -5,3 +5,4 @@ yabs
 *.gcno
 *.gcda
 *.gcov
+distrib/arch/yabs-git/*
