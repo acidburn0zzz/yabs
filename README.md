@@ -39,3 +39,13 @@ To learn how projects are defined please see the [projects.md](projects.md)
 - `libgit2`
 - `libssh2`
 - C++11 compliant compiler
+
+## Contributing
+Commits must be **signed**, gpg signing is optional. Patches mailed to the 
+mailing list is preferable.
+
+### Mailing list
+`yabs@librelist.com`
+
+## Releases
+All releases are signed with keyid `639DEF0A`
