@@ -11,9 +11,11 @@ void printHelp()
 	printf("Usage: yabs [options] <FILE>\n\n"
 	       "yabs, a simple build system.\n"
 	       "Options:\n"
+	       "\t-m, --make\tGenerate a Makefile from a yabs build file\n"
 	       "\t-n, --new\tCreate a new yabs build file\n"
 	       "\t-h, --help\tPrint this dialog\n"
-	       "\t-p, --parse\tVerbosely parse configuration file\n"
+	       "\t-p, --parse\tPrint profiles from a yabs build file\n"
+	       "\t-V, --verbose\tVerbosely parse configuration file\n"
 	       "\t-e, --extract\tExtract dist tarball\n");
 }
 

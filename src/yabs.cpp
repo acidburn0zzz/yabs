@@ -24,10 +24,10 @@ int main(int argc, char *argv[])
 		    {"debug", no_argument, NULL, 'd'},
 		    {"parse", optional_argument, NULL, 'p'},
 		    {"extract", optional_argument, NULL, 'e'},
-		    {"verbose", optional_argument, NULL, 'v'},
+		    {"verbose", optional_argument, NULL, 'V'},
 		    {0, 0, 0, 0}};
 		int option_index = 0;
-		int c = getopt_long(argc, argv, ":d::p:hn::m:e::v::",
+		int c = getopt_long(argc, argv, ":d::p:hn::m:e::V::",
 				    long_options, &option_index);
 		if (c == -1)
 			break;
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 				Ybs.PrintAllProfiles();
 			}
 			break;
-		case 'v':
+		case 'V':
 			if (argv[2] != NULL)
 				Ybs.OpenConfig(argv[2], 1);
 			break;

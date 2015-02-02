@@ -26,10 +26,10 @@ Options
 	Print help
 *-n*, *--new*::
 	Create a new build file
-*-v*, *--verbose*[_FILE_]::
+*-V*, *--verbose*[_FILE_]::
 	Verbosely parse configuration file
 *-p*, *--parse=*[_FILE_]::
-	Parse configuration file
+	Print configuration file
 *-e*, *--extract=*[_FILE_]::
 	Extract distribution tarball
 *-m*, *--make=*[_FILE_]::
