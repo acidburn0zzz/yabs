@@ -15,6 +15,8 @@
 #define FS_MATCHDIRS (1 << 3)
 #define DOC_START "---\n"
 #define DOC_END "...\n"
+#define BASEDIR getcwd(cwd, MAXPATHLEN)
+#define REL_BASEDIR strrchr(BASEDIR, '/') + 1
 
 #include <regex.h>
 #include <unistd.h>
@@ -47,20 +49,19 @@ public:
 	Generate();
 	~Generate();
 	std::vector<std::string> FileList;
-	std::string RelPathName(std::string to_rel);
+	std::string RelPathName(std::string &to_rel);
 	std::string GetRelBase();
 	char *GetCurrentDir();
 	char *RemoveBase(char *to_rm);
 	void Walk();
-	void GenFileList(std::string file_list);
 	void CheckFiles();
 	void PrintFileList();
-	int SearchForMain(std::vector<std::string> vect);
+	int SearchForMain(const std::vector<std::string> &vect);
 	int GenConfig(int force_opt);
 	int CheckConfigExists();
 	int CheckMake();
 	int GenMakeFromTemplate();
-	int WalkDir(std::string dir_name, std::string pattern, int spec);
+	int WalkDir(std::string dir_name, const std::string pattern, int spec);
 	int WalkRecur(std::string dir_name, regex_t *expr, int spec);
 };
 

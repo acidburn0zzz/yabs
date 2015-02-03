@@ -20,8 +20,6 @@
 #include <iomanip>
 #include <vector>
 #include "gen.h"
-#define BASEDIR GetCurrentDir()
-#define REL_BASEDIR strrchr(BASEDIR, '/') + 1
 
 using std::string;
 
@@ -29,7 +27,7 @@ Generate::Generate()
 {
 	bin_num = 0;
 	file_count = 0;
-	current_dir = getcwd(cwd, MAXPATHLEN);
+	current_dir = BASEDIR;
 }
 
 Generate::~Generate(){};
@@ -78,7 +76,7 @@ int Generate::WalkRecur(string dir_name, regex_t *expr, int spec)
 		if (!regexec(expr, path_name, 0, 0, 0)) {
 			file_count++;
 			file_name = path_name;
-			GenFileList(RelPathName(file_name));
+			FileList.push_back(RelPathName(file_name));
 		}
 	}
 #endif
@@ -87,7 +85,7 @@ int Generate::WalkRecur(string dir_name, regex_t *expr, int spec)
 	return res ? res : errno ? FS_BADIO : FS_OK;
 }
 
-int Generate::SearchForMain(std::vector<std::string> vect)
+int Generate::SearchForMain(const std::vector<std::string> &vect)
 {
 	for (int i = 0; i < (int)vect.size(); i++) {
 		if ((src_file = fopen(vect[i].c_str(), "r")) != NULL) {
@@ -102,7 +100,7 @@ int Generate::SearchForMain(std::vector<std::string> vect)
 	return bin_num;
 }
 
-int Generate::WalkDir(string dir_name, string pattern, int spec)
+int Generate::WalkDir(string dir_name, const string pattern, int spec)
 {
 	regex_t r;
 	int res;
@@ -114,17 +112,12 @@ int Generate::WalkDir(string dir_name, string pattern, int spec)
 	return res;
 }
 
-std::string Generate::RelPathName(std::string to_rel)
+std::string Generate::RelPathName(std::string &to_rel)
 {
 	rm_base = REL_BASEDIR;
 	string perm = strstr(&to_rel[0], rm_base.c_str());
 	perm.erase(0, rm_base.length() + 1);
 	return perm;
-}
-
-void Generate::GenFileList(std::string file_list)
-{
-	FileList.push_back(file_list);
 }
 
 void Generate::PrintFileList()
