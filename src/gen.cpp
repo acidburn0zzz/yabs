@@ -21,8 +21,6 @@
 #include <vector>
 #include "gen.h"
 
-using std::string;
-
 Generate::Generate()
 {
 	bin_num = 0;
@@ -36,7 +34,7 @@ char *Generate::GetCurrentDir() { return current_dir; }
 
 std::string Generate::GetRelBase() { return REL_BASEDIR; }
 
-int Generate::WalkRecur(string dir_name, regex_t *expr, int spec)
+int Generate::WalkRecur(std::string dir_name, regex_t *expr, int spec)
 {
 	struct dirent *ent;
 	DIR *dir;
@@ -100,7 +98,7 @@ int Generate::SearchForMain(const std::vector<std::string> &vect)
 	return bin_num;
 }
 
-int Generate::WalkDir(string dir_name, const string pattern, int spec)
+int Generate::WalkDir(std::string dir_name, const std::string pattern, int spec)
 {
 	regex_t r;
 	int res;
@@ -115,7 +113,7 @@ int Generate::WalkDir(string dir_name, const string pattern, int spec)
 std::string Generate::RelPathName(std::string &to_rel)
 {
 	rm_base = REL_BASEDIR;
-	string perm = strstr(&to_rel[0], rm_base.c_str());
+	std::string perm = strstr(&to_rel[0], rm_base.c_str());
 	perm.erase(0, rm_base.length() + 1);
 	return perm;
 }
