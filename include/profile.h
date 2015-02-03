@@ -49,19 +49,17 @@ private:
 public:
 	Profile();
 	int CompValid(unsigned char *comp_value);
-	int PopLists(unsigned char *list_value);
 	int RegValues(const char *reg_value);
 	int WriteMake(const char *makefile);
 	std::string ConvValue(unsigned char *conv_value);
-	std::string PrependLink(std::string link, std::string pre);
+	std::string PrependLink(std::string &to_pre, std::string pre);
 	std::string GetOS() const;
-	void OpenInclude(std::string file);
-	void ParseKey(std::string key);
-	void PopValidValue(std::string k_value, std::string v_value);
-	void PrintList(std::vector<std::string> vect) const;
-	void WriteListToMake(std::vector<std::string> vect,
+	void OpenInclude(const std::string file);
+	void PopValidValue(std::string &k_value, std::string v_value);
+	void PrintList(const std::vector<std::string> vect) const;
+	void WriteListToMake(std::vector<std::string> &vect,
 			     std::string out_name);
-	void SwapTempValues(std::vector<std::string> to_swap,
+	void SwapTempValues(std::vector<std::string> &to_swap,
 			    std::string out_name);
 	void PrintProfile() const;
 	void CheckBlankValues();

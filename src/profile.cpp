@@ -10,13 +10,11 @@
 #include <vector>
 #include "profile.h"
 
-using std::string;
-
 Profile::Profile() {}
 
-string Profile::ConvValue(unsigned char *conv_value)
+std::string Profile::ConvValue(unsigned char *conv_value)
 {
-	string temp_value;
+	std::string temp_value;
 	temp_value.append(reinterpret_cast<const char *>(conv_value));
 	return temp_value;
 }
@@ -55,17 +53,18 @@ int Profile::CompValid(unsigned char *comp_value)
 	return 0;
 }
 
-string Profile::PrependLink(string to_pre, string pre)
+std::string Profile::PrependLink(std::string &to_proc, std::string pre)
 {
-	string n_pre = " ";
-	to_pre = pre + to_pre;
-	pre = n_pre + pre;
+	std::string space = " ";
+	to_proc = pre + to_proc;
+	pre = space + pre;
 	size_t start_pos = 0;
-	while ((start_pos = to_pre.find(n_pre, start_pos)) != string::npos) {
-		to_pre.replace(start_pos, n_pre.length(), pre);
+	while ((start_pos = to_proc.find(space, start_pos)) !=
+	       std::string::npos) {
+		to_proc.replace(start_pos, space.length(), pre);
 		start_pos += pre.length();
 	}
-	return to_pre;
+	return to_proc;
 }
 
 void Profile::BuildObjList()
@@ -82,7 +81,7 @@ void Profile::BuildObjList()
 	}
 }
 
-void Profile::OpenInclude(string file)
+void Profile::OpenInclude(const std::string file)
 {
 	inc_conf = fopen(file.c_str(), "r");
 	if (inc_conf == NULL) {
@@ -91,7 +90,7 @@ void Profile::OpenInclude(string file)
 	}
 }
 
-void Profile::PrintList(std::vector<string> vect) const
+void Profile::PrintList(const std::vector<std::string> vect) const
 {
 	if (vect.size() == 0) {
 		putchar('\n');
@@ -152,7 +151,7 @@ void Profile::CheckBlankValues()
 	}
 }
 
-void Profile::PopValidValue(string k_value, string v_value)
+void Profile::PopValidValue(std::string &k_value, std::string v_value)
 {
 	if (strcasecmp("os", k_value.c_str()) == 0) {
 		os = v_value;
@@ -224,7 +223,7 @@ void Profile::PopValidValue(string k_value, string v_value)
 	}
 }
 
-void Profile::WriteListToMake(std::vector<std::string> vect,
+void Profile::WriteListToMake(std::vector<std::string> &vect,
 			      std::string out_name)
 {
 	fprintf(Makefile, "%s\t=", out_name.c_str());
@@ -251,7 +250,7 @@ void Profile::WriteListToMake(std::vector<std::string> vect,
 	}
 }
 
-void Profile::SwapTempValues(std::vector<std::string> to_swap,
+void Profile::SwapTempValues(std::vector<std::string> &to_swap,
 			     std::string out_name)
 {
 	temp.clear();
