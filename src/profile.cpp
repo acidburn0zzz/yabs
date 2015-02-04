@@ -263,12 +263,7 @@ void Profile::SwapTempValues(std::vector<std::string> &to_swap,
 
 void Profile::CheckLang()
 {
-	if (lang == "c") {
-		WalkDir(GetCurrentDir(), ".\\.c$", FS_DEFAULT | FS_MATCHDIRS);
-		return;
-	} else if (lang == "cpp") {
-		WalkDir(GetCurrentDir(), ".\\.cpp$", FS_DEFAULT | FS_MATCHDIRS);
-	}
+	WalkDir(GetCurrentDir(), lang, FS_DEFAULT | FS_MATCHDIRS);
 }
 
 int Profile::WriteMake(const char *makefile)

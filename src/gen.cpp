@@ -98,10 +98,20 @@ int Generate::SearchForMain(const std::vector<std::string> &vect)
 	return bin_num;
 }
 
-int Generate::WalkDir(std::string dir_name, const std::string pattern, int spec)
+std::string Generate::ParseLang(std::string ext)
+{
+	std::string reg_pre = ".\\.";
+	std::string reg_app = "$";
+	reg_pre += ext;
+	reg_pre += reg_app;
+	return reg_pre;
+}
+
+int Generate::WalkDir(std::string dir_name, std::string pattern, int spec)
 {
 	regex_t r;
 	int res;
+	pattern = ParseLang(pattern);
 	if (regcomp(&r, pattern.c_str(), REG_EXTENDED | REG_NOSUB))
 		return FS_BADPattern;
 	res = WalkRecur(dir_name, &r, spec);

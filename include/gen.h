@@ -51,6 +51,7 @@ public:
 	std::vector<std::string> FileList;
 	std::string RelPathName(std::string &to_rel);
 	std::string GetRelBase();
+	std::string ParseLang(std::string ext);
 	char *GetCurrentDir();
 	char *RemoveBase(char *to_rm);
 	void Walk();
