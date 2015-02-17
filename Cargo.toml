@@ -6,3 +6,6 @@ authors = ["Alberto Corona <alberto@0x1a.us>"]
 
 [dependencies.toml]
 git = "https://github.com/alexcrichton/toml-rs"
+
+[dependencies.regex]
+git = "https://github.com/rust-lang/regex"
