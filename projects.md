@@ -7,11 +7,13 @@ A valid project file would look something like:
 ```YAML
 ---
 os: linux
+target: yabs
 include: yabs-include.yml
-remote: git@git.0x1a.us:yabs-test-linux
+libs: yaml archive gcov
+remote: git@linux.fqdn.com:yabs-test-linux
 lang: c++
 arch:
- - x86
+ - x86_64
  - i686
 cc: gcc
 cxx: g++
@@ -43,10 +45,15 @@ Valid options for a project file are as follows:
 - remote: Remote that this project could either be built on or pushed to (git repos)
 - lang: The language the project is written in. Currently only C and C++ are supported
 - arch: The architecture the project is being built for
+- incdir: Directories to include in Makefile
+- libs: Libraries to link. These should not be prepended with '-l'
+- libdir: Library directory
 - cc: The C compiler to be used
 - cxx: The C++ compiler to be used
 - dist: The distribution tarball
 - {before, after}-script: Commads to be run either before the project's Makefile is written or after
+- clean: Items to removed on `make clean`
+- defines: Defines to include in Makefile
 ```
 
 ## Multiple Documents
@@ -55,7 +62,9 @@ multiple operating systems, for example:
 ```YAML
 ---
 os: linux
+target: yabs
 include: yabs-include.yml
+libs: yaml archive gcov
 remote: git@linux.fqdn.com:yabs-test-linux
 lang: c++
 arch:
@@ -72,7 +81,9 @@ after-script:
 ...
 ---
 os: freebsd
+target: yabs-bsd
 include: yabs-include.yml
+libs: yaml archive gcov
 remote: git@bsd.fqdn.com:yabs-test-bsd
 lang: c++
 arch:
