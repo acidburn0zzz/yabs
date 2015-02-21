@@ -11,7 +11,7 @@ target: yabs
 include: yabs-include.yml
 libs: yaml archive gcov
 remote: git@linux.fqdn.com:yabs-test-linux
-lang: c++
+lang: cpp
 arch:
  - x86_64
  - i686
@@ -66,7 +66,7 @@ target: yabs
 include: yabs-include.yml
 libs: yaml archive gcov
 remote: git@linux.fqdn.com:yabs-test-linux
-lang: c++
+lang: cpp
 arch:
  - x86_64
  - i686
@@ -85,7 +85,7 @@ target: yabs-bsd
 include: yabs-include.yml
 libs: yaml archive gcov
 remote: git@bsd.fqdn.com:yabs-test-bsd
-lang: c++
+lang: cpp
 arch:
 cc: clang
 cxx: clang++
