@@ -2,7 +2,7 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
-#![feature(env,io,core,path)]
+#![feature(old_io,old_path,path,collections,os,fs)]
 
 mod gen;
 mod profile;
@@ -13,8 +13,8 @@ use profile::Profile;
 
 fn main() {
     let mut generator: Gen = Default::default();
-    generator.recur_walk(&env::current_dir().unwrap());
-    //generator.print_file_list();
-    let mut profile: Profile = Default::default();
+    generator.recur_walk(&env::current_dir().unwrap(), &String::from_str("rs"));
+    generator.print_file_list();
+    let profile: Profile = Default::default();
     profile.from_file(Path::new("yabs.toml"));
 }

@@ -5,7 +5,6 @@
 extern crate toml;
 
 use std::old_io::File;
-use std::default::Default;
 
 #[derive(Default)]
 pub struct Profile {
@@ -32,7 +31,7 @@ impl Profile {
     pub fn from_file(self, file: Path) {
         let mut f = File::open(&file);
         let toml = f.read_to_string().unwrap();
-        let val = toml::Parser::new(&toml.as_slice()).parse().unwrap();
+        let val: toml::Value = toml.parse().unwrap();
         println!("{:?}", val);
     }
 }
