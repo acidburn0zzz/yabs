@@ -32,19 +32,19 @@ impl Gen {
         }
     }
 
-    pub fn recur_walk(&mut self, dir: &PathBuf, ext: &String) {
+    pub fn recur_walk(&mut self, base: &PathBuf, dir: &PathBuf, ext: &String) {
         let contents = read_dir(dir);
         for items in contents.unwrap() {
             let item_path = items.unwrap().path();
             if item_path.is_file() {
                 if !self.is_dot(&item_path) {
                     if self.has_ext(&item_path, ext) {
-                        self.file_list.push(item_path);
+                        self.file_list.push(item_path.relative_from(base).unwrap().to_path_buf());
                     }
                 }
             } else {
                 if !self.is_dot(&item_path) {
-                    self.recur_walk(&item_path, ext);
+                    self.recur_walk(base, &item_path, ext);
                 }
             }
         }

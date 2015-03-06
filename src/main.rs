@@ -13,8 +13,9 @@ use gen::Gen;
 use profile::Profile;
 
 fn main() {
+    let current = &env::current_dir().unwrap();
     let mut generator: Gen = Default::default();
-    generator.recur_walk(&env::current_dir().unwrap(), &String::from_str("rs"));
+    generator.recur_walk(current, current, &String::from_str("rs"));
     generator.print_file_list();
     let profile: Profile = Default::default();
     profile.from_file(PathBuf::new("yabs.toml"));
