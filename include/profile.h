@@ -26,6 +26,7 @@ private:
 	std::string include;
 	std::string remote;
 	std::string defines;
+	std::string version;
 	std::vector<std::string> arch;
 	std::vector<std::string> cxxflags;
 	std::vector<std::string> libs;
@@ -42,7 +43,7 @@ private:
 	    "os",	    "arch",	 "cc",      "cxx",     "cflags",
 	    "cxxflags",      "lflags",       "include", "lang",    "dist",
 	    "before-script", "after-script", "libs",    "libdir",  "incdir",
-	    "target",	"remote",       "clean",   "defines",
+	    "target",	"remote",       "clean",   "defines", "version",
 	};
 	std::string temp;
 
@@ -51,6 +52,7 @@ public:
 	int CompValid(unsigned char *comp_value);
 	int RegValues(const char *reg_value);
 	int WriteMake(const char *makefile);
+	int Build();
 	std::string ConvValue(unsigned char *conv_value);
 	std::string PrependLink(std::string &to_pre, std::string pre);
 	std::string GetOS() const;
@@ -59,8 +61,8 @@ public:
 	void PrintList(const std::vector<std::string> vect) const;
 	void WriteListToMake(std::vector<std::string> &vect,
 			     std::string out_name);
-	void SwapTempValues(std::vector<std::string> &to_swap,
-			    std::string out_name);
+	std::string VectToString(std::vector<std::string> &to_swap);
+	void WriteSwapValues(const std::string &val, std::string out_name);
 	void PrintProfile() const;
 	void CheckBlankValues();
 	void GetSysInfo();

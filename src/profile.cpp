@@ -2,6 +2,7 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
+#include <stdlib.h>
 #include <string.h>
 #include <yaml.h>
 #include <algorithm>
@@ -106,6 +107,7 @@ std::string Profile::GetOS() const { return this->os; }
 void Profile::PrintProfile() const
 {
 	printf("target: %s\n", target.c_str());
+	printf("version: %s\n", version.c_str());
 	printf("os: %s\n", os.c_str());
 	printf("cc: %s\n", cc.c_str());
 	printf("cxx: %s\n", cxx.c_str());
@@ -155,6 +157,10 @@ void Profile::PopValidValue(std::string &k_value, std::string v_value)
 {
 	if (strcasecmp("os", k_value.c_str()) == 0) {
 		os = v_value;
+		return;
+	}
+	if (strcasecmp("version", k_value.c_str()) == 0) {
+		version = v_value;
 		return;
 	}
 	if (strcasecmp("arch", k_value.c_str()) == 0) {
@@ -250,15 +256,18 @@ void Profile::WriteListToMake(std::vector<std::string> &vect,
 	}
 }
 
-void Profile::SwapTempValues(std::vector<std::string> &to_swap,
-			     std::string out_name)
+std::string Profile::VectToString(std::vector<std::string> &to_swap)
 {
 	temp.clear();
 	for (unsigned i = 0; i < to_swap.size(); i++) {
 		temp += to_swap[i] += " ";
 	}
-	fprintf(Makefile, "%s\t= %s\n", out_name.c_str(), temp.c_str());
-	temp.clear();
+	return temp;
+}
+
+void Profile::WriteSwapValues(const std::string &val, std::string out_name)
+{
+	fprintf(Makefile, "%s\t= %s\n", out_name.c_str(), val.c_str());
 }
 
 void Profile::CheckLang()
@@ -276,10 +285,10 @@ int Profile::WriteMake(const char *makefile)
 	fprintf(Makefile, "CC\t= %s\n", cc.c_str());
 	fprintf(Makefile, "CXX\t= %s\n", cxx.c_str());
 
-	SwapTempValues(cxxflags, "CXXFLAGS");
-	SwapTempValues(libs, "LIBS");
-	SwapTempValues(incdir, "INCPATH");
-	SwapTempValues(libdir, "LIBDIR");
+	WriteSwapValues(VectToString(cxxflags), "CXXFLAGS");
+	WriteSwapValues(VectToString(libs), "LIBS");
+	WriteSwapValues(VectToString(incdir), "INCPATH");
+	WriteSwapValues(VectToString(libdir), "LIBDIR");
 
 	WriteListToMake(clean, "CLN");
 	BuildObjList();
@@ -318,5 +327,25 @@ int Profile::WriteMake(const char *makefile)
 		"clean:\n\t$(DEL) $(OBJ)\n\t$(DEL) $(CLN)\n\t$(DEL) $(TRGT)\n");
 
 	fclose(Makefile);
+	return 0;
+}
+
+int Profile::Build()
+{
+	CheckLang();
+	CheckBlankValues();
+	BuildObjList();
+	std::string cmd_str;
+	std::string temp_comp = VectToString(cxxflags) + VectToString(incdir);
+	for (unsigned i = 0; i < FileList.size(); i++) {
+		cmd_str = cxx + " -c " + temp_comp + "-o " + obj[i] + " " +
+			  FileList[i];
+		printf("%s\n", cmd_str.c_str());
+		system(cmd_str.c_str());
+	}
+	cmd_str = cxx + " -o " + target + " " + VectToString(obj) +
+		  VectToString(libdir) + VectToString(libs);
+	printf("%s\n", cmd_str.c_str());
+	system(cmd_str.c_str());
 	return 0;
 }
