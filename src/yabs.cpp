@@ -2,6 +2,8 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
+#define VERS "0.1.1"
+
 #include <signal.h>
 #include <unistd.h>
 #include <getopt.h>
@@ -25,9 +27,11 @@ int main(int argc, char *argv[])
 		    {"parse", optional_argument, NULL, 'p'},
 		    {"extract", optional_argument, NULL, 'e'},
 		    {"verbose", optional_argument, NULL, 'V'},
+		    {"version", no_argument, NULL, 'v'},
+		    {"build", no_argument, NULL, 'b'},
 		    {0, 0, 0, 0}};
 		int option_index = 0;
-		int c = getopt_long(argc, argv, ":d::p:hn::m:e::V::",
+		int c = getopt_long(argc, argv, ":d::p:hn::m:e::V::v:b:",
 				    long_options, &option_index);
 		if (c == -1)
 			break;
@@ -56,8 +60,8 @@ int main(int argc, char *argv[])
 		case 'p':
 			p_arg = optarg;
 			if (p_arg != NULL) {
-				Ybs.OpenConfig(argv[2], 0);
-				Ybs.PrintAllProfiles();
+				if (Ybs.OpenConfig(argv[2], 0) > 0)
+					Ybs.PrintAllProfiles();
 			}
 			break;
 		case 'V':
@@ -67,8 +71,18 @@ int main(int argc, char *argv[])
 		case 'm':
 			p_arg = optarg;
 			if (p_arg != NULL) {
-				Ybs.OpenConfig(argv[2], 0);
-				Ybs.WriteProfileMakes();
+				if (Ybs.OpenConfig(argv[2], 0) > 0)
+					Ybs.WriteProfileMakes();
+			}
+			break;
+		case 'v':
+			printf("yabs version %s\n", VERS);
+			break;
+		case 'b':
+			p_arg = optarg;
+			if (p_arg != NULL) {
+				if (Ybs.OpenConfig(argv[2], 0) > 0)
+					Ybs.BuildProfiles();
 			}
 			break;
 		case ':':

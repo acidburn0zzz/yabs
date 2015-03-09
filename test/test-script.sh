@@ -10,6 +10,7 @@ NC='\033[0m'
 ./yabs -p test/test-script.sh
 ./yabs -p test/yml
 ./yabs -p no-file
+./yabs -b yabs.ybf
 ./yabs -m yabs.ybf
 
 basic() {
@@ -22,7 +23,7 @@ basic() {
 	for file in test/yml/*
 	do
 		echo -e "\nyabs -v $file\n"
-		./yabs -v $file
+		./yabs -V $file
 	done
 }
 
@@ -35,8 +36,8 @@ memory() {
 
 	for file in test/yml/*
 	do
-		echo -e "\nvalgrind yabs -v $file\n"
-		valgrind --track-origins=yes ./yabs -v $file
+		echo -e "\nvalgrind yabs -V $file\n"
+		valgrind --track-origins=yes ./yabs -V $file
 	done
 }
 
@@ -49,8 +50,8 @@ _basic() {
 
 	for file in test/yml/*
 	do
-		echo -e "\n${GRN}yabs -v $file\n${NC}"
-		./yabs -v $file
+		echo -e "\n${GRN}yabs -V $file\n${NC}"
+		./yabs -V $file
 	done
 }
 
@@ -63,8 +64,8 @@ _memory() {
 
 	for file in test/yml/*
 	do
-		echo -e "\n${GRN}valgrind yabs -v $file\n${NC}"
-		valgrind --track-origins=yes ./yabs -v $file
+		echo -e "\n${GRN}valgrind yabs -V $file\n${NC}"
+		valgrind --track-origins=yes ./yabs -V $file
 	done
 }
 
