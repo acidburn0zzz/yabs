@@ -1,3 +1,4 @@
+# vim: syntax=yaml
 ---
 lang: cpp
 cxx: g++
