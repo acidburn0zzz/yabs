@@ -39,14 +39,15 @@ public:
 	int ParseConfig();
 	int OpenConfig(const char *build_file, int verb_flag);
 	int CloseConfig();
-	const char *ReadValues();
-	void ParseValues(int verb_flag);
+	int ReadValues();
+	int ParseValues(int verb_flag);
 	void VerboseParser(int format);
 	void VoidToken();
 	void DeleteProfiles();
 	void CheckDocStart();
 	void PrintAllProfiles();
 	void WriteProfileMakes();
+	void BuildProfiles();
 };
 
 #endif

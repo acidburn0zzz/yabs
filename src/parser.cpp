@@ -30,7 +30,10 @@ int Parser::OpenConfig(const char *build_file, int verb_flag)
 			return -2;
 		}
 		ParseConfig();
-		ParseValues(verb_flag);
+		if (ParseValues(verb_flag) < 0) {
+			CloseConfig();
+			return -1;
+		}
 		CloseConfig();
 		return 1;
 	} else {
@@ -49,6 +52,19 @@ void Parser::WriteProfileMakes()
 			std::string make_name = "Makefile-";
 			make_name += Profiles[i]->GetOS();
 			Profiles[i]->WriteMake(make_name.c_str());
+		}
+		return;
+	}
+}
+
+void Parser::BuildProfiles()
+{
+	if ((int)Profiles.size() == 1) {
+		Profiles[0]->Build();
+		return;
+	} else {
+		for (int i = 0; i < (int)Profiles.size(); i++) {
+			Profiles[i]->Build();
 		}
 		return;
 	}
@@ -117,12 +133,13 @@ int Parser::AssertYML(const char *build_file)
 	return 0;
 }
 
-void Parser::ParseValues(int verb_flag)
+int Parser::ParseValues(int verb_flag)
 {
 	switch (verb_flag) {
 	case 0:
 		do {
-			ReadValues();
+			if (ReadValues() < 0)
+				return -1;
 		} while (token.type != YAML_STREAM_END_TOKEN);
 		break;
 	case 1:
@@ -131,6 +148,7 @@ void Parser::ParseValues(int verb_flag)
 		} while (token.type != YAML_STREAM_END_TOKEN);
 		break;
 	}
+	return 0;
 }
 
 void Parser::PrintAllProfiles()
@@ -153,7 +171,7 @@ void Parser::VoidToken()
 	token.type = YAML_STREAM_END_TOKEN;
 }
 
-const char *Parser::ReadValues()
+int Parser::ReadValues()
 {
 	do {
 		yaml_parser_scan(&parser, &token);
@@ -237,6 +255,7 @@ const char *Parser::ReadValues()
 					       RED, token.data.scalar.value,
 					       CRM);
 					VoidToken();
+					return -1;
 					break;
 				}
 				break;
@@ -246,6 +265,7 @@ const char *Parser::ReadValues()
 				    token_return != block_seq_strt &&
 				    token_return != block_map_strt) {
 					VoidToken();
+					return -1;
 					break;
 				}
 				Profiles[p_num]->PopValidValue(
@@ -262,6 +282,7 @@ const char *Parser::ReadValues()
 			default:
 				CheckDocStart();
 				VoidToken();
+				return -1;
 				break;
 			}
 			break;
@@ -270,7 +291,7 @@ const char *Parser::ReadValues()
 			yaml_token_delete(&token);
 
 	} while (token.type != YAML_STREAM_END_TOKEN);
-	return NULL;
+	return 0;
 }
 
 void Parser::VerboseParser(int format)
