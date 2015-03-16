@@ -3,15 +3,18 @@
 GRN='\033[0;32m'
 NC='\033[0m'
 
-./yabs -h
-./yabs -n
-./yabs -d
-./yabs -e include.tar.gz
-./yabs -p test/test-script.sh
-./yabs -p test/yml
-./yabs -p no-file
-./yabs -b yabs.ybf
-./yabs -m yabs.ybf
+norm() {
+	./yabs -h
+	./yabs -n
+	./yabs -d
+	./yabs -e include.tar.gz
+	./yabs -p test/test-script.sh
+	./yabs -p test/yml
+	./yabs -p no-file
+	./yabs -b yabs.ybf
+	./yabs -m yabs.ybf
+	./yabs --version
+}
 
 basic() {
 	for file in test/yml/*
@@ -71,12 +74,15 @@ _memory() {
 
 case $1 in
 	'basic-color')
+		norm
 		_basic
 		;;
 	'memory-color')
+		norm
 		_memory
 		;;
 	'all-color')
+		norm
 		_basic
 		_memory
 		;;
@@ -84,10 +90,12 @@ case $1 in
 		basic
 		;;
 	'memory')
+		norm
 		memory
 		;;
 	'all')
-		basic
-		memory
+		norm
+		_basic
+		_memory
 		;;
 esac
