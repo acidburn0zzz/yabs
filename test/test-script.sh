@@ -87,11 +87,12 @@ case $1 in
 		_memory
 		;;
 	'basic')
-		basic
+		norm
+		_basic
 		;;
 	'memory')
 		norm
-		memory
+		_memory
 		;;
 	'all')
 		norm
