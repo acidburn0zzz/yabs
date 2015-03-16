@@ -10,7 +10,7 @@
 #include <vector>
 #include "gen.h"
 
-#define MAX_OPT 20
+#define MAX_OPT 22
 
 class Profile : public Generate
 {
@@ -28,6 +28,8 @@ private:
 	std::string defines;
 	std::string version;
 	std::vector<std::string> arch;
+	std::vector<std::string> ignore;
+	std::vector<std::string> src;
 	std::vector<std::string> cxxflags;
 	std::vector<std::string> libs;
 	std::vector<std::string> incdir;
@@ -44,26 +46,28 @@ private:
 	    "cxxflags",      "lflags",       "include", "lang",    "dist",
 	    "before-script", "after-script", "libs",    "libdir",  "incdir",
 	    "target",	"remote",       "clean",   "defines", "version",
+	    "ignore",	"src",
 	};
 	std::string temp;
 
 public:
 	Profile();
-	int CompValid(unsigned char *comp_value);
-	int RegValues(const char *reg_value);
-	int WriteMake(const char *makefile);
-	int Build();
 	std::string ConvValue(unsigned char *conv_value);
 	std::string PrependLink(std::string &to_pre, std::string pre);
 	std::string GetOS() const;
+	std::string VectToString(std::vector<std::string> &to_swap);
+	int CompValid(unsigned char *comp_value);
+	int WriteMake(const char *makefile);
+	int Build();
 	void OpenInclude(const std::string file);
 	void PopValidValue(std::string &k_value, std::string v_value);
 	void PrintList(const std::vector<std::string> vect) const;
 	void WriteListToMake(std::vector<std::string> &vect,
 			     std::string out_name);
-	std::string VectToString(std::vector<std::string> &to_swap);
 	void WriteSwapValues(const std::string &val, std::string out_name);
 	void PrintProfile() const;
+	void CleanList(std::vector<std::string> &vect);
+	void SrcList();
 	void CheckBlankValues();
 	void GetSysInfo();
 	void CheckLang();
