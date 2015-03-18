@@ -2,7 +2,7 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
-#define VERS "0.1.1"
+#define VERS "0.1.2"
 
 #include <signal.h>
 #include <unistd.h>

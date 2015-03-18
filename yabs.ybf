@@ -1,7 +1,7 @@
 # vim: syntax=yaml
 ---
 target: yabs
-version: "0.1.1"
+version: "0.1.2"
 lang: cpp
 remote: 0x1a.us:Repos/yabs
 before-script: before.sh
