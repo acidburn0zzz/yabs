@@ -92,6 +92,6 @@ install:
 	$(INSTALL) -m755 yabs $(DEST)$(BINDIR)/yabs
 	$(INSTALL) -m644 doc/yabs.1 $(DEST)$(MANDIR)/man1/yabs.1
 
-uinstall:
+uninstall:
 	rm -f $(DEST)/yabs
 	rm -f $(DEST)$(MANDIR)man1/yabs.1
