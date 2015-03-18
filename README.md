@@ -30,6 +30,35 @@ You may use the `Makefile` provided, a qmake profile is available if you wish to
 qmake "CONFIG+=clang"
 ```
 
+## Using
+```bash
+~/Project $ cat hello-yabs.c
+#include <stdio.h>
+
+int main()
+{
+	printf("Hello yabs!\n");
+	return 0;
+}
+~/Project $ yabs -n
+New build file written as: Project.ybf
+```
+**Edit the build file to reflect the language used**
+```bash
+---
+lang: c
+...
+```
+**Build it**
+```bash
+~/Project $ yabs -b Project.ybf
+g++ -c -I/usr/include -I/usr/local/include -o hello-yabs.o hello-yabs.c
+g++ -o Project hello-yabs.o -L/usr/lib -L/usr/local/lib
+~/Project $ ./Project
+Hello yabs!
+
+```
+
 ## Defining a Project
 
 To learn how projects are defined please see the [projects.md](projects.md)
