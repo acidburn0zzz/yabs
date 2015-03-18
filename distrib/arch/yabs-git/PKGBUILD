@@ -19,7 +19,7 @@ pkgver() {
 
 build() {
 	cd $_gitname
-	make PREFIX=/usr
+	make PREFIX=/usr CXXFLAGS="-pipe -std=c++11 -march=x86-64 -mtune=generic -O2 -pipe --param=ssp-buffer-size=4 -Wall" LIBS="-lssh2 -lyaml -larchive" LFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro -Wl,-O1"
 }
 
 package() {
