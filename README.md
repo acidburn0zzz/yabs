@@ -13,11 +13,11 @@ completely built on a remote system.
 ## Status
 yabs can currently self host. Major things that are left to implement are:
 
-- Remote jobs (ssh and or git)
-- Better language detection (& add more languages)
-- Better distribution tarballs
-- Pre/Post scripting
-- Direct building (omitting Make)
+- [ ] Remote jobs (ssh and or git)
+- [ ] Better language detection (& add more languages)
+- [ ] Better distribution tarballs
+- [ ] Pre/Post scripting
+- [x] Direct building (omitting Make)
 
 Yabs currently only works well with C and C++ and only with certain file 
 extensions
