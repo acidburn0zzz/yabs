@@ -67,6 +67,7 @@ To learn how projects are defined please see the [projects.md](projects.md)
 - `libyaml`
 - `libgit2`
 - `libssh2`
+- `libarchive`
 - C++11 compliant compiler
 
 ## Contributing
