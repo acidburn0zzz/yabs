@@ -64,11 +64,10 @@ int Profile::WriteMake(const char *makefile)
 	CheckBlankValues();
 	Makefile = fopen(makefile, "w+");
 	fprintf(Makefile, "TRGT\t= %s\n", target.c_str());
-	fprintf(Makefile, "LINK\t= %s\n", cxx.c_str());
-	fprintf(Makefile, "CC\t= %s\n", cc.c_str());
-	fprintf(Makefile, "CXX\t= %s\n", cxx.c_str());
+	fprintf(Makefile, "LINK\t= %s\n", comp.c_str());
+	fprintf(Makefile, "COMP\t= %s\n", comp.c_str());
 
-	WriteSwapValues(VectToString(cxxflags), "CXXFLAGS");
+	WriteSwapValues(VectToString(cflags), "CFLAGS");
 	WriteSwapValues(VectToString(libs), "LIBS");
 	WriteSwapValues(VectToString(incdir), "INCPATH");
 	WriteSwapValues(VectToString(libdir), "LIBDIR");
@@ -81,29 +80,29 @@ int Profile::WriteMake(const char *makefile)
 	fprintf(Makefile, "\n.SUFFIXES: .o .c .cpp .cc .cxx .C\n\n");
 	fprintf(
 	    Makefile,
-	    ".cpp.o:\n\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
+	    ".cpp.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
 	fprintf(
 	    Makefile,
-	    ".cc.o:\n\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
+	    ".cc.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
 	fprintf(
 	    Makefile,
-	    ".cxx.o:\n\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
+	    ".cxx.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
 	fprintf(
 	    Makefile,
-	    ".C.o:\n\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
+	    ".C.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
 	fprintf(
 	    Makefile,
-	    ".c.o:\n\t$(CC) -c $(CXXFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
+	    ".c.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
 
 	fprintf(Makefile, "all: $(TRGT)\n\n");
-	fprintf(Makefile, "$(TRGT): $(OBJ)\n\t$(CXX) $(LFLAGS) -o $(TRGT) "
+	fprintf(Makefile, "$(TRGT): $(OBJ)\n\t$(COMP) $(LFLAGS) -o $(TRGT) "
 			  "$(OBJ) $(LIBDIR) $(LIBS)\n\n");
 
 	for (unsigned i = 0; i < obj.size(); i++) {
 		fprintf(Makefile, "%s: %s\n", obj[i].c_str(),
 			FileList[i].c_str());
 		fprintf(Makefile,
-			"\t$(CXX) -c $(CXXFLAGS) $(INCPATH) -o %s %s\n\n",
+			"\t$(COMP) -c $(CFLAGS) $(INCPATH) -o %s %s\n\n",
 			obj[i].c_str(), FileList[i].c_str());
 	}
 	fprintf(Makefile,
@@ -121,14 +120,14 @@ int Profile::Build()
 	CheckBlankValues();
 	BuildObjList();
 	std::string cmd_str;
-	std::string temp_comp = VectToString(cxxflags) + VectToString(incdir);
+	std::string temp_comp = VectToString(cflags) + VectToString(incdir);
 	for (unsigned i = 0; i < FileList.size(); i++) {
-		cmd_str = cxx + " -c " + temp_comp + "-o " + obj[i] + " " +
+		cmd_str = comp + " -c " + temp_comp + "-o " + obj[i] + " " +
 			  FileList[i];
 		printf("%s\n", cmd_str.c_str());
 		system(cmd_str.c_str());
 	}
-	cmd_str = cxx + " -o " + target + " " + VectToString(obj) +
+	cmd_str = comp + " -o " + target + " " + VectToString(obj) +
 		  VectToString(libdir) + VectToString(libs);
 	printf("%s\n", cmd_str.c_str());
 	system(cmd_str.c_str());
@@ -161,11 +160,11 @@ void Profile::PopValidValue(std::string &k_value, std::string v_value)
 	} else if (strcasecmp("src", k_value.c_str()) == 0) {
 		src.push_back(v_value);
 		return;
-	} else if (strcasecmp("cc", k_value.c_str()) == 0) {
-		cc = v_value;
+	} else if (strcasecmp("comp", k_value.c_str()) == 0) {
+		comp = v_value;
 		return;
-	} else if (strcasecmp("cxx", k_value.c_str()) == 0) {
-		cxx = v_value;
+	} else if (strcasecmp("cflags", k_value.c_str()) == 0) {
+		cflags.push_back(PrependLink(v_value, "-"));
 		return;
 	} else if (strcasecmp("target", k_value.c_str()) == 0) {
 		target = v_value;
@@ -200,9 +199,6 @@ void Profile::PopValidValue(std::string &k_value, std::string v_value)
 	} else if (strcasecmp("defines", k_value.c_str()) == 0) {
 		defines = v_value;
 		return;
-	} else if (strcasecmp("cxxflags", k_value.c_str()) == 0) {
-		cxxflags.push_back(PrependLink(v_value, "-"));
-		return;
 	} else if (strcasecmp("clean", k_value.c_str()) == 0) {
 		clean.push_back(v_value);
 		return;
@@ -234,16 +230,12 @@ void Profile::GetSysInfo()
 {
 #ifdef __linux__
 	plat = "linux";
-	if (cc.empty())
-		cc = "gcc";
-	if (cxx.empty())
-		cxx = "g++";
+	if (comp.empty())
+		comp = "g++";
 #elif __FreeBSD__
 	plat = "freebsd";
-	if (cc.empty())
-		cc = "clang";
-	if (cxx.empty())
-		cxx = "clang++";
+	if (comp.empty())
+		comp = "clang++";
 #endif
 #ifdef __amd64__
 	p_arch = "x86_64";
@@ -284,8 +276,9 @@ void Profile::PrintProfile() const
 	printf("target:\n\t%s\n", target.c_str());
 	printf("version:\n\t%s\n", version.c_str());
 	printf("os:\n\t%s\n", os.c_str());
-	printf("cc:\n\t%s\n", cc.c_str());
-	printf("cxx:\n\t%s\n", cxx.c_str());
+	printf("comp:\n\t%s\n", comp.c_str());
+	printf("cflags:\n");
+	PrintList(cflags);
 	printf("arch:\n");
 	PrintList(arch);
 	printf("dist:\n\t%s\n", dist.c_str());

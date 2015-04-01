@@ -20,8 +20,7 @@ private:
 	std::string os;
 	std::string lang;
 	std::string target;
-	std::string cc;
-	std::string cxx;
+	std::string comp;
 	std::string dist;
 	std::string include;
 	std::string remote;
@@ -29,8 +28,8 @@ private:
 	std::string version;
 	std::vector<std::string> arch;
 	std::vector<std::string> ignore;
+	std::vector<std::string> cflags;
 	std::vector<std::string> src;
-	std::vector<std::string> cxxflags;
 	std::vector<std::string> libs;
 	std::vector<std::string> incdir;
 	std::vector<std::string> libdir;
@@ -42,8 +41,8 @@ private:
 	std::string plat;
 	std::string p_arch;
 	std::string STDValues[MAX_OPT] = {
-	    "os",	    "arch",	 "cc",      "cxx",     "cflags",
-	    "cxxflags",      "lflags",       "include", "lang",    "dist",
+	    "os",	    "arch",	 "comp",           "cflags",
+	    "lflags",       "include", "lang",    "dist",
 	    "before-script", "after-script", "libs",    "libdir",  "incdir",
 	    "target",	"remote",       "clean",   "defines", "version",
 	    "ignore",	"src",
