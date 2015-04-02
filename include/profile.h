@@ -10,7 +10,7 @@
 #include <vector>
 #include "gen.h"
 
-#define MAX_OPT 22
+#define MAX_OPT 25
 
 class Profile : public Generate
 {
@@ -45,7 +45,7 @@ private:
 	    "lflags",       "include", "lang",    "dist",
 	    "before-script", "after-script", "libs",    "libdir",  "incdir",
 	    "target",	"remote",       "clean",   "defines", "version",
-	    "ignore",	"src",
+	    "ignore",	"src", "install", "uninstall", "doc",
 	};
 	std::string temp;
 
@@ -71,6 +71,7 @@ public:
 	void GetSysInfo();
 	void CheckLang();
 	void BuildObjList();
+	void ExecScript(std::vector<std::string> &) const;
 };
 
 #endif

@@ -114,6 +114,7 @@ int Profile::WriteMake(const char *makefile)
 
 int Profile::Build()
 {
+	ExecScript(before);
 	CheckLang();
 	CleanList(FileList);
 	SrcList();
@@ -131,7 +132,16 @@ int Profile::Build()
 		  VectToString(libdir) + VectToString(libs);
 	printf("%s\n", cmd_str.c_str());
 	system(cmd_str.c_str());
+	ExecScript(after);
 	return 0;
+}
+
+void Profile::ExecScript(std::vector<std::string> &script_list) const
+{
+	for (unsigned i = 0; i < script_list.size(); i++) {
+		printf("%s\n", script_list[i].c_str());
+		system(script_list[i].c_str());
+	}
 }
 
 void Profile::OpenInclude(const std::string file)
