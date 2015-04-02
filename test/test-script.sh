@@ -3,6 +3,10 @@
 GRN='\033[0;32m'
 NC='\033[0m'
 
+test_proj() {
+	./yabs -b test/proj-test/proj-test.ybf
+}
+
 norm() {
 	./yabs -h
 	./yabs -n
@@ -94,7 +98,11 @@ case $1 in
 		norm
 		_memory
 		;;
+	'proj')
+		test_proj
+		;;
 	'all')
+		test_proj
 		norm
 		_basic
 		_memory

@@ -84,6 +84,7 @@ clean:
 tests:
 	./test/test-script.sh basic-color
 	./test/test-script.sh memory-color
+	./test/test-script.sh proj
 
 install:
 	$(INSTALL) -d $(DEST)$(BINDIR)

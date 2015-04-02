@@ -1,0 +1,6 @@
+---
+comp: gcc
+lang: c
+before-script: bin/before.sh
+after-script: bin/after.sh
+...
