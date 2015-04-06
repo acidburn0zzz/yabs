@@ -2,7 +2,8 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
-#![feature(path,collections,os,fs)]
+#![feature(std_misc,collections, path_ext)]
+#![allow(unused_imports)]
 
 mod gen;
 mod profile;
@@ -13,10 +14,11 @@ use gen::Gen;
 use profile::Profile;
 
 fn main() {
-    let current = &env::current_dir().unwrap();
-    let mut generator: Gen = Default::default();
-    generator.recur_walk(current, current, &String::from_str("rs"));
-    generator.print_file_list();
-    let profile: Profile = Default::default();
-    profile.from_file(PathBuf::new("yabs.toml"));
+    let mut gen: Gen = Default::default();
+    let mut prof: Profile = Default::default();
+    let test = PathBuf::from("yabs.toml");
+    gen.is_dot(&test);
+    gen.has_ext(&test, &String::from_str("toml"));
+    gen.walk_dir(env::current_dir().unwrap(), &String::from_str("rs"));
+    gen.print_filelist();
 }

@@ -2,8 +2,11 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
+use std::io;
+use std::path::Path;
 use std::path::{PathBuf};
 use std::fs::{read_dir,PathExt};
+use std::ffi::AsOsStr;
 
 #[derive(Default)]
 pub struct Gen {
@@ -12,8 +15,7 @@ pub struct Gen {
 
 impl Gen {
     pub fn is_dot(&mut self, dir: &PathBuf) -> bool {
-        let file_string = String::from_str(dir.file_name().unwrap().to_str().unwrap());
-        if file_string.starts_with(".") {
+        if dir.starts_with(".") {
             return true;
         } else {
             return false;
@@ -21,36 +23,39 @@ impl Gen {
     }
 
     pub fn has_ext(&mut self, dir: &PathBuf, ext: &String) -> bool {
-        if dir.extension().is_some() {
-            if &String::from_str(dir.extension().unwrap().to_str().unwrap()) == ext {
-                return true;
-            } else {
-                return false;
+        match dir.extension() {
+            Some(x) => {
+                if ext.as_os_str() == x {
+                    return true;
+                }
             }
-        } else {
-            return false;
-        }
+            None => return false
+        };
+        return false;
     }
 
-    pub fn recur_walk(&mut self, base: &PathBuf, dir: &PathBuf, ext: &String) {
-        let contents = read_dir(dir);
-        for items in contents.unwrap() {
-            let item_path = items.unwrap().path();
-            if item_path.is_file() {
-                if !self.is_dot(&item_path) {
-                    if self.has_ext(&item_path, ext) {
-                        self.file_list.push(item_path.relative_from(base).unwrap().to_path_buf());
+    pub fn walk_dir(&mut self, dir: PathBuf, ext: &String) {
+        if dir.is_dir() {
+            for cont in read_dir(&dir).unwrap() {
+                match cont {
+                    Ok(entry) => {
+                        if !self.is_dot(&entry.path()) &&
+                            self.has_ext(&entry.path(), &ext) {
+                                self.file_list.push(entry.path());
+                            }
+                        if entry.path().is_dir() {
+                            self.walk_dir(entry.path(), &ext);
+                        }
                     }
-                }
-            } else {
-                if !self.is_dot(&item_path) {
-                    self.recur_walk(base, &item_path, ext);
-                }
+                    Err(e) => {
+                        panic!(e);
+                    }
+                };
             }
         }
     }
 
-    pub fn print_file_list(&mut self) {
+    pub fn print_filelist(self) {
         for i in self.file_list.iter() {
             println!("{}", i.display());
         }
