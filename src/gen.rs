@@ -2,7 +2,7 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
-use std::io;
+use std::env;
 use std::path::Path;
 use std::path::{PathBuf};
 use std::fs::{read_dir,PathExt};
@@ -14,7 +14,7 @@ pub struct Gen {
 }
 
 impl Gen {
-    pub fn is_dot(&mut self, dir: &PathBuf) -> bool {
+    pub fn is_dot(&self, dir: &PathBuf) -> bool {
         if dir.starts_with(".") {
             return true;
         } else {
@@ -22,7 +22,7 @@ impl Gen {
         }
     }
 
-    pub fn has_ext(&mut self, dir: &PathBuf, ext: &String) -> bool {
+    pub fn has_ext(&self, dir: &PathBuf, ext: &String) -> bool {
         match dir.extension() {
             Some(x) => {
                 if ext.as_os_str() == x {
@@ -41,14 +41,18 @@ impl Gen {
                     Ok(entry) => {
                         if !self.is_dot(&entry.path()) &&
                             self.has_ext(&entry.path(), &ext) {
-                                self.file_list.push(entry.path());
+                                self.file_list.push(
+                                    (entry.path().relative_from(
+                                            &env::current_dir().unwrap()
+                                            ).unwrap()).to_path_buf()
+                                    );
                             }
                         if entry.path().is_dir() {
                             self.walk_dir(entry.path(), &ext);
                         }
                     }
                     Err(e) => {
-                        panic!(e);
+                        panic!(e.to_string());
                     }
                 };
             }
