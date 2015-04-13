@@ -2,6 +2,7 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
+use std::io;
 use std::env;
 use std::path::Path;
 use std::path::{PathBuf};
@@ -34,29 +35,24 @@ impl Gen {
         return false;
     }
 
-    pub fn walk_dir(&mut self, dir: PathBuf, ext: &String) {
+    pub fn walk_dir(&mut self, dir: PathBuf, ext: &String) -> io::Result<()> {
         if dir.is_dir() {
-            for cont in read_dir(&dir).unwrap() {
-                match cont {
-                    Ok(entry) => {
-                        if !self.is_dot(&entry.path()) &&
-                            self.has_ext(&entry.path(), &ext) {
-                                self.file_list.push(
-                                    (entry.path().relative_from(
-                                            &env::current_dir().unwrap()
-                                            ).unwrap()).to_path_buf()
-                                    );
-                            }
-                        if entry.path().is_dir() {
-                            self.walk_dir(entry.path(), &ext);
-                        }
+            for cont in try!(read_dir(&dir)) {
+                let cont = try!(cont);
+                if !self.is_dot(&cont.path()) &&
+                    self.has_ext(&cont.path(), &ext) {
+                        self.file_list.push(
+                            (cont.path().relative_from(
+                                    &env::current_dir().unwrap()
+                                    ).unwrap()).to_path_buf()
+                            );
                     }
-                    Err(e) => {
-                        panic!(e.to_string());
-                    }
-                };
+                if cont.path().is_dir() {
+                    self.walk_dir(cont.path(), &ext);
+                }
             }
         }
+        return Ok(());
     }
 
     pub fn print_filelist(self) {
