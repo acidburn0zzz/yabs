@@ -6,21 +6,18 @@ Yet another build system
 [![Build Status on 0X1A](http://0x1a.us/img/yabs-build.png)](http://0x1a.us/ci/yabs)
 [![Coverage Status on 0X1A](http://0x1a.us/img/yabs-coverage.png)](http://0x1a.us/ci/yabs)
 
-A build system for multiple architectures and operating systems. Project files 
-define Makefiles to be written that can be copied to a remote system or be 
-completely built on a remote system.
+A C and C++ build system for multiple architectures and operating systems.
+Project files define Makefiles to be written that can be copied to a remote
+system or be completely built on a remote system.
 
 ## Status
 yabs can currently self host. Major things that are left to implement are:
 
 - [ ] Remote jobs (ssh and or git)
-- [ ] Better language detection (& add more languages)
+- [ ] Automatic language detection
 - [ ] Better distribution tarballs
 - [ ] Pre/Post scripting
 - [x] Direct building (omitting Make)
-
-Yabs currently only works well with C and C++ and only with certain file 
-extensions
 
 ## Building
 
