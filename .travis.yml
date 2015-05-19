@@ -22,6 +22,8 @@ after_script:
     - coveralls --exclude include
     - make clean
     - sed -i "s/g++/clang++/g" yabs.ybf
+    - sed -i '14i\pipe std=c++11 march=x86-64 mtune=generic O2 pipe -param=ssp-buffer-size=4 Wall' yabs.ybf
+    - sed '12d' yabs.ybf
     - make
 notifications:
     email:
