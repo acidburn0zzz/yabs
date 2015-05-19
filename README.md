@@ -1,8 +1,8 @@
 # yabs
 Yet another build system
 
-[![Build Status](https://travis-ci.org/0X1A/yabs.svg)](https://travis-ci.org/0X1A/yabs) 
-[![Coverage Status](https://img.shields.io/coveralls/0X1A/yabs.svg)](https://coveralls.io/r/0X1A/yabs?branch=master)
+[![Build Status](https://travis-ci.org/0X1A/yabs.svg)](https://travis-ci.org/0X1A/yabs)
+[![Coverage Status](https://coveralls.io/repos/0X1A/yabs/badge.svg?branch=master)](https://coveralls.io/r/0X1A/yabs?branch=master)
 [![Build Status on 0X1A](http://0x1a.us/img/yabs-build.png)](http://0x1a.us/ci/yabs)
 [![Coverage Status on 0X1A](http://0x1a.us/img/yabs-coverage.png)](http://0x1a.us/ci/yabs)
 
