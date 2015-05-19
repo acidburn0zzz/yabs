@@ -34,13 +34,26 @@ std::string Profile::PrependLink(std::string &to_proc, std::string pre)
 	return to_proc;
 }
 
-std::string Profile::GetOS() const { return this->os; }
+std::string Profile::GetOS() const
+{
+	return this->ProfileMap.find("os")->second;
+}
 
-std::string Profile::VectToString(std::vector<std::string> &to_swap)
+std::string Profile::MapValuesToString(std::string key)
 {
 	temp.clear();
-	for (unsigned i = 0; i < to_swap.size(); i++) {
-		temp += to_swap[i] += " ";
+	auto range = ProfileMap.equal_range(key);
+	for (ProfileIter it = range.first; it != range.second; ++it) {
+		temp.append(it->second + " ");
+	}
+	return temp;
+}
+
+std::string Profile::VectToString(std::vector<std::string> &vect)
+{
+	temp.clear();
+	for (unsigned i = 0; i < vect.size(); ++i) {
+		temp += vect[i] += " ";
 	}
 	return temp;
 }
@@ -63,19 +76,38 @@ int Profile::WriteMake(const char *makefile)
 	SrcList();
 	CheckBlankValues();
 	Makefile = fopen(makefile, "w+");
-	fprintf(Makefile, "TRGT\t= %s\n", target.c_str());
-	fprintf(Makefile, "LINK\t= %s\n", comp.c_str());
-	fprintf(Makefile, "COMP\t= %s\n", comp.c_str());
+	fprintf(Makefile, "TRGT\t= %s\n", MapValuesToString("target").c_str());
+	fprintf(Makefile, "LINK\t= %s\n", MapValuesToString("comp").c_str());
+	fprintf(Makefile, "COMP\t= %s\n", MapValuesToString("comp").c_str());
 
-	WriteSwapValues(VectToString(cflags), "CFLAGS");
-	WriteSwapValues(VectToString(libs), "LIBS");
-	WriteSwapValues(VectToString(incdir), "INCPATH");
-	WriteSwapValues(VectToString(libdir), "LIBDIR");
+	WriteMacroValues(MapValuesToString("cflags"), "CFLAGS");
+	WriteMacroValues(MapValuesToString("libs"), "LIBS");
+	WriteMacroValues(MapValuesToString("incdir"), "INCPATH");
+	WriteMacroValues(MapValuesToString("libdir"), "LIBDIR");
 
-	WriteListToMake(clean, "CLN");
+	fprintf(Makefile, "CLN\t= ");
+	if (ProfileMap.count("clean") == 0) {
+		fprintf(Makefile, "\n");
+	} else {
+		auto range = ProfileMap.equal_range("clean");
+		auto range_end = --ProfileMap.upper_bound("clean");
+		auto range_begin = ProfileMap.lower_bound("clean");
+		for (ProfileIter it = range.first; it != range.second; ++it) {
+			if (it == range_begin) {
+				fprintf(Makefile, "%s \\\n",
+					it->second.c_str());
+			} else if (it == range_end) {
+				fprintf(Makefile, "\t  %s\n",
+					it->second.c_str());
+			} else {
+				fprintf(Makefile, "\t  %s \\\n",
+					it->second.c_str());
+			}
+		}
+	}
+
 	BuildObjList();
-	WriteListToMake(obj, "OBJ");
-
+	WriteVecValues(obj, "OBJ");
 	fprintf(Makefile, "DEL\t= rm -f\n");
 	fprintf(Makefile, "\n.SUFFIXES: .o .c .cpp .cc .cxx .C\n\n");
 	fprintf(
@@ -114,33 +146,37 @@ int Profile::WriteMake(const char *makefile)
 
 int Profile::Build()
 {
-	ExecScript(before);
+	ExecScript("before-script");
 	CheckLang();
 	CleanList(FileList);
 	SrcList();
 	CheckBlankValues();
 	BuildObjList();
 	std::string cmd_str;
-	std::string temp_comp = VectToString(cflags) + VectToString(incdir);
+	std::string temp_comp =
+	    MapValuesToString("cflags") + MapValuesToString("incdir");
 	for (unsigned i = 0; i < FileList.size(); i++) {
-		cmd_str = comp + " -c " + temp_comp + "-o " + obj[i] + " " +
-			  FileList[i];
+		cmd_str = MapValuesToString("comp") + " -c " + temp_comp +
+			  "-o " + obj[i] + " " + FileList[i];
 		printf("%s\n", cmd_str.c_str());
 		system(cmd_str.c_str());
+		cmd_str.clear();
 	}
-	cmd_str = comp + " -o " + target + " " + VectToString(obj) +
-		  VectToString(libdir) + VectToString(libs);
+	cmd_str = MapValuesToString("comp") + " -o " +
+		  MapValuesToString("target") + " " + VectToString(obj) +
+		  MapValuesToString("libdir") + MapValuesToString("libs");
 	printf("%s\n", cmd_str.c_str());
 	system(cmd_str.c_str());
-	ExecScript(after);
+	ExecScript("after-script");
 	return 0;
 }
 
-void Profile::ExecScript(std::vector<std::string> &script_list) const
+void Profile::ExecScript(std::string script_list)
 {
-	for (unsigned i = 0; i < script_list.size(); i++) {
-		printf("%s\n", script_list[i].c_str());
-		system(script_list[i].c_str());
+	auto range = ProfileMap.equal_range(script_list);
+	for (ProfileIter it = range.first; it != range.second; ++it) {
+		printf("%s\n", it->second.c_str());
+		system(it->second.c_str());
 	}
 }
 
@@ -155,115 +191,48 @@ void Profile::OpenInclude(const std::string file)
 
 void Profile::PopValidValue(std::string &k_value, std::string v_value)
 {
-	if (strcasecmp("os", k_value.c_str()) == 0) {
-		os = v_value;
-		return;
-	} else if (strcasecmp("version", k_value.c_str()) == 0) {
-		version = v_value;
-		return;
-	} else if (strcasecmp("arch", k_value.c_str()) == 0) {
-		arch.push_back(v_value);
-		return;
-	} else if (strcasecmp("ignore", k_value.c_str()) == 0) {
-		ignore.push_back(v_value);
-		return;
-	} else if (strcasecmp("src", k_value.c_str()) == 0) {
-		src.push_back(v_value);
-		return;
-	} else if (strcasecmp("comp", k_value.c_str()) == 0) {
-		comp = v_value;
-		return;
-	} else if (strcasecmp("cflags", k_value.c_str()) == 0) {
-		cflags.push_back(PrependLink(v_value, "-"));
-		return;
-	} else if (strcasecmp("target", k_value.c_str()) == 0) {
-		target = v_value;
-		return;
-	} else if (strcasecmp("include", k_value.c_str()) == 0) {
-		include = v_value;
-		return;
-	} else if (strcasecmp("lang", k_value.c_str()) == 0) {
-		lang = v_value;
-		return;
-	} else if (strcasecmp("dist", k_value.c_str()) == 0) {
-		dist = v_value;
-		return;
-	} else if (strcasecmp("before-script", k_value.c_str()) == 0) {
-		before.push_back(v_value);
-		return;
-	} else if (strcasecmp("after-script", k_value.c_str()) == 0) {
-		after.push_back(v_value);
-		return;
-	} else if (strcasecmp("libs", k_value.c_str()) == 0) {
-		libs.push_back(PrependLink(v_value, "-l"));
-		return;
-	} else if (strcasecmp("incdir", k_value.c_str()) == 0) {
-		incdir.push_back(PrependLink(v_value, "-I"));
-		return;
-	} else if (strcasecmp("libdir", k_value.c_str()) == 0) {
-		libdir.push_back(PrependLink(v_value, "-L"));
-		return;
-	} else if (strcasecmp("remote", k_value.c_str()) == 0) {
-		remote = v_value;
-		return;
-	} else if (strcasecmp("defines", k_value.c_str()) == 0) {
-		defines = v_value;
-		return;
-	} else if (strcasecmp("clean", k_value.c_str()) == 0) {
-		clean.push_back(v_value);
-		return;
-	}
-}
-
-void Profile::PrintList(const std::vector<std::string> vect) const
-{
-	if (vect.size() == 0) {
-		printf("\tNone\n");
-	} else {
-		for (unsigned int i = 0; i < vect.size(); i++) {
-			printf("\t%s\n", vect[i].c_str());
+	for (int i = 0; i < MAX_OPT; i++) {
+		if (strcasecmp(STDValues[i].c_str(), k_value.c_str()) == 0) {
+			if (STDValues[i] == "cflags") {
+				v_value = PrependLink(v_value, "-");
+			} else if (STDValues[i] == "lflags") {
+				v_value = PrependLink(v_value, "-");
+			} else if (STDValues[i] == "libdir") {
+				v_value = PrependLink(v_value, "-L");
+			} else if (STDValues[i] == "incdir") {
+				v_value = PrependLink(v_value, "-I");
+			} else if (STDValues[i] == "libs") {
+				v_value = PrependLink(v_value, "-l");
+			}
+			ProfileMap.insert(std::pair<std::string, std::string>(
+			    k_value, v_value));
 		}
 	}
 }
 
 void Profile::SrcList()
 {
-	if (!src.empty()) {
+	if (ProfileMap.count("src") != 0) {
 		FileList.clear();
-		for (unsigned i = 0; i < src.size(); i++) {
-			FileList.push_back(src[i]);
+		auto range = ProfileMap.equal_range("src");
+		for (ProfileIter it = range.first; it != range.second; ++it) {
+			FileList.push_back(it->second);
 		}
 	}
 }
 
-void Profile::GetSysInfo()
-{
-#ifdef __linux__
-	plat = "linux";
-	if (comp.empty())
-		comp = "g++";
-#elif __FreeBSD__
-	plat = "freebsd";
-	if (comp.empty())
-		comp = "clang++";
-#endif
-#ifdef __amd64__
-	p_arch = "x86_64";
-#endif
-#ifdef __i386__
-	p_arch = "i686";
-#endif
-}
-
 void Profile::CleanList(std::vector<std::string> &vect)
 {
-	for (unsigned i = 0; i < ignore.size(); i++) {
-		vect.erase(std::remove_if(vect.begin(), vect.end(),
-					  [&](std::string s) {
-				   return s.find(ignore[i]) !=
-					  std::string::npos;
-			   }),
-			   vect.end());
+	if (ProfileMap.count("ignore") != 0) {
+		auto range = ProfileMap.equal_range("ignore");
+		for (ProfileIter it = range.first; it != range.second; ++it) {
+			vect.erase(std::remove_if(vect.begin(), vect.end(),
+						  [&](std::string s) {
+					   return s.find(it->second) !=
+						  std::string::npos;
+				   }),
+				   vect.end());
+		}
 	}
 }
 
@@ -281,62 +250,57 @@ void Profile::BuildObjList()
 	}
 }
 
-void Profile::PrintProfile() const
+void Profile::PrintProfile()
 {
-	printf("target:\n\t%s\n", target.c_str());
-	printf("version:\n\t%s\n", version.c_str());
-	printf("os:\n\t%s\n", os.c_str());
-	printf("comp:\n\t%s\n", comp.c_str());
-	printf("cflags:\n");
-	PrintList(cflags);
-	printf("arch:\n");
-	PrintList(arch);
-	printf("dist:\n\t%s\n", dist.c_str());
-	printf("src:\n");
-	PrintList(src);
-	printf("ignore:\n");
-	PrintList(ignore);
-	printf("include:\n\t%s\n", include.c_str());
-	printf("libs:\n");
-	PrintList(libs);
-	printf("incdir:\n");
-	PrintList(incdir);
-	printf("libdir:\n");
-	PrintList(libdir);
-	printf("remote:\n\t%s\n", remote.c_str());
-	printf("defines:\n\t%s\n", defines.c_str());
-	printf("before-script:\n");
-	PrintList(before);
-	printf("after-script:\n");
-	PrintList(after);
-	printf("clean:\n");
-	PrintList(clean);
+	CheckBlankValues();
+	for (auto it = ProfileMap.begin(); it != ProfileMap.end(); it++) {
+		std::cout << it->first << " => " << it->second << '\n';
+	}
 }
 
 void Profile::CheckBlankValues()
 {
-	GetSysInfo();
-	if (os.empty()) {
-		os = plat;
+#ifdef __linux__
+	if (ProfileMap.count("os") == 0)
+		ProfileMap.insert(
+		    std::pair<std::string, std::string>("os", "linux"));
+	if (ProfileMap.count("comp") == 0)
+		ProfileMap.insert(
+		    std::pair<std::string, std::string>("comp", "gcc"));
+#elif __FreeBSD__
+	if (ProfileMap.count("os") == 0)
+		ProfileMap.insert(
+		    std::pair<std::string, std::string>("os", "freebsd"));
+	if (ProfileMap.count("comp") == 0)
+		ProfileMap.insert(
+		    std::pair<std::string, std::string>("comp", "clang"));
+#endif
+#ifdef __amd64__
+	if (ProfileMap.count("arch") == 0)
+		ProfileMap.insert(
+		    std::pair<std::string, std::string>("arch", "x86_64"));
+#endif
+#ifdef __i386__
+	if (ProfileMap.count("arch") == 0)
+		ProfileMap.insert(
+		    std::pair<std::string, std::string>("arch", "i686"));
+#endif
+	if (ProfileMap.count("incdir") == 0) {
+		ProfileMap.insert(std::pair<std::string, std::string>(
+		    "incdir", "-I/usr/include"));
 	}
-	if (std::find(arch.begin(), arch.end(), p_arch) == arch.end()) {
-		arch.push_back(p_arch);
+	if (ProfileMap.count("libdir") == 0) {
+		ProfileMap.insert(std::pair<std::string, std::string>(
+		    "libdir", "-L/usr/lib"));
 	}
-	if (incdir.empty()) {
-		incdir.push_back("-I/usr/include");
-		incdir.push_back("-I/usr/local/include");
-	}
-	if (libdir.empty()) {
-		libdir.push_back("-L/usr/lib");
-		libdir.push_back("-L/usr/local/lib");
-	}
-	if (target.empty()) {
-		target = GetRelBase();
+	if (ProfileMap.count("target") == 0) {
+		ProfileMap.insert(std::pair<std::string, std::string>(
+		    "target", GetRelBase()));
 	}
 }
 
-void Profile::WriteListToMake(std::vector<std::string> &vect,
-			      std::string out_name)
+void Profile::WriteVecValues(std::vector<std::string> &vect,
+			     std::string out_name)
 {
 	fprintf(Makefile, "%s\t=", out_name.c_str());
 	if (vect.size() == 0) {
@@ -362,12 +326,13 @@ void Profile::WriteListToMake(std::vector<std::string> &vect,
 	}
 }
 
-void Profile::WriteSwapValues(const std::string &val, std::string out_name)
+void Profile::WriteMacroValues(const std::string &val, std::string out_name)
 {
 	fprintf(Makefile, "%s\t= %s\n", out_name.c_str(), val.c_str());
 }
 
 void Profile::CheckLang()
 {
-	WalkDir(GetCurrentDir(), lang, FS_DEFAULT | FS_MATCHDIRS);
+	ProfileConstIter it = ProfileMap.find("lang");
+	WalkDir(GetCurrentDir(), it->second, FS_DEFAULT | FS_MATCHDIRS);
 }
