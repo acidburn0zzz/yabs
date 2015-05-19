@@ -44,7 +44,7 @@ int Parser::OpenConfig(const char *build_file, int verb_flag)
 
 void Parser::WriteProfileMakes()
 {
-	if ((int)Profiles.size() == 1) {
+	if (Profiles.size() == 1) {
 		Profiles[0]->WriteMake("Makefile");
 		return;
 	} else {
@@ -59,11 +59,11 @@ void Parser::WriteProfileMakes()
 
 void Parser::BuildProfiles()
 {
-	if ((int)Profiles.size() == 1) {
+	if (Profiles.size() == 1) {
 		Profiles[0]->Build();
 		return;
 	} else {
-		for (int i = 0; i < (int)Profiles.size(); i++) {
+		for (unsigned i = 0; i < Profiles.size(); i++) {
 			Profiles[i]->Build();
 		}
 		return;
@@ -72,7 +72,7 @@ void Parser::BuildProfiles()
 
 void Parser::DeleteProfiles()
 {
-	for (int i = 0; i < (int)Profiles.size(); i++) {
+	for (unsigned i = 0; i < Profiles.size(); i++) {
 		delete Profiles[i];
 	}
 }
@@ -256,7 +256,6 @@ int Parser::ReadValues()
 					       CRM);
 					VoidToken();
 					return -1;
-					break;
 				}
 				break;
 			case block_entry:
@@ -266,7 +265,6 @@ int Parser::ReadValues()
 				    token_return != block_map_strt) {
 					VoidToken();
 					return -1;
-					break;
 				}
 				Profiles[p_num]->PopValidValue(
 				    key_value, Profiles[p_num]->ConvValue(
@@ -283,7 +281,6 @@ int Parser::ReadValues()
 				CheckDocStart();
 				VoidToken();
 				return -1;
-				break;
 			}
 			break;
 		}
