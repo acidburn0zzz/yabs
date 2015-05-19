@@ -21,11 +21,7 @@ yabs can currently self host. Major things that are left to implement are:
 
 ## Building
 
-You may use the `Makefile` provided, a qmake profile is available if you wish to 
- compile with clang:
-```
-qmake "CONFIG+=clang"
-```
+Use the `Makefile` provided, this compiles `yabs` with `g++` and gcov enabled.
 
 ## Using
 ```bash
