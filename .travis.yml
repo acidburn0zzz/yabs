@@ -21,7 +21,7 @@ after_script:
     - gcov yabs.gcda
     - coveralls --exclude include
     - make clean
-    - qmake-qt4 "CONFIG+=clang"
+    - sed -i "s/g++/clang++/g" yabs.ybf
     - make
 notifications:
     email:
