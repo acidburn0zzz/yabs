@@ -1,6 +1,7 @@
 # vim: syntax=yaml
 ---
 target: yabs
+os: linux
 version: "0.1.2"
 lang: cpp
 remote: 0x1a.us:Repos/yabs
@@ -9,7 +10,6 @@ libs:
     - yaml
     - archive
     - gcov
-target: yabs
 incdir: include /usr/include
 cflags: pipe std=c++11 march=x86-64 mtune=generic O2 pipe fprofile-arcs fstack-protector ftest-coverage -param=ssp-buffer-size=4 Wall
 ignore:
