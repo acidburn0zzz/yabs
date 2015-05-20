@@ -87,12 +87,12 @@ tests:
 	./test/test-script.sh proj
 
 install:
+	$(INSTALL) -d $(DEST)$(LIBDIR)
 	$(INSTALL) -d $(DEST)$(BINDIR)
-	$(INSTALL) -d $(DEST)$(LIBDIR)/yabs
 	$(INSTALL) -d $(DEST)$(MANDIR)/man1
 	$(INSTALL) -m755 yabs $(DEST)$(BINDIR)/yabs
 	$(INSTALL) -m644 doc/yabs.1 $(DEST)$(MANDIR)/man1/yabs.1
 
 uninstall:
-	rm -f $(DEST)/yabs
+	rm -f $(DEST)$(BINDIR)/yabs
 	rm -f $(DEST)$(MANDIR)man1/yabs.1
