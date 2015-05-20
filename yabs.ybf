@@ -25,4 +25,6 @@ src:
     - src/profile.cpp
     - src/remote.cpp
     - src/yabs.cpp
+doc: doc/yabs.1
+doc-type: man1
 ...
