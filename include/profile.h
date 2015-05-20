@@ -29,7 +29,7 @@ private:
 	    "include", "lang",      "dist",    "before-script", "after-script",
 	    "libs",    "libdir",    "incdir",  "target",	"remote",
 	    "clean",   "defines",   "version", "ignore",	"src",
-	    "install", "uninstall", "doc",
+	    "install", "uninstall", "doc",     "doc-type",
 	};
 	std::string temp;
 
@@ -48,8 +48,8 @@ public:
 	void WriteVecValues(std::vector<std::string> &vect,
 			    std::string out_name);
 	void WriteMacroValues(const std::string &val, std::string out_name);
-	void PrintProfile();
-	void CleanList(std::vector<std::string> &vect);
+	void PrintProfile() const;
+	void IgnorePath(std::vector<std::string> &vect);
 	void SrcList();
 	void CheckBlankValues();
 	void CheckLang();

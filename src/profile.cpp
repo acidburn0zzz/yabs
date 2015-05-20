@@ -72,13 +72,23 @@ int Profile::CompValid(unsigned char *comp_value)
 int Profile::WriteMake(const char *makefile)
 {
 	CheckLang();
-	CleanList(FileList);
+	IgnorePath(FileList);
 	SrcList();
 	CheckBlankValues();
 	Makefile = fopen(makefile, "w+");
-	fprintf(Makefile, "TRGT\t= %s\n", MapValuesToString("target").c_str());
-	fprintf(Makefile, "LINK\t= %s\n", MapValuesToString("comp").c_str());
-	fprintf(Makefile, "COMP\t= %s\n", MapValuesToString("comp").c_str());
+	fprintf(Makefile, "INSTALL\t= /usr/bin/env install\n"
+			  "DEST\t=\n"
+			  "PREFIX\t= %s\n"
+			  "BINDIR\t= $(PREFIX)/bin\n"
+			  "LIBDIR\t= $(PREFIX)/lib\n"
+			  "MANDIR\t= $(PREFIX)/share/man\n",
+		MapValuesToString("install").c_str());
+	fprintf(Makefile, "TRGT\t= %s\n"
+			  "LINK\t= %s\n"
+			  "COMP\t= %s\n",
+		MapValuesToString("target").c_str(),
+		MapValuesToString("comp").c_str(),
+		MapValuesToString("comp").c_str());
 
 	WriteMacroValues(MapValuesToString("cflags"), "CFLAGS");
 	WriteMacroValues(MapValuesToString("libs"), "LIBS");
@@ -148,7 +158,7 @@ int Profile::Build()
 {
 	ExecScript("before-script");
 	CheckLang();
-	CleanList(FileList);
+	IgnorePath(FileList);
 	SrcList();
 	CheckBlankValues();
 	BuildObjList();
@@ -221,7 +231,7 @@ void Profile::SrcList()
 	}
 }
 
-void Profile::CleanList(std::vector<std::string> &vect)
+void Profile::IgnorePath(std::vector<std::string> &vect)
 {
 	if (ProfileMap.count("ignore") != 0) {
 		auto range = ProfileMap.equal_range("ignore");
@@ -250,10 +260,9 @@ void Profile::BuildObjList()
 	}
 }
 
-void Profile::PrintProfile()
+void Profile::PrintProfile() const
 {
-	CheckBlankValues();
-	for (auto it = ProfileMap.begin(); it != ProfileMap.end(); it++) {
+	for (auto it = ProfileMap.cbegin(); it != ProfileMap.cend(); it++) {
 		std::cout << it->first << " => " << it->second << '\n';
 	}
 }
@@ -296,6 +305,10 @@ void Profile::CheckBlankValues()
 	if (ProfileMap.count("target") == 0) {
 		ProfileMap.insert(std::pair<std::string, std::string>(
 		    "target", GetRelBase()));
+	}
+	if (ProfileMap.count("install") == 0) {
+		ProfileMap.insert(std::pair<std::string, std::string>(
+		    "install", "/usr/local"));
 	}
 }
 
