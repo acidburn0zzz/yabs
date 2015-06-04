@@ -20,16 +20,27 @@ std::string Profile::ConvValue(unsigned char *conv_value)
 	return temp_value;
 }
 
+bool Profile::IsCmd(std::string &value)
+{
+	if (value.at(0) == '`') {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 std::string Profile::PrependLink(std::string &to_proc, std::string pre)
 {
-	std::string space = " ";
-	to_proc = pre + to_proc;
-	pre = space + pre;
-	size_t start_pos = 0;
-	while ((start_pos = to_proc.find(space, start_pos)) !=
-	       std::string::npos) {
-		to_proc.replace(start_pos, space.length(), pre);
-		start_pos += pre.length();
+	if (!IsCmd(to_proc)) {
+		std::string space = " ";
+		to_proc = pre + to_proc;
+		pre = space + pre;
+		size_t start_pos = 0;
+		while ((start_pos = to_proc.find(space, start_pos)) !=
+		       std::string::npos) {
+			to_proc.replace(start_pos, space.length(), pre);
+			start_pos += pre.length();
+		}
 	}
 	return to_proc;
 }
@@ -236,12 +247,13 @@ void Profile::IgnorePath(std::vector<std::string> &vect)
 	if (ProfileMap.count("ignore") != 0) {
 		auto range = ProfileMap.equal_range("ignore");
 		for (ProfileIter it = range.first; it != range.second; ++it) {
-			vect.erase(std::remove_if(vect.begin(), vect.end(),
-						  [&](std::string s) {
-					   return s.find(it->second) !=
-						  std::string::npos;
-				   }),
-				   vect.end());
+			vect.erase(
+			    std::remove_if(vect.begin(), vect.end(),
+					   [&](std::string s) {
+						   return s.find(it->second) !=
+							  std::string::npos;
+					   }),
+			    vect.end());
 		}
 	}
 }

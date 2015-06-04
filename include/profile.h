@@ -25,11 +25,10 @@ private:
 	std::vector<std::string> obj;
 	ProfileMultiMap ProfileMap;
 	const std::string STDValues[MAX_OPT] = {
-	    "os",      "arch",      "comp",    "cflags",	"lflags",
-	    "include", "lang",      "dist",    "before-script", "after-script",
-	    "libs",    "libdir",    "incdir",  "target",	"remote",
-	    "clean",   "defines",   "version", "ignore",	"src",
-	    "install", "uninstall", "doc",     "doc-type",
+	    "os", "arch", "comp", "cflags", "lflags", "include", "lang", "dist",
+	    "before-script", "after-script", "libs", "libdir", "incdir",
+	    "target", "remote", "clean", "defines", "version", "ignore", "src",
+	    "install", "uninstall", "doc", "doc-type",
 	};
 	std::string temp;
 
@@ -55,6 +54,7 @@ public:
 	void CheckLang();
 	void BuildObjList();
 	void ExecScript(std::string);
+	bool IsCmd(std::string &);
 };
 
 #endif
