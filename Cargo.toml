@@ -1,8 +1,11 @@
 [package]
-
 name = "yabs"
 version = "0.0.1"
 authors = ["Alberto Corona <alberto@0x1a.us>"]
+description = "Yet another build system"
+repository = "https://gitlab.com/0X1A/yabs"
+license = "BSD-3-Clause"
 
-[dependencies.toml]
-git = "https://github.com/alexcrichton/toml-rs"
+[dependencies]
+toml = "0.1.20"
+pgetopts = "0.1.2"
