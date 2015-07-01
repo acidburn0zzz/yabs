@@ -21,7 +21,7 @@ src:
     - src/dist.cpp
     - src/gen.cpp
     - src/interface.cpp
-    - src/parser.cpp
+    - src/decoder.cpp
     - src/profile.cpp
     - src/remote.cpp
     - src/yabs.cpp

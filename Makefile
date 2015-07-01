@@ -17,14 +17,14 @@ DEL_R	= rm -r
 SRC 	= src/dist.cpp \
 	  src/gen.cpp \
 	  src/interface.cpp \
-	  src/parser.cpp \
+	  src/decoder.cpp \
 	  src/profile.cpp \
 	  src/remote.cpp \
 	  src/yabs.cpp
 OBJ 	= dist.o \
 	  gen.o \
 	  interface.o \
-	  parser.o \
+	  decoder.o \
 	  profile.o \
 	  remote.o \
 	  yabs.o
@@ -63,8 +63,8 @@ gen.o: src/gen.cpp
 interface.o: src/interface.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o interface.o src/interface.cpp
 
-parser.o: src/parser.cpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o parser.o src/parser.cpp
+decoder.o: src/decoder.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o decoder.o src/decoder.cpp
 
 profile.o: src/profile.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o profile.o src/profile.cpp

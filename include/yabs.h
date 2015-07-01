@@ -5,10 +5,10 @@
 #ifndef _YABS_H
 #define _YABS_H
 
-#include "parser.h"
+#include "decoder.h"
 #include "profile.h"
 
-class Yabs : public Parser, public Profile
+class Yabs : public Decoder, public Profile
 {
 public:
 	Yabs();

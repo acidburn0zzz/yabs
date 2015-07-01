@@ -2,15 +2,15 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
-#ifndef _PARSER_H
-#define _PARSER_H
+#ifndef _Decoder_H
+#define _Decoder_H
 
 #include <yaml.h>
 #include <vector>
 #include <memory>
 #include "profile.h"
 
-class Parser
+class Decoder
 {
 private:
 	std::vector<std::unique_ptr<Profile>> Profiles;
@@ -34,14 +34,14 @@ private:
 	yaml_token_t token;
 
 public:
-	Parser();
+	Decoder();
 	int AssertYML(const char *build_file);
 	int ParseConfig();
 	int OpenConfig(const char *build_file, int verb_flag);
 	int CloseConfig();
 	int ReadValues();
 	int ParseValues(int verb_flag);
-	void VerboseParser(int format);
+	void VerboseDecoder(int format);
 	void VoidToken();
 	void CheckDocStart();
 	void PrintAllProfiles();

@@ -9,9 +9,9 @@
 #include <iostream>
 #include <yaml.h>
 #include "colors.h"
-#include "parser.h"
+#include "decoder.h"
 
-Parser::Parser()
+Decoder::Decoder()
 {
 	e_num = 0;
 	p_num = 0;
@@ -19,7 +19,7 @@ Parser::Parser()
 	token_return = error;
 }
 
-int Parser::OpenConfig(const char *build_file, int verb_flag)
+int Decoder::OpenConfig(const char *build_file, int verb_flag)
 {
 	if (AssertYML(build_file) == 1) {
 		conf = fopen(build_file, "r");
@@ -40,7 +40,7 @@ int Parser::OpenConfig(const char *build_file, int verb_flag)
 	return 0;
 }
 
-void Parser::WriteProfileMakes()
+void Decoder::WriteProfileMakes()
 {
 	if (Profiles.size() == 1) {
 		Profiles[0]->WriteMake("Makefile");
@@ -55,7 +55,7 @@ void Parser::WriteProfileMakes()
 	}
 }
 
-void Parser::BuildProfiles()
+void Decoder::BuildProfiles()
 {
 	if (Profiles.size() == 1) {
 		Profiles[0]->Build();
@@ -68,7 +68,7 @@ void Parser::BuildProfiles()
 	}
 }
 
-int Parser::ParseConfig()
+int Decoder::ParseConfig()
 {
 	if (conf != NULL) {
 		yaml_parser_initialize(&parser);
@@ -78,7 +78,7 @@ int Parser::ParseConfig()
 	return 0;
 }
 
-void Parser::CheckDocStart()
+void Decoder::CheckDocStart()
 {
 	if (prs != doc_start) {
 		VoidToken();
@@ -87,7 +87,7 @@ void Parser::CheckDocStart()
 	}
 }
 
-int Parser::CloseConfig()
+int Decoder::CloseConfig()
 {
 	if (conf != NULL) {
 		yaml_parser_delete(&parser);
@@ -99,7 +99,7 @@ int Parser::CloseConfig()
 	return 0;
 }
 
-int Parser::AssertYML(const char *build_file)
+int Decoder::AssertYML(const char *build_file)
 {
 	const char *ext;
 	ext = strrchr(build_file, '.');
@@ -124,7 +124,7 @@ int Parser::AssertYML(const char *build_file)
 	return 0;
 }
 
-int Parser::ParseValues(int verb_flag)
+int Decoder::ParseValues(int verb_flag)
 {
 	switch (verb_flag) {
 	case 0:
@@ -135,14 +135,14 @@ int Parser::ParseValues(int verb_flag)
 		break;
 	case 1:
 		do {
-			VerboseParser(0);
+			VerboseDecoder(0);
 		} while (token.type != YAML_STREAM_END_TOKEN);
 		break;
 	}
 	return 0;
 }
 
-void Parser::PrintAllProfiles()
+void Decoder::PrintAllProfiles()
 {
 	for (int i = 0; i < (int)Profiles.size(); i++) {
 		if (i == 0) {
@@ -155,14 +155,14 @@ void Parser::PrintAllProfiles()
 	}
 }
 
-void Parser::VoidToken()
+void Decoder::VoidToken()
 {
 	token_return = error;
 	yaml_token_delete(&token);
 	token.type = YAML_STREAM_END_TOKEN;
 }
 
-int Parser::ReadValues()
+int Decoder::ReadValues()
 {
 	do {
 		yaml_parser_scan(&parser, &token);
@@ -282,7 +282,7 @@ int Parser::ReadValues()
 	return 0;
 }
 
-void Parser::VerboseParser(int format)
+void Decoder::VerboseDecoder(int format)
 {
 	do {
 		yaml_parser_scan(&parser, &token);
