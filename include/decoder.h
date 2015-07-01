@@ -2,8 +2,8 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
-#ifndef _Decoder_H
-#define _Decoder_H
+#ifndef _DECODER_H
+#define _DECODER_H
 
 #include <yaml.h>
 #include <vector>
