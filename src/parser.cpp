@@ -19,8 +19,6 @@ Parser::Parser()
 	token_return = error;
 }
 
-Parser::~Parser() { DeleteProfiles(); };
-
 int Parser::OpenConfig(const char *build_file, int verb_flag)
 {
 	if (AssertYML(build_file) == 1) {
@@ -67,13 +65,6 @@ void Parser::BuildProfiles()
 			Profiles[i]->Build();
 		}
 		return;
-	}
-}
-
-void Parser::DeleteProfiles()
-{
-	for (unsigned i = 0; i < Profiles.size(); i++) {
-		delete Profiles[i];
 	}
 }
 
@@ -195,7 +186,7 @@ int Parser::ReadValues()
 			break;
 		case YAML_DOCUMENT_START_TOKEN:
 			prs = doc_start;
-			Profiles.push_back(new Profile());
+			Profiles.emplace_back(new Profile());
 			if (e_num != 0)
 				++p_num;
 			break;
@@ -317,7 +308,7 @@ void Parser::VerboseParser(int format)
 			break;
 		case YAML_DOCUMENT_START_TOKEN:
 			prs = doc_start;
-			Profiles.push_back(new Profile());
+			Profiles.emplace_back(new Profile());
 			printf("---\n");
 			break;
 		case YAML_DOCUMENT_END_TOKEN:

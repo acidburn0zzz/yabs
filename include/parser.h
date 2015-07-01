@@ -7,12 +7,13 @@
 
 #include <yaml.h>
 #include <vector>
+#include <memory>
 #include "profile.h"
 
 class Parser
 {
 private:
-	std::vector<Profile *> Profiles;
+	std::vector<std::unique_ptr<Profile>> Profiles;
 	int e_num, p_num;
 	enum spec {
 		error = 0,
@@ -34,7 +35,6 @@ private:
 
 public:
 	Parser();
-	~Parser();
 	int AssertYML(const char *build_file);
 	int ParseConfig();
 	int OpenConfig(const char *build_file, int verb_flag);
@@ -43,7 +43,6 @@ public:
 	int ParseValues(int verb_flag);
 	void VerboseParser(int format);
 	void VoidToken();
-	void DeleteProfiles();
 	void CheckDocStart();
 	void PrintAllProfiles();
 	void WriteProfileMakes();
