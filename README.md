@@ -3,8 +3,6 @@ Yet another build system
 
 [![Build Status](https://travis-ci.org/0X1A/yabs.svg)](https://travis-ci.org/0X1A/yabs)
 [![Coverage Status](https://coveralls.io/repos/0X1A/yabs/badge.svg?branch=master)](https://coveralls.io/r/0X1A/yabs?branch=master)
-[![Build Status on 0X1A](http://0x1a.us/img/yabs-build.png)](http://0x1a.us/ci/yabs)
-[![Coverage Status on 0X1A](http://0x1a.us/img/yabs-coverage.png)](http://0x1a.us/ci/yabs)
 
 A C and C++ build system for multiple architectures and operating systems.
 Project files define Makefiles to be written that can be copied to a remote
@@ -16,7 +14,7 @@ yabs can currently self host. Major things that are left to implement are:
 - [ ] Remote jobs (ssh and or git)
 - [ ] Automatic language detection
 - [ ] Better distribution tarballs
-- [ ] Pre/Post scripting
+- [x] Pre/Post scripting
 - [x] Direct building (omitting Make)
 
 ## Building
