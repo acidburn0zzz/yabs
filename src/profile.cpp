@@ -86,82 +86,65 @@ int Profile::WriteMake(const char *makefile)
 	IgnorePath(FileList);
 	SrcList();
 	CheckBlankValues();
-	Makefile = fopen(makefile, "w+");
-	fprintf(Makefile, "INSTALL\t= /usr/bin/env install\n"
-			  "DEST\t=\n"
-			  "PREFIX\t= %s\n"
-			  "BINDIR\t= $(PREFIX)/bin\n"
-			  "LIBDIR\t= $(PREFIX)/lib\n"
-			  "MANDIR\t= $(PREFIX)/share/man\n",
-		MapValuesToString("install").c_str());
-	fprintf(Makefile, "TRGT\t= %s\n"
-			  "LINK\t= %s\n"
-			  "COMP\t= %s\n",
-		MapValuesToString("target").c_str(),
-		MapValuesToString("comp").c_str(),
-		MapValuesToString("comp").c_str());
+	Makefile.open(makefile, std::ofstream::out);
+	Makefile << "INSTALL\t= /usr/bin/env install\n"
+		 << "AR\t= /usr/bin/ar\n"
+		 << "DEST\t=\n"
+		 << "PREFIX\t= " << MapValuesToString("install") << "\n"
+		 << "BINDIR\t= $(PREFIX)/bin\n"
+		 << "LIBDIR\t= $(PREFIX)/lib\n"
+		 << "MANDIR\t= $(PREFIX)/share/man\n"
+		 << "TRGT\t= " << MapValuesToString("target") << "\n"
+		 << "LINK\t= " << MapValuesToString("comp") << "\n"
+		 << "COMP\t= " << MapValuesToString("comp") << "\n";
 
 	WriteMacroValues(MapValuesToString("cflags"), "CFLAGS");
+	WriteMacroValues(MapValuesToString("lflags"), "LFLAGS");
 	WriteMacroValues(MapValuesToString("libs"), "LIBS");
 	WriteMacroValues(MapValuesToString("incdir"), "INCPATH");
 	WriteMacroValues(MapValuesToString("libdir"), "LIBDIR");
 
-	fprintf(Makefile, "CLN\t= ");
+	Makefile << "CLN\t= ";
 	if (ProfileMap.count("clean") == 0) {
-		fprintf(Makefile, "\n");
+		Makefile << "\n";
 	} else {
 		auto range = ProfileMap.equal_range("clean");
 		auto range_end = --ProfileMap.upper_bound("clean");
 		auto range_begin = ProfileMap.lower_bound("clean");
 		for (ProfileIter it = range.first; it != range.second; ++it) {
 			if (it == range_begin) {
-				fprintf(Makefile, "%s \\\n",
-					it->second.c_str());
+				Makefile << it->second << " \\\n";
 			} else if (it == range_end) {
-				fprintf(Makefile, "\t  %s\n",
-					it->second.c_str());
+				Makefile << "\t " << it->second << "\n";
 			} else {
-				fprintf(Makefile, "\t  %s \\\n",
-					it->second.c_str());
+				Makefile << "\t  " << it->second << " \\\n";
 			}
 		}
 	}
 
 	BuildObjList();
 	WriteVecValues(obj, "OBJ");
-	fprintf(Makefile, "DEL\t= rm -f\n");
-	fprintf(Makefile, "\n.SUFFIXES: .o .c .cpp .cc .cxx .C\n\n");
-	fprintf(
-	    Makefile,
-	    ".cpp.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
-	fprintf(
-	    Makefile,
-	    ".cc.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
-	fprintf(
-	    Makefile,
-	    ".cxx.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
-	fprintf(
-	    Makefile,
-	    ".C.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
-	fprintf(
-	    Makefile,
-	    ".c.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n");
-
-	fprintf(Makefile, "all: $(TRGT)\n\n");
-	fprintf(Makefile, "$(TRGT): $(OBJ)\n\t$(COMP) $(LFLAGS) -o $(TRGT) "
-			  "$(OBJ) $(LIBDIR) $(LIBS)\n\n");
+	Makefile
+	    << "DEL\t= rm -f\n"
+	    << "\n.SUFFIXES: .o .c .cpp .cc .cxx .C\n\n"
+	    << ".cpp.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n"
+	    << ".cc.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n"
+	    << ".cxx.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n"
+	    << ".C.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n"
+	    << ".c.o:\n\t$(COMP) -c $(CFLAGS) $(INCPATH) -o \"$@\" \"$<\"\n\n"
+	    << "all: $(TRGT)\n\n"
+	    << "$(TRGT): $(OBJ)\n\t$(COMP) $(LFLAGS) -o $(TRGT) "
+	    << "$(OBJ) $(LIBDIR) $(LIBS)\n\n";
 
 	for (unsigned i = 0; i < obj.size(); i++) {
-		fprintf(Makefile, "%s: %s\n", obj[i].c_str(),
-			FileList[i].c_str());
-		fprintf(Makefile,
-			"\t$(COMP) -c $(CFLAGS) $(INCPATH) -o %s %s\n\n",
-			obj[i].c_str(), FileList[i].c_str());
+		Makefile << obj[i] << ": " << FileList[i] << "\n";
+		Makefile << "\t$(COMP) -c $(CFLAGS) $(INCPATH) -o " << obj[i]
+			 << " " << FileList[i] << "\n\n";
 	}
-	fprintf(Makefile,
-		"clean:\n\t$(DEL) $(OBJ)\n\t$(DEL) $(CLN)\n\t$(DEL) $(TRGT)\n");
+	Makefile
+	    << "clean:\n\t$(DEL) $(OBJ)\n\t$(DEL) $(CLN)\n\t$(DEL) $(TRGT)\n";
 
-	fclose(Makefile);
+	Makefile.close();
 	return 0;
 }
 
@@ -203,8 +186,8 @@ void Profile::ExecScript(std::string script_list)
 
 void Profile::OpenInclude(const std::string file)
 {
-	inc_conf = fopen(file.c_str(), "r");
-	if (inc_conf == NULL) {
+	inc_conf.open(file, std::ofstream::in);
+	if (inc_conf.good()) {
 		printf("Error: Couldn't open included file: %s\n",
 		       file.c_str());
 	}
@@ -327,24 +310,23 @@ void Profile::CheckBlankValues()
 void Profile::WriteVecValues(std::vector<std::string> &vect,
 			     std::string out_name)
 {
-	fprintf(Makefile, "%s\t=", out_name.c_str());
+	Makefile << out_name << "\t=";
 	if (vect.size() == 0) {
-		fprintf(Makefile, "\n");
+		Makefile << "\n";
 	} else {
 		for (unsigned i = 0; i < vect.size(); i++) {
 			if (vect.size() == 1) {
-				fprintf(Makefile, " %s\n", vect[i].c_str());
+				Makefile << " " << vect[i] << "\n";
 				break;
 			}
 			if (i == 0) {
-				fprintf(Makefile, " %s \\\n", vect[i].c_str());
+				Makefile << " " << vect[i] << " \\\n";
 			} else {
 				if (i == (vect.size() - 1)) {
-					fprintf(Makefile, "\t  %s\n",
-						vect[i].c_str());
+					Makefile << "\t  " << vect[i] << "\n";
 				} else {
-					fprintf(Makefile, "\t  %s \\\n",
-						vect[i].c_str());
+					Makefile << "\t  " << vect[i]
+						 << " \\\n";
 				}
 			}
 		}
@@ -353,7 +335,7 @@ void Profile::WriteVecValues(std::vector<std::string> &vect,
 
 void Profile::WriteMacroValues(const std::string &val, std::string out_name)
 {
-	fprintf(Makefile, "%s\t= %s\n", out_name.c_str(), val.c_str());
+	Makefile << out_name << "\t= " << val << "\n";
 }
 
 void Profile::CheckLang()

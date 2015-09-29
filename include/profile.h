@@ -9,9 +9,10 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <fstream>
 #include "gen.h"
 
-#define MAX_OPT 25
+#define MAX_OPT 26
 
 typedef std::multimap<std::string, std::string> ProfileMultiMap;
 typedef ProfileMultiMap::const_iterator ProfileConstIter;
@@ -20,15 +21,15 @@ typedef ProfileMultiMap::iterator ProfileIter;
 class Profile : public Generate
 {
 private:
-	FILE *inc_conf;
-	FILE *Makefile;
+	std::ofstream inc_conf;
+	std::ofstream Makefile;
 	std::vector<std::string> obj;
 	ProfileMultiMap ProfileMap;
 	const std::string STDValues[MAX_OPT] = {
 	    "os", "arch", "comp", "cflags", "lflags", "include", "lang", "dist",
 	    "before-script", "after-script", "libs", "libdir", "incdir",
 	    "target", "remote", "clean", "defines", "version", "ignore", "src",
-	    "install", "uninstall", "doc", "doc-type",
+	    "install", "uninstall", "doc", "doc-type", "type",
 	};
 	std::string temp;
 
