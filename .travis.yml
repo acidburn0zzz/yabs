@@ -1,17 +1,11 @@
+sudo: required
+dist: trusty
 language: cpp
 compiler:
     - gcc
 before_install:
-    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo apt-get update
     - sudo apt-get install valgrind python-yaml libyaml-dev build-essential libssh2-1-dev libarchive-dev clang
-    - sudo apt-get install gcc-4.9 g++-4.9
-    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 20
-    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20
-    - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 20
-    - sudo update-alternatives --config gcc
-    - sudo update-alternatives --config g++
-    - sudo update-alternatives --config gcov
     - sudo pip install cpp-coveralls
 script:
     - make
@@ -29,7 +23,7 @@ notifications:
     email:
         recipients:
             - albcoron@gmail.com
-            - alberto@0x1a.us
+            - ac@albertocorona.com
         on_failure: always
         on_success: change
 branches:

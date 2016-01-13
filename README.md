@@ -11,9 +11,7 @@ system or be completely built on a remote system.
 ## Status
 yabs can currently self host. Major things that are left to implement are:
 
-- [ ] Remote jobs (ssh and or git)
 - [ ] Automatic language detection
-- [ ] Better distribution tarballs
 - [x] Pre/Post scripting
 - [x] Direct building (omitting Make)
 
