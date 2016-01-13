@@ -1,0 +1,5 @@
+builds:
+        script:
+                - make -j2 
+                - tar cvf include.tar.gz include/
+                - make tests
