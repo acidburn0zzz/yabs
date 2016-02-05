@@ -10,3 +10,13 @@ license = "BSD-3-Clause"
 toml = "0.1"
 pgetopts = "0.1"
 rpf = "0.1"
+rustc-serialize = "0.3"
+
+[lib]
+name = "util"
+path = "lib/lib.rs"
+
+[[bin]]
+name = "yabs"
+path = "src/main.rs"
+test = false

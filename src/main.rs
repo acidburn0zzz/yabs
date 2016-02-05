@@ -6,10 +6,13 @@ static NAME: &'static str = "yabs";
 static VERS: &'static str = "0.1.0";
 
 extern crate pgetopts;
+extern crate util;
 
 use pgetopts::{Options};
 
 use std::env;
+use util::*;
+use util::build::Desc;
 
 fn print_usage(opts: Options) {
     println!("{}", opts.options());
@@ -18,6 +21,14 @@ fn print_usage(opts: Options) {
 fn main() {
     let args: Vec<String> = env::args().collect();
     let mut opts = Options::new();
+    let dsec = match build::ProjDesc::from_file("yabs.toml", "project") {
+        Ok(_) => (),
+        Err(e) => {
+            for err in e {
+                println!("error: {}", err.to_string());
+            }
+        },
+    };
 
     opts.optflag("n", "new", "Create a new build profile");
     opts.optflag("h", "help", "Print help information");
