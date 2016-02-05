@@ -22,7 +22,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let mut opts = Options::new();
     let dsec = match build::ProjDesc::from_file("yabs.toml", "project") {
-        Ok(_) => (),
+        Ok(k) =>  { k.print_json() },
         Err(e) => {
             for err in e {
                 println!("error: {}", err.to_string());
