@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Alberto Corona <alberto@0x1a.us>
+// Copyright (c) 2015, Alberto Corona <ac@albertocorona.com>
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
