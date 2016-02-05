@@ -1,12 +1,19 @@
 # yabs
 Yet another build system
 
-[![Build Status](https://travis-ci.org/0X1A/yabs.svg)](https://travis-ci.org/0X1A/yabs)
-[![Coverage Status](https://coveralls.io/repos/0X1A/yabs/badge.svg?branch=master)](https://coveralls.io/r/0X1A/yabs?branch=master)
-
 A C and C++ build system for multiple architectures and operating systems.
 Project files define Makefiles to be written that can be copied to a remote
 system or be completely built on a remote system.
+
+
+# Deprecated
+This version of yabs will no longer be developed. All current work is being
+done on porting yabs to Rust. There are issues with yabs that do not allow it
+to be easily extensible. All development will now take place in the branch
+`rust-port`. Once the port is completed, `rust-port` will be marged with the
+master branch and this version will no longer be maintained.
+
+---
 
 ## Status
 yabs can currently self host. Major things that are left to implement are:
