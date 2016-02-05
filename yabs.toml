@@ -1,0 +1,20 @@
+[project]
+name = "yabs"
+cflags = "pipe std=c++11 march=x86-64 mtune=generic O2 pipe fprofile-arcs fstack-protector ftest-coverage -param=ssp-buffer-size=4 Wall"
+clean = ['*.gcno', '*.gcda']
+comp = "g++"
+ignore = ['distrib']
+incdir = "include /usr/include"
+lang = "cpp"
+libs = ['yaml', 'archive', 'gcov']
+os = "linux"
+src = ['src/dist.cpp', 'src/gen.cpp', 'src/interface.cpp', 'src/decoder.cpp', 'src/profile.cpp', 'src/remote.cpp', 'src/yabs.cpp']
+target = "yabs"
+version = "0.1.2"
+
+[doc]
+doc = "doc/yabs.1"
+doc-type = "man1"
+
+[install]
+prefix = "/usr"
