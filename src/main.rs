@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Alberto Corona <ac@albertocorona.com>
+// Copyright (c) 2015 - 2016, Alberto Corona <ac@albertocorona.com>
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
@@ -21,13 +21,13 @@ fn print_usage(opts: Options) {
 fn main() {
     let args: Vec<String> = env::args().collect();
     let mut opts = Options::new();
-    let dsec = match build::ProjDesc::from_file("yabs.toml", "project") {
-        Ok(k) =>  { k.print_json() },
+    let build_file = match build::BuildFile::from_file("yabs.toml") {
+        Ok(k) => k.print_as_json(),
         Err(e) => {
             for err in e {
                 println!("error: {}", err.to_string());
             }
-        },
+        }
     };
 
     opts.optflag("n", "new", "Create a new build profile");

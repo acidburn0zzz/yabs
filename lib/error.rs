@@ -40,7 +40,7 @@ impl Error for YabsError {
             YabsError::Io(ref err) => Some(err),
             YabsError::TomlParse(ref err) => Some(err),
             YabsError::TomlDecode(ref err) => Some(err),
-            YabsError::NoDesc(..) => None
+            YabsError::NoDesc(..) => None,
         }
     }
 }
