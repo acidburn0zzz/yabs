@@ -30,6 +30,7 @@ fn main() {
     opts.optflag("h", "help", "Print help information");
     opts.optflag("", "version", "Print version information");
     opts.optflag("p", "print", "Print build file in JSON");
+    opts.optflag("", "profiles", "Print all available profiles in build file");
     opts.optopt("","print-profile", "Print a particular profile from build file in JSON", "PROFILE \
                 where profile is the name of the profile to be printed");
 
@@ -45,32 +46,25 @@ fn main() {
     else if matches.opt_present("version") { println!("{} {}", YABS.name, YABS.vers); }
     else {
         if let Some(assumed_file_name) = ext::get_assumed_filename() {
-            if matches.opt_present("p") {
-                match build::BuildFile::from_file(&assumed_file_name) {
-                    Ok(k) => {
-                        &k.print_as_json();
-                    },
-                    Err(e) => {
-                        for err in e {
-                            println!("error: {}", err.to_string());
-                        }
-                        YABS.exit(ExitStatus::Error);
-                    }
-                };
-            } else if matches.opt_present("print-profile") {
-                match build::BuildFile::from_file(&assumed_file_name) {
-                    Ok(file) => {
+            match build::BuildFile::from_file(&assumed_file_name) {
+                Ok(build_file) => {
+                    if matches.opt_present("p") {
+                        &build_file.print_as_json();
+                    } else if matches.opt_present("print-profile") {
                         if let Some(arg) = matches.opt_str("print-profile") {
-                            &file.print_profile_as_json(arg);
+                            &build_file.print_profile_as_json(arg);
                         }
-                    } Err(e) => {
-                        for err in e {
-                            println!("error: {}", err.to_string());
-                        }
-                        YABS.exit(ExitStatus::Error);
+                    } else if matches.opt_present("profiles") {
+                        &build_file.print_available_profiles();
                     }
+                },
+                Err(e) => {
+                    for err in e {
+                        println!("error: {}", err.to_string());
+                    }
+                    YABS.exit(ExitStatus::Error);
                 }
-            }
+            };
         }
     }
 }

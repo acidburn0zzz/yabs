@@ -65,6 +65,13 @@ impl BuildFile {
         }
     }
 
+    pub fn print_available_profiles(&self) {
+        for profile in &self.profiles {
+            print!("{} ", profile.name);
+        }
+        print!("\n");
+    }
+
     pub fn print_profile_as_json(&self, name: String) {
         for profile in &self.profiles {
             if profile.name == name {
@@ -72,6 +79,30 @@ impl BuildFile {
             }
         }
     }
+
+    // Hideous Makefile generation to be implemented
+    //pub fn gen_make(&self, name: String) -> Result<(), YabsError> {
+        //for profile in &self.profiles {
+            //if profile.name == name {
+                //continue;
+            //} else {
+                //return Ok(());
+            //}
+        //}
+        //let format = format!("INSTALL\t=\t/usr/bin/env \
+                              //install\nDEST\t=\nPREFIX\t=\nCC\t=\t{}\nBINDIR\t=\nLIBDIR\t=\nTARGE\
+                              //T\t=\nLINK\t=\nCFLAGS\t=\nLFLAGS\t=\nLIBS\t=\nINCDIR\t=\nLIBDIR\t=\
+                              //\nCLEAN\t=\n\nDEL\t=\trm -f\n\n.PHONY: doc \
+                              //clean\n\n.cpp.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \
+                              //\"$<\"\n.cc.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \
+                              //\"$<\"\n\n.cxx.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \
+                              //\"$<\"\n\n.C.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \
+                              //\"$<\"\n\n.c.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \
+                              //\"$<\"\n\nall: $(TRGT)\n",
+                             //&self.profiles[1].clone().proj_desc.unwrap().compiler.unwrap());
+        //print!("{}", format);
+        //Ok(())
+    //}
 
     pub fn print_sources(&self) -> Result<(), YabsError> {
         for profile in &self.profiles {
@@ -122,6 +153,7 @@ impl ProjDesc {
         for entry in WalkDir::new(".") {
             let entry = try!(entry);
             if entry.path().is_file() {
+                let lang = &self.lang.clone().unwrap();
                 let file_ext = entry.path().extension().unwrap_or(OsStr::new(""));
                 if let Some(ext) = file_ext.to_str() {
                     if let Some(lang) = self.lang.clone() {
