@@ -22,9 +22,6 @@ lib = false
 version = "0.1.2"
 lflags = ''
 
-[linux.install]
-prefix = "/usr"
-
 [windows.project]
 name = "yabs"
 cflags = "pipe std=c++11 march=x86-64 mtune=generic O2 pipe fprofile-arcs -param=ssp-buffer-size=4 Wall"
@@ -48,8 +45,9 @@ lib = false
 version = "0.1.2"
 lflags = ''
 
-[windows.install]
+[all.install]
 prefix = "/usr"
+
 
 [all.doc]
 doc = "doc/yabs.1"

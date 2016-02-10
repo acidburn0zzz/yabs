@@ -3,6 +3,7 @@ extern crate toml;
 use std::fs::File;
 use std::path::Path;
 use std::io::prelude::*;
+use std::env;
 use error::YabsError;
 
 pub fn parse_toml_file<T: AsRef<Path>>(file: T) -> Result<toml::Table, Vec<YabsError>> {
@@ -32,4 +33,15 @@ pub fn parse_toml_file<T: AsRef<Path>>(file: T) -> Result<toml::Table, Vec<YabsE
             return Err(error_vect);
         }
     };
+}
+
+pub fn get_assumed_filename() -> Option<String> {
+    if let Ok(current_dir) = env::current_dir() {
+        if let Some(file_stem) = current_dir.components().last() {
+            let mut file_name: String = String::from(file_stem.as_ref().to_str().unwrap_or(""));
+            file_name.push_str(".toml");
+            return Some(file_name);
+        }
+    }
+    None
 }

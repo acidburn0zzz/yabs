@@ -1,12 +1,18 @@
 extern crate toml;
 extern crate rustc_serialize;
+extern crate walkdir;
+extern crate rpf;
 
 use toml::decode;
 use error::YabsError;
 use ext::*;
 use rustc_serialize::{Decodable, Decoder, Encodable, Encoder, json};
+use walkdir::WalkDir;
 
-#[derive(Debug,Default,RustcDecodable,RustcEncodable)]
+use std::ffi::OsStr;
+use std::path::PathBuf;
+
+#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone)]
 pub struct Profile {
     name: String,
     proj_desc: Option<ProjDesc>,
@@ -31,13 +37,19 @@ impl BuildFile {
                         toml::Value::Table(inner_table) => {
                             for (key, table) in inner_table {
                                 match key.as_ref() {
-                                    "project" => profile.proj_desc = ProjDesc::from_toml_table(table).ok(),
-                                    "install" => profile.inst_desc = InstallDesc::from_toml_table(table).ok(),
-                                    "doc" => profile.doc_desc = DocDesc::from_toml_table(table).ok(),
+                                    "project" => {
+                                        profile.proj_desc = ProjDesc::from_toml_table(table).ok()
+                                    }
+                                    "install" => {
+                                        profile.inst_desc = InstallDesc::from_toml_table(table).ok()
+                                    }
+                                    "doc" => {
+                                        profile.doc_desc = DocDesc::from_toml_table(table).ok()
+                                    }
                                     _ => (),
                                 }
                             }
-                        },
+                        }
                         _ => (),
                     };
                     build_file.profiles.push(profile);
@@ -47,38 +59,93 @@ impl BuildFile {
             .map_err(|err| err)
     }
 
-    pub fn print_as_json(self) {
-        for profile in self.profiles {
+    pub fn print_as_json(&self) {
+        for profile in &self.profiles {
             profile.print_json();
         }
     }
+
+    pub fn print_profile_as_json(&self, name: String) {
+        for profile in &self.profiles {
+            if profile.name == name {
+                println!("{}", profile.name);
+            } else {
+                return;
+            }
+        }
+    }
+
+    pub fn print_sources(&self) -> Result<(), YabsError> {
+        for profile in &self.profiles {
+            println!("{}", profile.name);
+            if let Some(proj) = profile.proj_desc.as_ref() {
+                let sources = try!(proj.gen_obj_list());
+                for file in sources.files {
+                    println!("{}", file.display());
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
-#[derive(Debug,Default,RustcDecodable,RustcEncodable)]
+#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct ProjDesc {
     name: Option<String>,
     target: Option<String>,
+    lang: Option<String>,
     os: Option<String>,
     version: Option<String>,
     compiler: Option<String>,
+    src: Option<Vec<String>>,
     libs: Option<Vec<String>>,
+    lib_dir: Option<Vec<String>>,
     inc: Option<Vec<String>>,
+    inc_dir: Option<Vec<String>>,
     cflags: Option<String>,
     lflags: Option<String>,
     ignore: Option<Vec<String>>,
     before_script: Option<Vec<String>>,
     after_script: Option<Vec<String>>,
     lib: Option<bool>,
-    install_desc: Option<InstallDesc>,
+    ar: Option<String>,
+}
+
+
+#[derive(Default,RustcDecodable,RustcEncodable)]
+struct Sources {
+    files: Vec<PathBuf>,
+    objects: Vec<PathBuf>,
+}
+
+impl ProjDesc {
+    fn gen_obj_list(&self) -> Result<Sources, YabsError> {
+        let mut sources = Sources::new();
+        for entry in WalkDir::new(".") {
+            let entry = try!(entry);
+            if entry.path().is_file() {
+                let lang = &self.lang.clone().unwrap();
+                let file_ext = entry.path().extension().unwrap_or(OsStr::new(""));
+                if let Some(ext) = file_ext.to_str() {
+                    if let Some(lang) = self.lang.clone() {
+                        if ext == lang {
+                            sources.files.push(PathBuf::from(entry.path()));
+                        }
+                    }
+                }
+            }
+        }
+        Ok(sources)
+    }
 }
 
 // Descibe how to install this project
-#[derive(Debug,Default,RustcDecodable,RustcEncodable)]
+#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone)]
 pub struct InstallDesc {
     prefix: Option<String>,
 }
 
-#[derive(Debug,Default,RustcDecodable,RustcEncodable)]
+#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone)]
 pub struct DocDesc {
     doc: Option<String>,
 }

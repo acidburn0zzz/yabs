@@ -1,4 +1,5 @@
 extern crate toml;
+extern crate walkdir;
 
 use std::io;
 use std::io::prelude::*;
@@ -11,6 +12,7 @@ pub enum YabsError {
     Io(io::Error),
     TomlParse(toml::ParserError),
     TomlDecode(toml::DecodeError),
+    WalkDir(walkdir::Error),
     NoDesc(String),
 }
 
@@ -20,6 +22,7 @@ impl fmt::Display for YabsError {
             YabsError::Io(ref err) => write!(f, "I/O error, {}", err),
             YabsError::TomlParse(ref err) => write!(f, "toml parsing error, {}", err),
             YabsError::TomlDecode(ref err) => write!(f, "toml decoding error, {}", err),
+            YabsError::WalkDir(ref err) => write!(f, "directory walking error, {}", err),
             YabsError::NoDesc(ref name) => write!(f, "no '{}' section found in project file", name),
         }
     }
@@ -31,6 +34,7 @@ impl Error for YabsError {
             YabsError::Io(ref err) => err.description(),
             YabsError::TomlParse(ref err) => err.description(),
             YabsError::TomlDecode(ref err) => err.description(),
+            YabsError::WalkDir(ref err) => err.description(),
             YabsError::NoDesc(..) => "no desc",
         }
     }
@@ -40,6 +44,7 @@ impl Error for YabsError {
             YabsError::Io(ref err) => Some(err),
             YabsError::TomlParse(ref err) => Some(err),
             YabsError::TomlDecode(ref err) => Some(err),
+            YabsError::WalkDir(ref err) => Some(err),
             YabsError::NoDesc(..) => None,
         }
     }
@@ -60,5 +65,11 @@ impl From<toml::ParserError> for YabsError {
 impl From<toml::DecodeError> for YabsError {
     fn from(err: toml::DecodeError) -> YabsError {
         YabsError::TomlDecode(err)
+    }
+}
+
+impl From<walkdir::Error> for YabsError {
+    fn from(err: walkdir::Error) -> YabsError {
+        YabsError::WalkDir(err)
     }
 }
