@@ -77,7 +77,7 @@ impl BuildFile {
         for profile in &self.profiles {
             println!("{}", profile.name);
             if let Some(proj) = profile.proj_desc.as_ref() {
-                let sources = try!(proj.gen_obj_list());
+                let sources = try!(proj.gen_file_list());
                 for file in sources.files {
                     println!("{}", file.display());
                 }
@@ -117,12 +117,11 @@ struct Sources {
 }
 
 impl ProjDesc {
-    fn gen_obj_list(&self) -> Result<Sources, YabsError> {
+    fn gen_file_list(&self) -> Result<Sources, YabsError> {
         let mut sources = Sources::new();
         for entry in WalkDir::new(".") {
             let entry = try!(entry);
             if entry.path().is_file() {
-                let lang = &self.lang.clone().unwrap();
                 let file_ext = entry.path().extension().unwrap_or(OsStr::new(""));
                 if let Some(ext) = file_ext.to_str() {
                     if let Some(lang) = self.lang.clone() {
