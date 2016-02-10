@@ -12,7 +12,7 @@ use walkdir::WalkDir;
 use std::ffi::OsStr;
 use std::path::PathBuf;
 
-#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone)]
+#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct Profile {
     name: String,
     proj_desc: Option<ProjDesc>,
@@ -68,9 +68,7 @@ impl BuildFile {
     pub fn print_profile_as_json(&self, name: String) {
         for profile in &self.profiles {
             if profile.name == name {
-                println!("{}", profile.name);
-            } else {
-                return;
+                profile.print_json();
             }
         }
     }
@@ -112,7 +110,7 @@ pub struct ProjDesc {
 }
 
 
-#[derive(Default,RustcDecodable,RustcEncodable)]
+#[derive(Default,RustcDecodable,RustcEncodable,PartialEq)]
 struct Sources {
     files: Vec<PathBuf>,
     objects: Vec<PathBuf>,
@@ -140,12 +138,12 @@ impl ProjDesc {
 }
 
 // Descibe how to install this project
-#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone)]
+#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct InstallDesc {
     prefix: Option<String>,
 }
 
-#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone)]
+#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct DocDesc {
     doc: Option<String>,
 }
