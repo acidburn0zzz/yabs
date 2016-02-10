@@ -1,4 +1,4 @@
 build:
         script:
                 - cargo build -j2 --verbose
-                - carg test -j2 --verbose
+                - cargo test -j2 --verbose
