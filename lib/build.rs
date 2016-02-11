@@ -85,7 +85,7 @@ impl BuildFile {
         }
     }
 
-    // Hideous Makefile generation to be implemented
+    //Hideous Makefile generation to be implemented
     //pub fn gen_make(&self, name: String) -> Result<(), YabsError> {
         //for profile in &self.profiles {
             //if profile.name == name {
@@ -94,17 +94,30 @@ impl BuildFile {
                 //return Ok(());
             //}
         //}
-        //let format = format!("INSTALL\t=\t/usr/bin/env \
-                              //install\nDEST\t=\nPREFIX\t=\nCC\t=\t{}\nBINDIR\t=\nLIBDIR\t=\nTARGE\
-                              //T\t=\nLINK\t=\nCFLAGS\t=\nLFLAGS\t=\nLIBS\t=\nINCDIR\t=\nLIBDIR\t=\
-                              //\nCLEAN\t=\n\nDEL\t=\trm -f\n\n.PHONY: doc \
-                              //clean\n\n.cpp.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \
-                              //\"$<\"\n.cc.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \
-                              //\"$<\"\n\n.cxx.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \
-                              //\"$<\"\n\n.C.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \
-                              //\"$<\"\n\n.c.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \
-                              //\"$<\"\n\nall: $(TRGT)\n",
-                             //&self.profiles[1].clone().proj_desc.unwrap().compiler.unwrap());
+        //let format = format!(
+        //"INSTALL\t=\t/usr/bin/env install\n
+        //DEST\t=\n
+        //PREFIX\t=\n
+        //CC\t=\t{}\n
+        //BINDIR\t=\n
+        //LIBDIR\t=\n
+        //TARGET\t=\n
+        //LINK\t=\n
+        //CFLAGS\t=\n
+        //LFLAGS\t=\n
+        //LIBS\t=\n
+        //INCDIR\t=\n
+        //LIBDIR\t=\n
+        //CLEAN\t=\n\n
+        //DEL\t=\trm -f\n\n
+        //.PHONY: doc clean\n\n
+        //.cpp.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n
+        //.cc.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n
+        //.cxx.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n
+        //.C.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n
+        //.c.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n
+        //all: $(TRGT)\n",
+        //&self.profiles[1].clone().proj_desc.unwrap().compiler.unwrap());
         //print!("{}", format);
         //Ok(())
     //}
@@ -115,7 +128,7 @@ impl BuildFile {
                 println!("{}", profile.name.bold());
                 let sources = try!(proj.clone().gen_file_list());
                 for file in sources.files {
-                    println!("{}", file.display());
+                    println!("{}", file);
                 }
                 if let Some(set_sources) = proj.src.as_ref() {
                     for src in set_sources {
@@ -154,8 +167,8 @@ pub struct ProjDesc {
 
 #[derive(Default,RustcDecodable,RustcEncodable,PartialEq)]
 struct Sources {
-    files: Vec<PathBuf>,
-    objects: Vec<PathBuf>,
+    files: Vec<String>,
+    objects: Vec<String>,
 }
 
 impl ProjDesc {
@@ -169,13 +182,46 @@ impl ProjDesc {
                 if let Some(ext) = file_ext.to_str() {
                     if let Some(lang) = self.lang.clone() {
                         if ext == lang {
-                            sources.files.push(PathBuf::from(entry.path()));
+                            sources.files.push(entry.path().as_string());
                         }
                     }
                 }
             }
         }
         Ok(sources)
+    }
+
+    fn gen_make_src_list(&self) -> String {
+        let mut horrid_string: String = "SRC\t = ".to_owned();
+        let mut lang = self.lang.clone().unwrap();
+        lang.insert(0, '.');
+        println!("EXT: {}", lang);
+        if let Some(source_list) = self.src.as_ref() {
+            if let Some(split_first) = source_list.split_first() {
+                horrid_string.push_str(&format!("{} \\\n", split_first.0));
+                if let Some(split_last) = split_first.1.clone().split_last() {
+                    for src in split_last.1 {
+                        horrid_string.push_str(&format!("\0\0\t{} \\\n", src));
+                    }
+                    horrid_string.push_str(&format!("\0\0\t{}\n", split_last.0));
+                }
+            }
+            let mut parsed_obj_list = Vec::new();
+            for obj in source_list {
+                parsed_obj_list.push(obj.replace(&lang, ".o"));
+            }
+            horrid_string.push_str("OBJ\t = ");
+            if let Some(split_first) = parsed_obj_list.split_first() {
+                horrid_string.push_str(&format!("{} \\\n", split_first.0));
+                if let Some(split_last) = split_first.1.clone().split_last() {
+                    for src in split_last.1 {
+                        horrid_string.push_str(&format!("\0\0\t{} \\\n", src));
+                    }
+                    horrid_string.push_str(&format!("\0\0\t{}", split_last.0));
+                }
+            }
+        }
+        return horrid_string;
     }
 }
 
