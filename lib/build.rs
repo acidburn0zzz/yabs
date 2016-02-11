@@ -1,3 +1,7 @@
+// Copyright (c) 2015 - 2016, Alberto Corona <ac@albertocorona.com>
+// All rights reserved. This file is part of yabs, distributed under the BSD
+// 3-Clause license. For full terms please see the LICENSE file.
+
 extern crate toml;
 extern crate rustc_serialize;
 extern crate walkdir;
@@ -5,6 +9,7 @@ extern crate rpf;
 
 use toml::decode;
 use error::YabsError;
+use rpf::*;
 use ext::*;
 use rustc_serialize::{Decodable, Decoder, Encodable, Encoder, json};
 use walkdir::WalkDir;
@@ -106,11 +111,16 @@ impl BuildFile {
 
     pub fn print_sources(&self) -> Result<(), YabsError> {
         for profile in &self.profiles {
-            println!("{}", profile.name);
             if let Some(proj) = profile.proj_desc.as_ref() {
-                let sources = try!(proj.gen_file_list());
+                println!("{}", profile.name.bold());
+                let sources = try!(proj.clone().gen_file_list());
                 for file in sources.files {
                     println!("{}", file.display());
+                }
+                if let Some(set_sources) = proj.src.as_ref() {
+                    for src in set_sources {
+                        println!("{}", src);
+                    }
                 }
             }
         }
@@ -132,6 +142,7 @@ pub struct ProjDesc {
     inc: Option<Vec<String>>,
     inc_dir: Option<Vec<String>>,
     cflags: Option<String>,
+    explicit_cflags: Option<String>,
     lflags: Option<String>,
     ignore: Option<Vec<String>>,
     before_script: Option<Vec<String>>,
