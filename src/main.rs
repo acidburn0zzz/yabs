@@ -62,7 +62,9 @@ fn main() {
                         &build_file.print_sources();
                     } else if matches.opt_present("make") {
                         if let Some(arg) = matches.opt_str("make") {
-                            &build_file.gen_make(arg);
+                            if let Err(e) = build_file.gen_make(arg) {
+                                YABS.error(e.to_string(), ExitStatus::Error);
+                            }
                         }
                     }
                 },

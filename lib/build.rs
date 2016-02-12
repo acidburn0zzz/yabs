@@ -15,7 +15,6 @@ use rustc_serialize::{Decodable, Decoder, Encodable, Encoder, json};
 use walkdir::WalkDir;
 
 use std::ffi::OsStr;
-use std::path::PathBuf;
 
 #[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct Profile {
@@ -85,41 +84,13 @@ impl BuildFile {
         }
     }
 
-    //Hideous Makefile generation to be implemented
     pub fn gen_make(&self, name: String) -> Result<(), YabsError> {
-        let index = &self.profiles.iter().position(|ref profile| profile.name == name).unwrap();
-        let format = format!(
-            "INSTALL\t= /usr/bin/env install\n\
-            DEST\t=\n\
-            PREFIX\t=\n\
-            CC\t= {}\n\
-            BINDIR\t=\n\
-            LIBDIR\t=\n\
-            TARGET\t=\n\
-            LINK\t=\n\
-            CFLAGS\t= {}\n\
-            LFLAGS\t=\n\
-            LIBS\t= {}\n\
-            INCDIR\t=\n\
-            LIBDIR\t=\n\
-            CLEAN\t=\n\
-            DEL\t= rm -f\n\
-            {}\n\n\
-            .PHONY: doc clean\n\n\
-            .cpp.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\
-            .cc.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
-            .cxx.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
-            .C.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
-            .c.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
-            all: $(TARGET)\n\n\
-            $(TARGET): $(OBJ)\n\
-            \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBS)\n\n",
-        &self.profiles[index.clone()].clone().proj_desc.unwrap().compiler.unwrap(),
-        &self.profiles[index.clone()].clone().proj_desc.unwrap().gen_make_cflags_list(),
-        &self.profiles[index.clone()].clone().proj_desc.unwrap().gen_make_lib_list(),
-        &self.profiles[index.clone()].clone().proj_desc.unwrap().gen_make_src_list());
-        print!("{}", format);
-        Ok(())
+        if let Some(index) = self.profiles.iter().position(|ref profile| profile.name == name) {
+            println!("{}", self.profiles[index.clone()].clone().proj_desc.unwrap_or(ProjDesc::new()).gen_make());
+            Ok(())
+        } else {
+            Err(YabsError::NoDesc(name))
+        }
     }
 
     pub fn print_sources(&self) -> Result<(), YabsError> {
@@ -176,7 +147,6 @@ impl ProjDesc {
         for entry in WalkDir::new(".") {
             let entry = try!(entry);
             if entry.path().is_file() {
-                let lang = &self.lang.clone().unwrap();
                 let file_ext = entry.path().extension().unwrap_or(OsStr::new(""));
                 if let Some(ext) = file_ext.to_str() {
                     if let Some(lang) = self.lang.clone() {
@@ -214,7 +184,7 @@ impl ProjDesc {
 
     fn gen_make_src_list(&self) -> String {
         let mut horrid_string: String = "SRC\t= ".to_owned();
-        let mut lang = self.lang.clone().unwrap();
+        let mut lang = self.lang.clone().unwrap_or("cpp".to_owned());
         lang.insert(0, '.');
         if let Some(source_list) = self.src.as_ref() {
             if let Some(split_first) = source_list.split_first() {
@@ -242,6 +212,63 @@ impl ProjDesc {
             }
         }
         return horrid_string;
+    }
+
+    fn gen_make_src_deps(&self) -> String {
+        let mut horrid_string = String::new();
+        let mut lang = self.lang.clone().unwrap_or("cpp".to_owned());
+        lang.insert(0, '.');
+        if let Some(source_list) = self.src.as_ref() {
+            for src in source_list {
+                horrid_string.push_str(&format!("{0}: {1}\n\t\
+                $(CC) -c $(CFLAGS) $(INCDIR) -o {0} {1}\n\n",
+                src.replace(&lang, ".o",), src));
+            }
+        }
+        return horrid_string
+    }
+
+    fn gen_make_inc_list(&self) -> String {
+        return self.prepend_op_vec(&self.inc, "-I".to_string())
+    }
+
+    fn gen_make(&self) -> String {
+        format!(
+            "INSTALL\t= /usr/bin/env install\n\
+                DEST\t=\n\
+                PREFIX\t=\n\
+                CC\t= {}\n\
+                BINDIR\t=\n\
+                LIBDIR\t=\n\
+                TARGET\t= {}\n\
+                LINK\t=\n\
+                CFLAGS\t= {}\n\
+                LFLAGS\t=\n\
+                LIBS\t= {}\n\
+                INCDIR\t= {}\n\
+                LIBDIR\t=\n\
+                CLEAN\t=\n\
+                DEL\t= rm -f\n\
+                {}\n\n\
+                first: all\n\n\
+                .PHONY: doc clean\n\n\
+                .SUFFIXES: .o .c .cpp .cc .cxx .C\n\n\
+                .cpp.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\
+                .cc.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
+                .cxx.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
+                .C.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
+                .c.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
+                all: $(TARGET)\n\n\
+                $(TARGET): $(OBJ)\n\
+                \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBS)\n\n\
+                {}",
+                &self.compiler.clone().unwrap_or("gcc".to_owned()),
+                &self.target.clone().unwrap_or("a".to_owned()),
+                &self.gen_make_cflags_list(),
+                &self.gen_make_lib_list(),
+                &self.gen_make_inc_list(),
+                &self.gen_make_src_list(),
+                &self.gen_make_src_deps())
     }
 }
 
