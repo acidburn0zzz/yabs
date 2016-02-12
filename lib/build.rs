@@ -15,6 +15,8 @@ use rustc_serialize::{Decodable, Decoder, Encodable, Encoder, json};
 use walkdir::WalkDir;
 
 use std::ffi::OsStr;
+use std::fs::File;
+use std::io::Write;
 
 #[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct Profile {
@@ -86,7 +88,12 @@ impl BuildFile {
 
     pub fn gen_make(&self, name: String) -> Result<(), YabsError> {
         if let Some(index) = self.profiles.iter().position(|ref profile| profile.name == name) {
-            println!("{}", self.profiles[index.clone()].clone().proj_desc.unwrap_or(ProjDesc::new()).gen_make());
+            try!(try!(File::create("Makefile")).write_all(self.profiles[index.clone()]
+                                                              .clone()
+                                                              .proj_desc
+                                                              .unwrap_or(ProjDesc::new())
+                                                              .gen_make()
+                                                              .as_bytes()));
             Ok(())
         } else {
             Err(YabsError::NoDesc(name))
@@ -133,6 +140,7 @@ pub struct ProjDesc {
     after_script: Option<Vec<String>>,
     lib: Option<bool>,
     ar: Option<String>,
+    clean: Option<Vec<String>>,
 }
 
 #[derive(Default,RustcDecodable,RustcEncodable,PartialEq)]
@@ -142,6 +150,10 @@ struct Sources {
 }
 
 impl ProjDesc {
+    fn concat_clean(&self) -> String {
+        self.prepend_op_vec(&self.clean, "".to_string())
+    }
+
     fn gen_file_list(&self) -> Result<Sources, YabsError> {
         let mut sources = Sources::new();
         for entry in WalkDir::new(".") {
@@ -171,15 +183,15 @@ impl ProjDesc {
                 horrid_string.push_str(&format!("{}{}", prepend, split_last.0.clone()));
             }
         }
-        return horrid_string
+        return horrid_string;
     }
 
     fn gen_make_lib_list(&self) -> String {
-        return self.prepend_op_vec(&self.libs, "-l".to_string())
+        return self.prepend_op_vec(&self.libs, "-l".to_string());
     }
 
     fn gen_make_cflags_list(&self) -> String {
-        return self.prepend_op_vec(&self.cflags, "-".to_string())
+        return self.prepend_op_vec(&self.cflags, "-".to_string());
     }
 
     fn gen_make_src_list(&self) -> String {
@@ -220,16 +232,17 @@ impl ProjDesc {
         lang.insert(0, '.');
         if let Some(source_list) = self.src.as_ref() {
             for src in source_list {
-                horrid_string.push_str(&format!("{0}: {1}\n\t\
-                $(CC) -c $(CFLAGS) $(INCDIR) -o {0} {1}\n\n",
-                src.replace(&lang, ".o",), src));
+                horrid_string.push_str(&format!("{0}: {1}\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \
+                                                 {0} {1}\n\n",
+                                                src.replace(&lang, ".o"),
+                                                src));
             }
         }
-        return horrid_string
+        return horrid_string;
     }
 
     fn gen_make_inc_list(&self) -> String {
-        return self.prepend_op_vec(&self.inc, "-I".to_string())
+        return self.prepend_op_vec(&self.inc, "-I".to_string());
     }
 
     fn gen_make(&self) -> String {
@@ -237,19 +250,19 @@ impl ProjDesc {
             "INSTALL\t= /usr/bin/env install\n\
                 DEST\t=\n\
                 PREFIX\t=\n\
-                CC\t= {}\n\
+                CC\t= {compiler}\n\
                 BINDIR\t=\n\
                 LIBDIR\t=\n\
-                TARGET\t= {}\n\
+                TARGET\t= {target}\n\
                 LINK\t=\n\
-                CFLAGS\t= {}\n\
+                CFLAGS\t= {cflags}\n\
                 LFLAGS\t=\n\
-                LIBS\t= {}\n\
-                INCDIR\t= {}\n\
+                LIBS\t= {libs}\n\
+                INCDIR\t= {incdir}\n\
                 LIBDIR\t=\n\
                 CLEAN\t=\n\
                 DEL\t= rm -f\n\
-                {}\n\n\
+                {srcs}\n\n\
                 first: all\n\n\
                 .PHONY: doc clean\n\n\
                 .SUFFIXES: .o .c .cpp .cc .cxx .C\n\n\
@@ -261,14 +274,20 @@ impl ProjDesc {
                 all: $(TARGET)\n\n\
                 $(TARGET): $(OBJ)\n\
                 \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBS)\n\n\
-                {}",
-                &self.compiler.clone().unwrap_or("gcc".to_owned()),
-                &self.target.clone().unwrap_or("a".to_owned()),
-                &self.gen_make_cflags_list(),
-                &self.gen_make_lib_list(),
-                &self.gen_make_inc_list(),
-                &self.gen_make_src_list(),
-                &self.gen_make_src_deps())
+                {dep_list}\n\
+                clean:\n\
+                \t$(DEL) $(OBJ)\n\
+                \t$(DEL) {target}\n\
+                \t$(DEL) {clean_list}\n\
+                ",
+                compiler = &self.compiler.clone().unwrap_or("gcc".to_owned()),
+                target = &self.target.clone().unwrap_or("a".to_owned()),
+                cflags = &self.gen_make_cflags_list(),
+                libs = &self.gen_make_lib_list(),
+                incdir = &self.gen_make_inc_list(),
+                srcs = &self.gen_make_src_list(),
+                dep_list = &self.gen_make_src_deps(),
+                clean_list = &self.concat_clean())
     }
 }
 
