@@ -1,6 +1,7 @@
 [linux.project]
 name = "yabs"
-cflags = "pipe std=c++11 march=x86-64 mtune=generic O2 pipe fprofile-arcs fstack-protector ftest-coverage -param=ssp-buffer-size=4 Wall"
+cflags = ["pipe", "std=c++11", "march=x86-64", "mtune=generic", "O2", "pipe",
+	"fprofile-arcs", "fstack-protector", "ftest-coverage", "-param=ssp-buffer-size=4", "Wall"]
 clean = ['*.gcno', '*.gcda']
 compiler = "g++"
 ignore = ['distrib']
@@ -24,7 +25,8 @@ lflags = ''
 
 [windows.project]
 name = "yabs"
-cflags = "pipe std=c++11 march=x86-64 mtune=generic O2 pipe fprofile-arcs -param=ssp-buffer-size=4 Wall"
+cflags = ["pipe", "std=c++11", "march=x86-64", "mtune=generic", "O2", "pipe",
+	"fstack-protector", "-param=ssp-buffer-size=4", "Wall"]
 compiler = "x86_64-w64-mingw32-g++"
 ignore = ['distrib']
 inc = ['include', '/usr/include']
