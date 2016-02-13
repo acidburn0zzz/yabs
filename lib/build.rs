@@ -12,7 +12,7 @@ use error::YabsError;
 use rpf::*;
 use ext::*;
 use rustc_serialize::{Decodable, Decoder, Encodable, Encoder, json};
-use walkdir::{WalkDir,WalkDirIterator,DirEntry};
+use walkdir::{WalkDir, WalkDirIterator, DirEntry};
 
 use std::ffi::OsStr;
 use std::fs::File;
@@ -88,12 +88,16 @@ impl BuildFile {
 
     pub fn gen_make(&self, name: String) -> Result<(), YabsError> {
         if let Some(index) = self.profiles.iter().position(|ref profile| profile.name == name) {
-            try!(self.profiles[index.clone()].clone().proj_desc.unwrap_or(ProjDesc::new()).gen_file_list());
+            try!(self.profiles[index.clone()]
+                     .clone()
+                     .proj_desc
+                     .unwrap_or(ProjDesc::new())
+                     .gen_file_list());
             try!(try!(File::create("Makefile")).write_all(try!(self.profiles[index.clone()]
-                                                              .clone()
-                                                              .proj_desc
-                                                              .unwrap_or(ProjDesc::new())
-                                                              .gen_make())
+                                                                   .clone()
+                                                                   .proj_desc
+                                                                   .unwrap_or(ProjDesc::new())
+                                                                   .gen_make())
                                                               .as_bytes()));
             Ok(())
         } else {
@@ -151,7 +155,7 @@ impl ProjDesc {
             for path in ignore {
                 let entry = entry.path().as_string();
                 if entry.find(path).is_some() {
-                    return true
+                    return true;
                 }
             }
         }
@@ -160,7 +164,7 @@ impl ProjDesc {
 
     fn gen_file_list(&mut self) -> Result<(), YabsError> {
         if self.src.is_some() {
-            return Ok(())
+            return Ok(());
         }
         let mut sources = Vec::new();
         let walk_dir = WalkDir::new(".").into_iter();
@@ -199,7 +203,7 @@ impl ProjDesc {
                     }
                 }
                 if self.is_command(&split_last.0) {
-                        horrid_string.push_str(&format!("{} ", split_last.0));
+                    horrid_string.push_str(&format!("{} ", split_last.0));
                 } else {
                     horrid_string.push_str(&format!("{}{}", prepend, split_last.0.clone()));
                 }
@@ -210,9 +214,9 @@ impl ProjDesc {
 
     fn is_command(&self, string: &String) -> bool {
         if string.starts_with("`") {
-            return true
+            return true;
         } else {
-            return false
+            return false;
         }
     }
 
