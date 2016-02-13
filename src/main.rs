@@ -59,7 +59,7 @@ fn main() {
                     } else if matches.opt_present("profiles") {
                         &build_file.print_available_profiles();
                     } else if matches.opt_present("sources") {
-                        &build_file.print_sources();
+                        &build_file.clone().print_sources();
                     } else if matches.opt_present("make") {
                         if let Some(arg) = matches.opt_str("make") {
                             if let Err(e) = build_file.gen_make(arg) {

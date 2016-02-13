@@ -12,7 +12,7 @@ use error::YabsError;
 use rpf::*;
 use ext::*;
 use rustc_serialize::{Decodable, Decoder, Encodable, Encoder, json};
-use walkdir::WalkDir;
+use walkdir::{WalkDir,WalkDirIterator,DirEntry};
 
 use std::ffi::OsStr;
 use std::fs::File;
@@ -26,7 +26,7 @@ pub struct Profile {
     doc_desc: Option<DocDesc>,
 }
 
-#[derive(Debug,Default,RustcDecodable,RustcEncodable)]
+#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone)]
 pub struct BuildFile {
     profiles: Vec<Profile>,
 }
@@ -88,11 +88,12 @@ impl BuildFile {
 
     pub fn gen_make(&self, name: String) -> Result<(), YabsError> {
         if let Some(index) = self.profiles.iter().position(|ref profile| profile.name == name) {
-            try!(try!(File::create("Makefile")).write_all(self.profiles[index.clone()]
+            try!(self.profiles[index.clone()].clone().proj_desc.unwrap_or(ProjDesc::new()).gen_file_list());
+            try!(try!(File::create("Makefile")).write_all(try!(self.profiles[index.clone()]
                                                               .clone()
                                                               .proj_desc
                                                               .unwrap_or(ProjDesc::new())
-                                                              .gen_make()
+                                                              .gen_make())
                                                               .as_bytes()));
             Ok(())
         } else {
@@ -100,14 +101,11 @@ impl BuildFile {
         }
     }
 
-    pub fn print_sources(&self) -> Result<(), YabsError> {
-        for profile in &self.profiles {
-            if let Some(proj) = profile.proj_desc.as_ref() {
+    pub fn print_sources(&mut self) -> Result<(), YabsError> {
+        for profile in &mut self.profiles {
+            if let &mut Some(ref mut proj) = &mut profile.proj_desc {
                 println!("{}", profile.name.bold());
-                let sources = try!(proj.clone().gen_file_list());
-                for file in sources.files {
-                    println!("{}", file);
-                }
+                try!(proj.gen_file_list());
                 if let Some(set_sources) = proj.src.as_ref() {
                     for src in set_sources {
                         println!("{}", src);
@@ -143,33 +141,49 @@ pub struct ProjDesc {
     clean: Option<Vec<String>>,
 }
 
-#[derive(Default,RustcDecodable,RustcEncodable,PartialEq)]
-struct Sources {
-    files: Vec<String>,
-    objects: Vec<String>,
-}
-
 impl ProjDesc {
     fn concat_clean(&self) -> String {
         self.prepend_op_vec(&self.clean, "".to_string())
     }
 
-    fn gen_file_list(&self) -> Result<Sources, YabsError> {
-        let mut sources = Sources::new();
-        for entry in WalkDir::new(".") {
+    fn is_in_ignore(&self, entry: &DirEntry) -> bool {
+        if let Some(ignore) = self.ignore.as_ref() {
+            for path in ignore {
+                let entry = entry.path().as_string();
+                if entry.find(path).is_some() {
+                    return true
+                }
+            }
+        }
+        false
+    }
+
+    fn gen_file_list(&mut self) -> Result<(), YabsError> {
+        if self.src.is_some() {
+            return Ok(())
+        }
+        let mut sources = Vec::new();
+        let walk_dir = WalkDir::new(".").into_iter();
+        for entry in walk_dir.filter_entry(|e| !&self.is_in_ignore(e)) {
             let entry = try!(entry);
             if entry.path().is_file() {
                 let file_ext = entry.path().extension().unwrap_or(OsStr::new(""));
                 if let Some(ext) = file_ext.to_str() {
-                    if let Some(lang) = self.lang.clone() {
+                    if let Some(lang) = self.lang.as_ref() {
                         if ext == lang {
-                            sources.files.push(entry.path().as_string());
+                            let mut entry = entry.path().as_string();
+                            if entry.len() > 2 {
+                                entry.remove(0);
+                                entry.remove(0);
+                            }
+                            sources.push(entry);
                         }
                     }
                 }
             }
         }
-        Ok(sources)
+        self.src = Some(sources);
+        Ok(())
     }
 
 
@@ -178,12 +192,28 @@ impl ProjDesc {
         if let Some(items) = list.as_ref() {
             if let Some(split_last) = items.split_last() {
                 for sub_item in split_last.1 {
-                    horrid_string.push_str(&format!("{}{} ", prepend, sub_item));
+                    if self.is_command(&sub_item) {
+                        horrid_string.push_str(&format!("{} ", sub_item));
+                    } else {
+                        horrid_string.push_str(&format!("{}{} ", prepend, sub_item));
+                    }
                 }
-                horrid_string.push_str(&format!("{}{}", prepend, split_last.0.clone()));
+                if self.is_command(&split_last.0) {
+                        horrid_string.push_str(&format!("{} ", split_last.0));
+                } else {
+                    horrid_string.push_str(&format!("{}{}", prepend, split_last.0.clone()));
+                }
             }
         }
         return horrid_string;
+    }
+
+    fn is_command(&self, string: &String) -> bool {
+        if string.starts_with("`") {
+            return true
+        } else {
+            return false
+        }
     }
 
     fn gen_make_lib_list(&self) -> String {
@@ -245,9 +275,11 @@ impl ProjDesc {
         return self.prepend_op_vec(&self.inc, "-I".to_string());
     }
 
-    fn gen_make(&self) -> String {
-        format!(
+    fn gen_make(&mut self) -> Result<String, YabsError> {
+        try!(self.gen_file_list());
+        Ok(format!(
             "INSTALL\t= /usr/bin/env install\n\
+                AR\t= /usr/bin/env ar\n\
                 DEST\t=\n\
                 PREFIX\t=\n\
                 CC\t= {compiler}\n\
@@ -287,7 +319,7 @@ impl ProjDesc {
                 incdir = &self.gen_make_inc_list(),
                 srcs = &self.gen_make_src_list(),
                 dep_list = &self.gen_make_src_deps(),
-                clean_list = &self.concat_clean())
+                clean_list = &self.concat_clean()))
     }
 }
 
