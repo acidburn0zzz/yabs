@@ -12,7 +12,7 @@ extern crate pgetopts;
 extern crate util;
 extern crate rpf;
 
-use pgetopts::{Options};
+use pgetopts::Options;
 use rpf::*;
 
 use std::env;
@@ -20,33 +20,43 @@ use util::*;
 use util::build::Desc;
 
 fn print_usage(opts: Options) {
+    print!("{0}: {1} {2} {3}\n   or: {1} {2}\nRun yabs with {2} on {3}",
+           "Usage".bold(),
+           YABS.name,
+           "[OPTION]".underline(),
+           "PROFILE".underline());
     println!("{}", opts.options());
 }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let mut opts = Options::new();
-    opts.optflag("n", "new", "Create a new build profile");
     opts.optflag("h", "help", "Print help information");
-    opts.optflag("", "version", "Print version information");
+    opts.optopt("m", "make", "Generate Makefile", "");
+    opts.optflag("n", "new", "Create a new build profile");
     opts.optflag("p", "print", "Print build file in JSON");
-    opts.optflag("", "sources", "Print source files");
+    opts.optopt("",
+                "print-profile",
+                "Print a particular profile from build file in JSON",
+                "PROFILE where profile is the name of the profile to be printed");
     opts.optflag("", "profiles", "Print all available profiles in build file");
-    opts.optopt("","print-profile", "Print a particular profile from build file in JSON", "PROFILE \
-                where profile is the name of the profile to be printed");
-    opts.optopt("m","make","Generate Makefile", "");
+    opts.optflag("", "sources", "Print source files");
+    opts.optflag("", "version", "Print version information");
 
     let matches = match opts.parse(&args[1..]) {
-        Ok(m) => { m },
+        Ok(m) => m,
         Err(e) => {
             YABS.error(e.to_string(), ExitStatus::OptError);
             panic!();
         }
     };
 
-    if matches.opt_present("h") { print_usage(opts); }
-    else if matches.opt_present("version") { println!("{} {}", YABS.name, YABS.vers); }
-    else {
+    if matches.opt_present("h") {
+        print_usage(opts);
+    } else if matches.opt_present("version") {
+        YABS.copyright("Copyright (C) 2015-2016\n",
+                       &["Alberto Corona"]);
+    } else {
         if let Some(assumed_file_name) = ext::get_assumed_filename() {
             match build::BuildFile::from_file(&assumed_file_name) {
                 Ok(build_file) => {
@@ -67,7 +77,7 @@ fn main() {
                             }
                         }
                     }
-                },
+                }
                 Err(e) => {
                     for err in e {
                         println!("error: {}", err.to_string());
