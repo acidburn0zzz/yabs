@@ -140,8 +140,9 @@ pub struct ProjDesc {
     ignore: Option<Vec<String>>,
     before_script: Option<Vec<String>>,
     after_script: Option<Vec<String>>,
-    lib: Option<bool>,
+    static_lib: Option<bool>,
     ar: Option<String>,
+    arflags: Option<String>,
     clean: Option<Vec<String>>,
 }
 
@@ -281,9 +282,20 @@ impl ProjDesc {
 
     fn gen_make(&mut self) -> Result<String, YabsError> {
         try!(self.gen_file_list());
+        let mut target_string = String::new();
+        if let Some(static_lib) = self.static_lib {
+            if static_lib == true {
+                target_string = format!("$(TARGET): $(OBJ)\n\
+                \t$(AR) $(ARFLAGS) $(TARGET) $(OBJ)\n\n");
+            } else {
+                target_string = format!("$(TARGET): $(OBJ)\n\
+                \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBS)\n\n");
+            }
+        };
         Ok(format!(
             "INSTALL\t= /usr/bin/env install\n\
-                AR\t= /usr/bin/env ar\n\
+                AR\t= {ar}\n\
+                ARFLAGS\t= {ar_flags}\n\
                 DEST\t=\n\
                 PREFIX\t=\n\
                 CC\t= {compiler}\n\
@@ -302,22 +314,24 @@ impl ProjDesc {
                 first: all\n\n\
                 .PHONY: doc clean\n\n\
                 .SUFFIXES: .o .c .cpp .cc .cxx .C\n\n\
-                .cpp.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\
+                .cpp.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
                 .cc.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
                 .cxx.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
                 .C.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
                 .c.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
                 all: $(TARGET)\n\n\
-                $(TARGET): $(OBJ)\n\
-                \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBS)\n\n\
+                {target_command}\
                 {dep_list}\n\
                 clean:\n\
                 \t$(DEL) $(OBJ)\n\
                 \t$(DEL) {target}\n\
                 \t$(DEL) {clean_list}\n\
                 ",
-                compiler = &self.compiler.clone().unwrap_or("gcc".to_owned()),
-                target = &self.target.clone().unwrap_or("a".to_owned()),
+                compiler = &self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
+                ar = &self.ar.as_ref().unwrap_or(&"/usr/bin/env ar".to_owned()),
+                ar_flags = &self.arflags.as_ref().unwrap_or(&"rcs".to_owned()),
+                target = &self.target.as_ref().unwrap_or(&"a".to_owned()),
+                target_command = target_string,
                 cflags = &self.gen_make_cflags_list(),
                 libs = &self.gen_make_lib_list(),
                 incdir = &self.gen_make_inc_list(),
