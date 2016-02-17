@@ -234,13 +234,21 @@ impl ProjDesc {
         let mut lang = self.lang.clone().unwrap_or("cpp".to_owned());
         lang.insert(0, '.');
         if let Some(source_list) = self.src.as_ref() {
-            if let Some(split_first) = source_list.split_first() {
-                horrid_string.push_str(&format!("{} \\\n", split_first.0));
-                if let Some(split_last) = split_first.1.clone().split_last() {
-                    for src in split_last.1 {
-                        horrid_string.push_str(&format!("\t{} \\\n", src));
+            // Multiple sources
+            if source_list.len() > 1 {
+                if let Some(split_first) = source_list.split_first() {
+                    horrid_string.push_str(&format!("{} \\\n", split_first.0));
+                    if let Some(split_last) = split_first.1.clone().split_last() {
+                        for src in split_last.1 {
+                            horrid_string.push_str(&format!("\t{} \\\n", src));
+                        }
+                        horrid_string.push_str(&format!("\t{}\n", split_last.0));
                     }
-                    horrid_string.push_str(&format!("\t{}\n", split_last.0));
+                }
+            // One source file
+            } else {
+                for src in source_list {
+                    horrid_string.push_str(&format!("{}\n", src));
                 }
             }
             let mut parsed_obj_list = Vec::new();
@@ -248,13 +256,19 @@ impl ProjDesc {
                 parsed_obj_list.push(obj.replace(&lang, ".o"));
             }
             horrid_string.push_str("OBJ\t= ");
-            if let Some(split_first) = parsed_obj_list.split_first() {
-                horrid_string.push_str(&format!("{} \\\n", split_first.0));
-                if let Some(split_last) = split_first.1.clone().split_last() {
-                    for src in split_last.1 {
-                        horrid_string.push_str(&format!("\t{} \\\n", src));
+            if parsed_obj_list.len() > 1 {
+                if let Some(split_first) = parsed_obj_list.split_first() {
+                    horrid_string.push_str(&format!("{} \\\n", split_first.0));
+                    if let Some(split_last) = split_first.1.clone().split_last() {
+                        for src in split_last.1 {
+                            horrid_string.push_str(&format!("\t{} \\\n", src));
+                        }
+                        horrid_string.push_str(&format!("{}", split_last.0));
                     }
-                    horrid_string.push_str(&format!("\t{}", split_last.0));
+                }
+            } else {
+                for obj in parsed_obj_list {
+                    horrid_string.push_str(&format!("\t{}\n", obj));
                 }
             }
         }
