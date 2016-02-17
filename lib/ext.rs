@@ -6,17 +6,25 @@ extern crate toml;
 
 use std::fs::File;
 use std::path::Path;
-use std::io::prelude::*;
+use std::io;
+use std::io::Read;
 use std::env;
 use error::YabsError;
 
-pub fn parse_toml_file<T: AsRef<Path>>(file: T) -> Result<toml::Table, Vec<YabsError>> {
+pub fn parse_toml_file<T: AsRef<Path> + Clone>(file: T) -> Result<toml::Table, Vec<YabsError>> {
     let mut buff = String::new();
     let mut error_vect = Vec::new();
-    let mut file = match File::open(file) {
+    let mut file = match File::open(&file) {
         Ok(s) => s,
         Err(e) => {
-            error_vect.push(YabsError::Io(e));
+            match e.kind() {
+                io::ErrorKind::NotFound => {
+                    error_vect.push(YabsError::NoAssumedToml(file.as_ref().to_str().unwrap().to_string()));
+                },
+                _ => {
+                    error_vect.push(YabsError::Io(e));
+                },
+            };
             return Err(error_vect);
         }
     };

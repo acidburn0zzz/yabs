@@ -19,6 +19,7 @@ pub enum YabsError {
     WalkDir(walkdir::Error),
     NoLang(String),
     NoDesc(String),
+    NoAssumedToml(String),
 }
 
 impl fmt::Display for YabsError {
@@ -30,6 +31,7 @@ impl fmt::Display for YabsError {
             YabsError::WalkDir(ref err) => write!(f, "directory walking error, {}", err),
             YabsError::NoLang(ref profile) => write!(f, "no language found in profile {}", profile),
             YabsError::NoDesc(ref name) => write!(f, "no '{}' section found in project file", name),
+            YabsError::NoAssumedToml(ref name) => write!(f, "yabs couldn't find {}", name),
         }
     }
 }
@@ -43,6 +45,7 @@ impl Error for YabsError {
             YabsError::WalkDir(ref err) => err.description(),
             YabsError::NoLang(..) => "no language set in profile",
             YabsError::NoDesc(..) => "no desc",
+            YabsError::NoAssumedToml(..) => "no assumed toml file",
         }
     }
 
@@ -54,6 +57,7 @@ impl Error for YabsError {
             YabsError::WalkDir(ref err) => Some(err),
             YabsError::NoLang(..) => None,
             YabsError::NoDesc(..) => None,
+            YabsError::NoAssumedToml(..) => None,
         }
     }
 }
