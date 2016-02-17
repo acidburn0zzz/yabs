@@ -31,7 +31,7 @@ impl fmt::Display for YabsError {
             YabsError::WalkDir(ref err) => write!(f, "directory walking error, {}", err),
             YabsError::NoLang(ref profile) => write!(f, "no language found in profile {}", profile),
             YabsError::NoDesc(ref name) => write!(f, "no '{}' section found in project file", name),
-            YabsError::NoAssumedToml(ref name) => write!(f, "yabs couldn't find {}", name),
+            YabsError::NoAssumedToml(ref name) => write!(f, "couldn't find file '{}'", name),
         }
     }
 }

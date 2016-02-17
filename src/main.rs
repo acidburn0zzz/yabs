@@ -25,20 +25,23 @@ fn print_usage(opts: Options) {
            YABS.name,
            "[OPTION]".underline(),
            "PROFILE".underline());
-    println!("{}", opts.options());
+    print!("{}\n", opts.options());
+    print!("{}\n\
+           \tyabs -m linux\tGenerates a Makefile for the build profile 'linux'\n\
+           \tyabs -p\t\tPrints all build profiles\n",
+           "Examples:".bold());
 }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let mut opts = Options::new();
     opts.optflag("h", "help", "Print help information");
-    opts.optopt("m", "make", "Generate Makefile", "");
-    opts.optflag("n", "new", "Create a new build profile");
+    opts.optopt("m", "make", "Generate Makefile", "PROFILE");
     opts.optflag("p", "print", "Print build file in JSON");
     opts.optopt("",
                 "print-profile",
                 "Print a particular profile from build file in JSON",
-                "PROFILE where profile is the name of the profile to be printed");
+                "PROFILE");
     opts.optflag("", "profiles", "Print all available profiles in build file");
     opts.optflag("", "sources", "Print source files");
     opts.optflag("", "version", "Print version information");
@@ -80,7 +83,7 @@ fn main() {
                 }
                 Err(e) => {
                     for err in e {
-                        println!("error: {}", err.to_string());
+                        println!("{} {}", "yabs:".paint(Color::Red), err.to_string().paint(Color::Red));
                     }
                     YABS.exit(ExitStatus::Error);
                 }
