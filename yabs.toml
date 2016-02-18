@@ -21,7 +21,6 @@ src = [
 target = "yabs"
 lib = false
 version = "0.1.2"
-lflags = ''
 
 [windows.project]
 name = "yabs"
@@ -45,7 +44,6 @@ src = [
 target = "yabs"
 lib = false
 version = "0.1.2"
-lflags = ''
 
 [all.install]
 prefix = "/usr"

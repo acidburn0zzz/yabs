@@ -16,7 +16,8 @@ use walkdir::{WalkDir, WalkDirIterator, DirEntry};
 
 use std::ffi::OsStr;
 use std::fs::File;
-use std::io::Write;
+use std::io::{Read,Write};
+use std::process::Command;
 
 #[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct Profile {
@@ -105,6 +106,15 @@ impl BuildFile {
         }
     }
 
+    pub fn build(&self, name: String, jobs: i32) -> Result<(), YabsError> {
+        if let Some(index) = self.profiles.iter().position(|ref profile| profile.name == name) {
+            try!(self.profiles[index.clone()].clone().proj_desc.unwrap().build_bin(jobs));
+            Ok(())
+        } else {
+            Err(YabsError::NoDesc(name))
+        }
+    }
+
     pub fn print_sources(&mut self) -> Result<(), YabsError> {
         for profile in &mut self.profiles {
             if let &mut Some(ref mut proj) = &mut profile.proj_desc {
@@ -136,7 +146,7 @@ pub struct ProjDesc {
     inc_dir: Option<Vec<String>>,
     cflags: Option<Vec<String>>,
     explicit_cflags: Option<String>,
-    lflags: Option<String>,
+    lflags: Option<Vec<String>>,
     ignore: Option<Vec<String>>,
     before_script: Option<Vec<String>>,
     after_script: Option<Vec<String>>,
@@ -221,12 +231,20 @@ impl ProjDesc {
         }
     }
 
+    fn gen_make_lib_dir_list(&self) -> String {
+        return self.prepend_op_vec(&self.lib_dir, "-L".to_owned());
+    }
+
     fn gen_make_lib_list(&self) -> String {
         return self.prepend_op_vec(&self.libs, "-l".to_string());
     }
 
     fn gen_make_cflags_list(&self) -> String {
         return self.prepend_op_vec(&self.cflags, "-".to_string());
+    }
+
+    fn gen_make_lflags_list(&self) -> String {
+        return self.prepend_op_vec(&self.lflags, "-".to_string());
     }
 
     fn gen_make_src_list(&self) -> String {
@@ -352,6 +370,57 @@ impl ProjDesc {
                 srcs = &self.gen_make_src_list(),
                 dep_list = &self.gen_make_src_deps(),
                 clean_list = &self.concat_clean()))
+    }
+
+    fn build_bin(&mut self, jobs: i32) -> Result<(), YabsError> {
+        try!(self.gen_file_list());
+        if let Some(src_list) = self.src.as_ref() {
+            let mut lang = self.lang.clone().unwrap_or("cpp".to_owned());
+            lang.insert(0, '.');
+            let mut cmd_string = String::new();
+            let mut obj_vec = Vec::new();
+            for src in src_list {
+                cmd_string = format!("{cc} -c {cflag} {inc} -o {object} {source}",
+                                         cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
+                                         cflag = self.gen_make_cflags_list(),
+                                         inc = self.gen_make_inc_list(),
+                                         source = src,
+                                         object = src.replace(&lang, ".o"),
+                                         );
+                obj_vec.push(src.replace(&lang, ".o"));
+                let mut command = try!(Command::new("sh")
+                                       .arg("-c")
+                                       .arg(&cmd_string)
+                                       .spawn());
+                println!("{}", cmd_string);
+                let status = try!(command.wait());
+            }
+            cmd_string = format!("{cc} {lflags} -o {target} {obj_list} {lib_dir} {libs}",
+                                 cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
+                                 lflags = self.gen_make_lflags_list(),
+                                 target = self.target.as_ref().unwrap_or(&"a".to_owned()),
+                                 obj_list = self.prepend_op_vec(&Some(obj_vec.clone()), "".to_owned()),
+                                 lib_dir = self.gen_make_lib_dir_list(),
+                                 libs = self.gen_make_lib_list()
+                                );
+            if let Some(static_lib) = self.static_lib {
+                if static_lib == true {
+                    cmd_string = format!("{ar} {ar_flags} {target} {obj_list}",
+                                         ar = self.ar.as_ref().unwrap_or(&"/usr/bin/env ar".to_owned()),
+                                         ar_flags = self.arflags.as_ref().unwrap_or(&"rcs".to_owned()),
+                                         target = self.target.as_ref().unwrap_or(&"a".to_owned()),
+                                         obj_list = self.prepend_op_vec(&Some(obj_vec), "".to_owned()),
+                                         );
+                }
+            };
+            let mut command = try!(Command::new("sh")
+                                   .arg("-c")
+                                   .arg(&cmd_string)
+                                   .spawn());
+            println!("{}", cmd_string);
+            let status = try!(command.wait());
+        };
+        Ok(())
     }
 }
 

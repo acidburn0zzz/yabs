@@ -38,6 +38,7 @@ fn main() {
     opts.optflag("h", "help", "Print help information");
     opts.optopt("m", "make", "Generate Makefile", "PROFILE");
     opts.optflag("p", "print", "Print build file in JSON");
+    opts.optopt("b", "build", "Build profile", "");
     opts.optopt("",
                 "print-profile",
                 "Print a particular profile from build file in JSON",
@@ -76,6 +77,12 @@ fn main() {
                     } else if matches.opt_present("make") {
                         if let Some(arg) = matches.opt_str("make") {
                             if let Err(e) = build_file.gen_make(arg) {
+                                YABS.error(e.to_string(), ExitStatus::Error);
+                            }
+                        }
+                    } else if matches.opt_present("build") {
+                        if let Some(arg) = matches.opt_str("build") {
+                            if let Err(e) = build_file.build(arg, 1) {
                                 YABS.error(e.to_string(), ExitStatus::Error);
                             }
                         }
