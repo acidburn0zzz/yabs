@@ -16,9 +16,12 @@ use walkdir::{WalkDir, WalkDirIterator, DirEntry};
 
 use std::ffi::OsStr;
 use std::fs::File;
-use std::io::{Read,Write};
+use std::io::{Read, Write};
 use std::process::Command;
 
+
+// Profile has descriptions that describe build instructions (proj_desc),
+// install instructions (inst_desc), and documentation instructions (doc_desc).
 #[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct Profile {
     name: String,
@@ -27,12 +30,14 @@ pub struct Profile {
     doc_desc: Option<DocDesc>,
 }
 
+// A build file could have multiple `Profile`s
 #[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone)]
 pub struct BuildFile {
     profiles: Vec<Profile>,
 }
 
 impl BuildFile {
+    // Creates a `Profiles` from a toml file.
     pub fn from_file(file: &str) -> Result<BuildFile, Vec<YabsError>> {
         let mut build_file: BuildFile = Default::default();
         parse_toml_file(file)
@@ -79,6 +84,7 @@ impl BuildFile {
         print!("\n");
     }
 
+    // Prints a profile with name `name` in build file as JSON
     pub fn print_profile_as_json(&self, name: String) {
         for profile in &self.profiles {
             if profile.name == name {
@@ -87,13 +93,9 @@ impl BuildFile {
         }
     }
 
+    // Generate a Makefile using from a profile with name `name`
     pub fn gen_make(&self, name: String) -> Result<(), YabsError> {
         if let Some(index) = self.profiles.iter().position(|ref profile| profile.name == name) {
-            try!(self.profiles[index.clone()]
-                     .clone()
-                     .proj_desc
-                     .unwrap_or(ProjDesc::new())
-                     .gen_file_list());
             try!(try!(File::create("Makefile")).write_all(try!(self.profiles[index.clone()]
                                                                    .clone()
                                                                    .proj_desc
@@ -201,7 +203,7 @@ impl ProjDesc {
         Ok(())
     }
 
-
+    // Concatenates a vector of strings `list`, prepending each entry with `prepend`
     fn prepend_op_vec(&self, list: &Option<Vec<String>>, prepend: String) -> String {
         let mut horrid_string = String::new();
         if let Some(items) = list.as_ref() {
@@ -223,6 +225,7 @@ impl ProjDesc {
         return horrid_string;
     }
 
+    // Any string that starts with the character "`" is regarded as a command
     fn is_command(&self, string: &String) -> bool {
         if string.starts_with("`") {
             return true;
@@ -263,7 +266,7 @@ impl ProjDesc {
                         horrid_string.push_str(&format!("\t{}\n", split_last.0));
                     }
                 }
-            // One source file
+                // One source file
             } else {
                 for src in source_list {
                     horrid_string.push_str(&format!("{}\n", src));
@@ -389,9 +392,9 @@ impl ProjDesc {
                                          );
                 obj_vec.push(src.replace(&lang, ".o"));
                 let mut command = try!(Command::new("sh")
-                                       .arg("-c")
-                                       .arg(&cmd_string)
-                                       .spawn());
+                                           .arg("-c")
+                                           .arg(&cmd_string)
+                                           .spawn());
                 println!("{}", cmd_string);
                 let status = try!(command.wait());
             }
@@ -399,10 +402,10 @@ impl ProjDesc {
                                  cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
                                  lflags = self.gen_make_lflags_list(),
                                  target = self.target.as_ref().unwrap_or(&"a".to_owned()),
-                                 obj_list = self.prepend_op_vec(&Some(obj_vec.clone()), "".to_owned()),
+                                 obj_list = self.prepend_op_vec(&Some(obj_vec.clone()),
+                                                                "".to_owned()),
                                  lib_dir = self.gen_make_lib_dir_list(),
-                                 libs = self.gen_make_lib_list()
-                                );
+                                 libs = self.gen_make_lib_list());
             if let Some(static_lib) = self.static_lib {
                 if static_lib == true {
                     cmd_string = format!("{ar} {ar_flags} {target} {obj_list}",
@@ -414,9 +417,9 @@ impl ProjDesc {
                 }
             };
             let mut command = try!(Command::new("sh")
-                                   .arg("-c")
-                                   .arg(&cmd_string)
-                                   .spawn());
+                                       .arg("-c")
+                                       .arg(&cmd_string)
+                                       .spawn());
             println!("{}", cmd_string);
             let status = try!(command.wait());
         };
@@ -430,12 +433,13 @@ pub struct InstallDesc {
     prefix: Option<String>,
 }
 
+// Generate documentation for this project
 #[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct DocDesc {
     doc: Option<String>,
 }
 
-// General trait for any descriptions
+// General trait for any description.
 pub trait Desc<T> {
     fn new() -> T;
     fn from_file(file: &str, name: &str) -> Result<T, Vec<YabsError>>;
@@ -444,10 +448,12 @@ pub trait Desc<T> {
 }
 
 impl<T: Decodable + Encodable + Default> Desc<T> for T {
+    // Creates an empty description using `Default`
     fn new() -> T {
         Default::default()
     }
 
+    // Propogates a description from a toml file with the key `name`
     fn from_file(file: &str, name: &str) -> Result<T, Vec<YabsError>> {
         parse_toml_file(file).and_then(|toml| {
             toml.get(name)
