@@ -16,7 +16,7 @@ use walkdir::{WalkDir, WalkDirIterator, DirEntry};
 
 use std::ffi::OsStr;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{Write};
 use std::process::Command;
 
 
@@ -380,7 +380,7 @@ impl ProjDesc {
         if let Some(src_list) = self.src.as_ref() {
             let mut lang = self.lang.clone().unwrap_or("cpp".to_owned());
             lang.insert(0, '.');
-            let mut cmd_string = String::new();
+            let mut cmd_string;
             let mut obj_vec = Vec::new();
             for src in src_list {
                 cmd_string = format!("{cc} -c {cflag} {inc} -o {object} {source}",
@@ -396,7 +396,7 @@ impl ProjDesc {
                                            .arg(&cmd_string)
                                            .spawn());
                 println!("{}", cmd_string);
-                let status = try!(command.wait());
+                try!(command.wait());
             }
             cmd_string = format!("{cc} {lflags} -o {target} {obj_list} {lib_dir} {libs}",
                                  cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
@@ -421,7 +421,7 @@ impl ProjDesc {
                                        .arg(&cmd_string)
                                        .spawn());
             println!("{}", cmd_string);
-            let status = try!(command.wait());
+            try!(command.wait());
         };
         Ok(())
     }
