@@ -35,6 +35,7 @@ fn print_usage(opts: Options) {
 fn main() {
     let args: Vec<String> = env::args().collect();
     let mut opts = Options::new();
+    opts.optopt("f", "file", "Use a specified TOML file", "FILE");
     opts.optflag("h", "help", "Print help information");
     opts.optopt("m", "make", "Generate Makefile", "PROFILE");
     opts.optflag("p", "print", "Print build file in JSON");
@@ -61,7 +62,12 @@ fn main() {
         YABS.copyright("Copyright (C) 2015-2016\n",
                        &["Alberto Corona"]);
     } else {
-        if let Some(assumed_file_name) = ext::get_assumed_filename() {
+        if let Some(mut assumed_file_name) = ext::get_assumed_filename() {
+            if matches.opt_present("file") {
+                if let Some(arg) = matches.opt_str("file") {
+                    assumed_file_name = arg;
+                }
+            }
             match build::BuildFile::from_file(&assumed_file_name) {
                 Ok(build_file) => {
                     if matches.opt_present("p") {
