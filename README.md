@@ -1,7 +1,8 @@
 # yabs
-Yet another build system
+Yet another build system. A C and C++ build system, with projects described
+using TOML.
 
-A C and C++ build system, with projects described using TOML.
+![](https://gitlab.com/0X1A/yabs/badges/master/build.svg)
 
 ## Building
 To build `yabs` you will need `rustc` and `cargo`. Simply run `cargo build
