@@ -88,7 +88,7 @@ fn main() {
                         }
                     } else if matches.opt_present("build") {
                         if let Some(arg) = matches.opt_str("build") {
-                            if let Err(e) = build_file.build(arg, 1) {
+                            if let Err(e) = build_file.build(arg) {
                                 YABS.error(e.to_string(), ExitStatus::Error);
                             }
                         }

@@ -108,9 +108,9 @@ impl BuildFile {
         }
     }
 
-    pub fn build(&self, name: String, jobs: i32) -> Result<(), YabsError> {
+    pub fn build(&self, name: String) -> Result<(), YabsError> {
         if let Some(index) = self.profiles.iter().position(|ref profile| profile.name == name) {
-            try!(self.profiles[index.clone()].clone().proj_desc.unwrap().build_bin(jobs));
+            try!(self.profiles[index.clone()].clone().proj_desc.unwrap().build_bin());
             Ok(())
         } else {
             Err(YabsError::NoDesc(name))
@@ -375,7 +375,7 @@ impl ProjDesc {
                 clean_list = &self.concat_clean()))
     }
 
-    fn build_bin(&mut self, jobs: i32) -> Result<(), YabsError> {
+    fn build_bin(&mut self) -> Result<(), YabsError> {
         try!(self.gen_file_list());
         if let Some(src_list) = self.src.as_ref() {
             let mut lang = self.lang.clone().unwrap_or("cpp".to_owned());
