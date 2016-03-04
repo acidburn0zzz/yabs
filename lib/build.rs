@@ -266,7 +266,7 @@ impl ProjDesc {
                         horrid_string.push_str(&format!("\t{}\n", split_last.0));
                     }
                 }
-                // One source file
+            // One source file
             } else {
                 for src in source_list {
                     horrid_string.push_str(&format!("{}\n", src));
@@ -289,7 +289,7 @@ impl ProjDesc {
                 }
             } else {
                 for obj in parsed_obj_list {
-                    horrid_string.push_str(&format!("\t{}\n", obj));
+                    horrid_string.push_str(&format!("{}\n", obj));
                 }
             }
         }
@@ -337,7 +337,7 @@ impl ProjDesc {
                 BINDIR\t=\n\
                 LIBDIR\t=\n\
                 TARGET\t= {target}\n\
-                LINK\t=\n\
+                LINK\t= {compiler}\n\
                 CFLAGS\t= {cflags}\n\
                 LFLAGS\t=\n\
                 LIBS\t= {libs}\n\
@@ -472,4 +472,29 @@ impl<T: Decodable + Encodable + Default> Desc<T> for T {
     fn print_json(&self) {
         println!("{}", json::as_pretty_json(&self));
     }
+}
+
+#[test]
+fn test_empty_buildfile() {
+    let bf = BuildFile::from_file("test/empty.toml").unwrap();
+    assert_eq!(bf.profiles.len(), 0);
+}
+
+#[test]
+#[should_panic]
+fn test_non_empty_buildfile() {
+    let bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
+    assert_eq!(bf.profiles.len(), 0);
+}
+
+#[test]
+fn test_buildfile_gen_make() {
+    let bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
+    assert_eq!(bf.gen_make("linux_cpp".to_owned()).unwrap(), ());
+}
+
+#[test]
+fn test_buildfile_build() {
+    let bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
+    assert_eq!(bf.build("linux_cpp".to_owned()).unwrap(), ());
 }
