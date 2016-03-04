@@ -1,0 +1,6 @@
+[linux_c.project]
+lang = "c"
+
+[linux_cpp.project]
+compiler = "g++"
+lang = "cpp"
