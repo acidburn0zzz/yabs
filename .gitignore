@@ -6,4 +6,5 @@ yabs
 *.gcda
 *.gcov
 target/*
+distrib/*
 Cargo.lock
