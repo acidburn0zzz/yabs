@@ -7,7 +7,6 @@ extern crate rustc_serialize;
 extern crate walkdir;
 extern crate rpf;
 
-use toml::decode;
 use error::YabsError;
 use rpf::*;
 use ext::*;
@@ -317,7 +316,7 @@ impl ProjDesc {
 
     fn gen_make(&mut self) -> Result<String, YabsError> {
         try!(self.gen_file_list());
-        let mut target_string = String::new();
+        let target_string;
         if let Some(static_lib) = self.static_lib {
             if static_lib == true {
                 target_string = format!("$(TARGET): $(OBJ)\n\
@@ -326,7 +325,10 @@ impl ProjDesc {
                 target_string = format!("$(TARGET): $(OBJ)\n\
                 \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBS)\n\n");
             }
-        };
+        } else {
+            target_string = format!("$(TARGET): $(OBJ)\n\
+                \t$(AR) $(ARFLAGS) $(TARGET) $(OBJ)\n\n");
+        }
         Ok(format!(
             "INSTALL\t= /usr/bin/env install\n\
                 AR\t= {ar}\n\

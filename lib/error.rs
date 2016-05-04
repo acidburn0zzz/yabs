@@ -9,7 +9,6 @@ use std::io;
 use std::io::prelude::*;
 use std::error::*;
 use std::fmt;
-use std::fmt::Display;
 
 #[derive(Debug)]
 pub enum YabsError {
