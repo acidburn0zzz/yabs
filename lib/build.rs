@@ -144,7 +144,6 @@ pub struct ProjDesc {
     libs: Option<Vec<String>>,
     lib_dir: Option<Vec<String>>,
     inc: Option<Vec<String>>,
-    inc_dir: Option<Vec<String>>,
     cflags: Option<Vec<String>>,
     explicit_cflags: Option<String>,
     lflags: Option<Vec<String>>,
