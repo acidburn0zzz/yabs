@@ -9,9 +9,29 @@ To build `yabs` you will need `rustc` and `cargo`. Simply run `cargo build
 --release`, this will build a binary called `yabs` in `target/release`.
 
 # Using
-Usage of yabs is currently not recommended as the user interface is not quite
-completed. Though to get a general idea of a schema for a project see
-`yabs.toml`, and `yabs --help` for options and arguments.
+Output of `yabs -h`
+```
+Usage: yabs [OPTION] PROFILE
+   or: yabs [OPTION]
+Run yabs with [OPTION] on PROFILE
+
+Options:
+    -f, --file FILE     Use a specified TOML file
+    -h, --help          Print help information
+    -m, --make PROFILE  Generate Makefile
+    -p, --print         Print build file in JSON
+    -b, --build         Build profile
+        --print-profile PROFILE
+                        Print a particular profile from build file in JSON
+        --profiles      Print all available profiles in build file
+        --sources       Print source files
+        --version       Print version information
+
+Examples:
+	yabs -m linux	Generates a Makefile for the build profile 'linux'
+	yabs -p		Prints all build profiles
+
+```
 
 ## Defining a Project
 `yabs` uses TOML to define projects. For example, a project in C++ using libraries such as SDL2, SDL2-image, SDL2-ttf, and Lua 5.3 would look similar to the following:
