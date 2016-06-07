@@ -322,7 +322,7 @@ impl ProjDesc {
                 \t$(AR) $(ARFLAGS) $(TARGET) $(OBJ)\n\n");
             } else {
                 target_string = format!("$(TARGET): $(OBJ)\n\
-                \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBS)\n\n");
+                \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBDIR) $(LIBS)\n\n");
             }
         } else {
             target_string = format!("$(TARGET): $(OBJ)\n\
@@ -336,14 +336,13 @@ impl ProjDesc {
                 PREFIX\t=\n\
                 CC\t= {compiler}\n\
                 BINDIR\t=\n\
-                LIBDIR\t=\n\
                 TARGET\t= {target}\n\
                 LINK\t= {compiler}\n\
                 CFLAGS\t= {cflags}\n\
                 LFLAGS\t=\n\
                 LIBS\t= {libs}\n\
                 INCDIR\t= {incdir}\n\
-                LIBDIR\t=\n\
+                LIBDIR\t= {lib_dir}\n\
                 CLEAN\t=\n\
                 DEL\t= rm -f\n\
                 {srcs}\n\n\
@@ -371,6 +370,7 @@ impl ProjDesc {
                 cflags = &self.gen_make_cflags_list(),
                 libs = &self.gen_make_lib_list(),
                 incdir = &self.gen_make_inc_list(),
+                lib_dir = &self.gen_make_lib_dir_list(),
                 srcs = &self.gen_make_src_list(),
                 dep_list = &self.gen_make_src_deps(),
                 clean_list = &self.concat_clean()))
