@@ -36,6 +36,27 @@ pub struct BuildFile {
 }
 
 impl BuildFile {
+    // TODO: Find a better way to do this
+    pub fn apply_all(&mut self) {
+        let mut all: Profile = Default::default();
+        for profile in &self.profiles {
+            if profile.name == "all" {
+                all = profile.clone();
+            }
+        }
+        for profile in &mut self.profiles {
+            if let Some(proj_desc) = all.proj_desc.clone() {
+                profile.proj_desc = Some(proj_desc);
+            }
+            if let Some(inst_desc) = all.inst_desc.clone() {
+                profile.inst_desc = Some(inst_desc);
+            }
+            if let Some(doc_desc) = all.doc_desc.clone() {
+                profile.doc_desc = Some(doc_desc);
+            }
+        }
+    }
+
     // Creates a `Profiles` from a toml file.
     pub fn from_file(file: &str) -> Result<BuildFile, Vec<YabsError>> {
         let mut build_file: BuildFile = Default::default();
@@ -70,13 +91,15 @@ impl BuildFile {
             .map_err(|err| err)
     }
 
-    pub fn print_as_json(&self) {
+    pub fn print_as_json(&mut self) {
+        self.apply_all();
         for profile in &self.profiles {
             profile.print_json();
         }
     }
 
-    pub fn print_available_profiles(&self) {
+    pub fn print_available_profiles(&mut self) {
+        self.apply_all();
         for profile in &self.profiles {
             print!("{} ", profile.name);
         }
@@ -84,7 +107,8 @@ impl BuildFile {
     }
 
     // Prints a profile with name `name` in build file as JSON
-    pub fn print_profile_as_json(&self, name: String) {
+    pub fn print_profile_as_json(&mut self, name: String) {
+        self.apply_all();
         for profile in &self.profiles {
             if profile.name == name {
                 profile.print_json();
@@ -93,21 +117,24 @@ impl BuildFile {
     }
 
     // Generate a Makefile using from a profile with name `name`
-    pub fn gen_make(&self, name: String) -> Result<(), YabsError> {
+    pub fn gen_make(&mut self, name: String) -> Result<(), YabsError> {
+        self.apply_all();
         if let Some(index) = self.profiles.iter().position(|ref profile| profile.name == name) {
-            try!(try!(File::create("Makefile")).write_all(try!(self.profiles[index.clone()]
+            let mut makefile_string: String = try!(self.profiles[index.clone()]
                                                                    .clone()
                                                                    .proj_desc
                                                                    .unwrap_or(ProjDesc::new())
-                                                                   .gen_make())
-                                                              .as_bytes()));
+                                                                   .gen_make());
+            makefile_string.push_str(&self.profiles[index.clone()].clone().doc_desc.unwrap_or(DocDesc::new()).gen_make());
+            try!(try!(File::create("Makefile")).write_all(makefile_string.as_bytes()));
             Ok(())
         } else {
             Err(YabsError::NoDesc(name))
         }
     }
 
-    pub fn build(&self, name: String) -> Result<(), YabsError> {
+    pub fn build(&mut self, name: String) -> Result<(), YabsError> {
+        self.apply_all();
         if let Some(index) = self.profiles.iter().position(|ref profile| profile.name == name) {
             try!(self.profiles[index.clone()].clone().proj_desc.unwrap().build_bin());
             Ok(())
@@ -174,6 +201,7 @@ impl ProjDesc {
     }
 
     fn gen_file_list(&mut self) -> Result<(), YabsError> {
+        // If sources are listed don't scan for files
         if self.src.is_some() {
             return Ok(());
         }
@@ -197,6 +225,7 @@ impl ProjDesc {
                 }
             }
         }
+        sources.sort();
         self.src = Some(sources);
         Ok(())
     }
@@ -259,9 +288,9 @@ impl ProjDesc {
                     horrid_string.push_str(&format!("{} \\\n", split_first.0));
                     if let Some(split_last) = split_first.1.clone().split_last() {
                         for src in split_last.1 {
-                            horrid_string.push_str(&format!("\t{} \\\n", src));
+                            horrid_string.push_str(&format!("\t  {} \\\n", src));
                         }
-                        horrid_string.push_str(&format!("\t{}\n", split_last.0));
+                        horrid_string.push_str(&format!("\t  {}\n", split_last.0));
                     }
                 }
             // One source file
@@ -280,9 +309,9 @@ impl ProjDesc {
                     horrid_string.push_str(&format!("{} \\\n", split_first.0));
                     if let Some(split_last) = split_first.1.clone().split_last() {
                         for src in split_last.1 {
-                            horrid_string.push_str(&format!("\t{} \\\n", src));
+                            horrid_string.push_str(&format!("\t  {} \\\n", src));
                         }
-                        horrid_string.push_str(&format!("{}", split_last.0));
+                        horrid_string.push_str(&format!("\t  {}", split_last.0));
                     }
                 }
             } else {
@@ -437,7 +466,19 @@ pub struct InstallDesc {
 // Generate documentation for this project
 #[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct DocDesc {
-    doc: Option<String>,
+    doc: Option<Vec<String>>,
+}
+
+impl DocDesc {
+    pub fn gen_make(&self) -> String {
+        let mut doc_str = String::from("doc:\n");
+        if let Some(doc) = self.doc.clone() {
+            for line in doc {
+                doc_str.push_str(&format!("\t{}\n", &line));
+            }
+        }
+        return doc_str;
+    }
 }
 
 // General trait for any description.

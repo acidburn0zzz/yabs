@@ -69,7 +69,7 @@ fn main() {
                 }
             }
             match build::BuildFile::from_file(&assumed_file_name) {
-                Ok(build_file) => {
+                Ok(mut build_file) => {
                     if matches.opt_present("p") {
                         &build_file.print_as_json();
                     } else if matches.opt_present("print-profile") {
