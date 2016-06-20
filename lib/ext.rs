@@ -9,6 +9,7 @@ use std::path::Path;
 use std::io;
 use std::io::Read;
 use std::env;
+use std::process::Command;
 use error::YabsError;
 
 pub fn parse_toml_file<T: AsRef<Path> + Clone>(file: T) -> Result<toml::Table, Vec<YabsError>> {
@@ -56,4 +57,14 @@ pub fn get_assumed_filename() -> Option<String> {
         }
     }
     None
+}
+
+pub fn run_cmd(cmd: String) -> Result<(), YabsError> {
+    let mut command = try!(Command::new("sh")
+                           .arg("-c")
+                           .arg(&cmd)
+                           .spawn());
+    try!(command.wait());
+    println!("{}", cmd);
+    Ok(())
 }

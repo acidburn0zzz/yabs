@@ -16,8 +16,11 @@ use walkdir::{WalkDir, WalkDirIterator, DirEntry};
 use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{Write};
-use std::process::Command;
 
+pub struct Target {
+    target: String,
+    all: String,
+}
 
 // Profile has descriptions that describe build instructions (proj_desc),
 // install instructions (inst_desc), and documentation instructions (doc_desc).
@@ -162,7 +165,7 @@ impl BuildFile {
 #[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
 pub struct ProjDesc {
     name: Option<String>,
-    target: Option<String>,
+    target: Option<Vec<String>>,
     lang: Option<String>,
     os: Option<String>,
     version: Option<String>,
@@ -261,6 +264,39 @@ impl ProjDesc {
         }
     }
 
+    fn gen_make_target_list(&self) -> Target {
+        let mut all = String::new();
+        let mut target_str = String::new();
+        if let Some(targets) = self.target.clone() {
+            if let Some(static_lib) = self.static_lib {
+                if targets.len() == 1 {
+                    all = self.prepend_op_vec(&self.target, "".to_owned());
+                    if static_lib {
+                        target_str = format!("$(TARGET): $(OBJ)\n\
+                            \t$(AR) $(ARFLAGS) $(TARGET) $(OBJ)\n\n");
+                    } else {
+                        target_str = format!("$(TARGET): $(OBJ)\n\
+                            \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBDIR) $(LIBS)\n\n");
+                    }
+                } else {
+                    all = self.prepend_op_vec(&self.target, "".to_owned());
+                    if static_lib {
+                        for target in targets {
+                            target_str.push_str(&format!("{0}: $(OBJ)\n\
+                                    \t$(AR) $(ARFLAGS) {0} $(OBJ)\n\n", target));
+                        }
+                    } else {
+                        for target in targets {
+                            target_str.push_str(&format!("{0}: $(OBJ)\n\
+                                    \t$(CC) $(LFLAGS) -o {0} $(OBJ) $(LIBDIR) $(LIBS)\n\n", target));
+                        }
+                    }
+                }
+            }
+        };
+        Target { target: target_str, all: all }
+    }
+
     fn gen_make_lib_dir_list(&self) -> String {
         return self.prepend_op_vec(&self.lib_dir, "-L".to_owned());
     }
@@ -344,19 +380,7 @@ impl ProjDesc {
 
     fn gen_make(&mut self) -> Result<String, YabsError> {
         try!(self.gen_file_list());
-        let target_string;
-        if let Some(static_lib) = self.static_lib {
-            if static_lib == true {
-                target_string = format!("$(TARGET): $(OBJ)\n\
-                \t$(AR) $(ARFLAGS) $(TARGET) $(OBJ)\n\n");
-            } else {
-                target_string = format!("$(TARGET): $(OBJ)\n\
-                \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBDIR) $(LIBS)\n\n");
-            }
-        } else {
-            target_string = format!("$(TARGET): $(OBJ)\n\
-                \t$(AR) $(ARFLAGS) $(TARGET) $(OBJ)\n\n");
-        }
+        let target = &self.gen_make_target_list();
         Ok(format!(
             "INSTALL\t= /usr/bin/env install\n\
                 AR\t= {ar}\n\
@@ -365,7 +389,7 @@ impl ProjDesc {
                 PREFIX\t=\n\
                 CC\t= {compiler}\n\
                 BINDIR\t=\n\
-                TARGET\t= {target}\n\
+                TARGET\t= {all}\n\
                 LINK\t= {compiler}\n\
                 CFLAGS\t= {cflags}\n\
                 LFLAGS\t=\n\
@@ -383,19 +407,19 @@ impl ProjDesc {
                 .cxx.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
                 .C.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
                 .c.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
-                all: $(TARGET)\n\n\
+                all: {all}\n\n\
                 {target_command}\
                 {dep_list}\n\
                 clean:\n\
                 \t$(DEL) $(OBJ)\n\
-                \t$(DEL) {target}\n\
+                \t$(DEL) {all}\n\
                 \t$(DEL) {clean_list}\n\
                 ",
                 compiler = &self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
                 ar = &self.ar.as_ref().unwrap_or(&"/usr/bin/env ar".to_owned()),
                 ar_flags = &self.arflags.as_ref().unwrap_or(&"rcs".to_owned()),
-                target = &self.target.as_ref().unwrap_or(&"a".to_owned()),
-                target_command = target_string,
+                all = target.all,
+                target_command = target.target,
                 cflags = &self.gen_make_cflags_list(),
                 libs = &self.gen_make_lib_list(),
                 incdir = &self.gen_make_inc_list(),
@@ -420,38 +444,30 @@ impl ProjDesc {
                                          source = src,
                                          object = src.replace(&lang, ".o"),
                                          );
+                try!(run_cmd(cmd_string));
                 obj_vec.push(src.replace(&lang, ".o"));
-                let mut command = try!(Command::new("sh")
-                                           .arg("-c")
-                                           .arg(&cmd_string)
-                                           .spawn());
-                println!("{}", cmd_string);
-                try!(command.wait());
             }
-            cmd_string = format!("{cc} {lflags} -o {target} {obj_list} {lib_dir} {libs}",
-                                 cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
-                                 lflags = self.gen_make_lflags_list(),
-                                 target = self.target.as_ref().unwrap_or(&"a".to_owned()),
-                                 obj_list = self.prepend_op_vec(&Some(obj_vec.clone()),
-                                                                "".to_owned()),
-                                 lib_dir = self.gen_make_lib_dir_list(),
-                                 libs = self.gen_make_lib_list());
-            if let Some(static_lib) = self.static_lib {
-                if static_lib == true {
+            for target in self.target.clone().unwrap_or(vec!["a".to_owned()]) {
+                if self.static_lib.unwrap_or(false) == true {
                     cmd_string = format!("{ar} {ar_flags} {target} {obj_list}",
-                                         ar = self.ar.as_ref().unwrap_or(&"/usr/bin/env ar".to_owned()),
-                                         ar_flags = self.arflags.as_ref().unwrap_or(&"rcs".to_owned()),
-                                         target = self.target.as_ref().unwrap_or(&"a".to_owned()),
-                                         obj_list = self.prepend_op_vec(&Some(obj_vec), "".to_owned()),
-                                         );
+                                                 ar = self.ar.as_ref().unwrap_or(&"/usr/bin/env ar".to_owned()),
+                                                 ar_flags = self.arflags.as_ref().unwrap_or(&"rcs".to_owned()),
+                                                 target = target,
+                                                 obj_list = self.prepend_op_vec(&Some(obj_vec.clone()), "".to_owned()),
+                                                 );
+                    try!(run_cmd(cmd_string));
+                } else {
+                    cmd_string = format!("{cc} {lflags} -o {target} {obj_list} {lib_dir} {libs}",
+                                                 cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
+                                                 lflags = self.gen_make_lflags_list(),
+                                                 target = target,
+                                                 obj_list = self.prepend_op_vec(&Some(obj_vec.clone()),
+                                                 "".to_owned()),
+                                                 lib_dir = self.gen_make_lib_dir_list(),
+                                                 libs = self.gen_make_lib_list());
+                    try!(run_cmd(cmd_string));
                 }
             };
-            let mut command = try!(Command::new("sh")
-                                       .arg("-c")
-                                       .arg(&cmd_string)
-                                       .spawn());
-            println!("{}", cmd_string);
-            try!(command.wait());
         };
         Ok(())
     }
@@ -531,12 +547,12 @@ fn test_non_empty_buildfile() {
 
 #[test]
 fn test_buildfile_gen_make() {
-    let bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
+    let mut bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
     assert_eq!(bf.gen_make("linux_cpp".to_owned()).unwrap(), ());
 }
 
 #[test]
 fn test_buildfile_build() {
-    let bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
+    let mut bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
     assert_eq!(bf.build("linux_cpp".to_owned()).unwrap(), ());
 }

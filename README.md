@@ -39,7 +39,7 @@ Examples:
 ```toml
 [linux.project]
 name = "kuma"
-target = "kuma"
+target = ["kuma"]
 lang = "cpp"
 compiler = "g++"
 cflags = ["std=c++11"]
@@ -59,7 +59,7 @@ static_lib = false
 name = "kuma"
 static_lib = true
 arflags = "rcs"
-target = "libkuma.a"
+target = ["libkuma.a"]
 lang = "cpp"
 comp = "g++"
 cflags = ["std=c++11"]
@@ -90,7 +90,7 @@ The following tables describes what keys are available to yabs project files.
 | Key    | Value                           | Type |
 | ---    | -----                           | ---- |
 | `name`   | Name for project                | String |
-| `target` | Name for target binary          | String |
+| `target` | Name for target binary          | Array |
 | `lang`   | Extension used for source files | String |
 | `os` | Operating system | String |
 | `version` | Version number | String |
