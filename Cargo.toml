@@ -1,10 +1,12 @@
 [package]
 name = "yabs"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Alberto Corona <ac@albertocorona.com>>"]
+keywords = ["build system", "build", "make"]
 description = "Yet another build system"
-repository = "https://gitlab.com/0X1A/yabs/tree/rust-port"
+repository = "https://gitlab.com/0X1A/yabs"
 license = "BSD-3-Clause"
+readme = "README.md"
 
 [dependencies]
 toml = "0.1"
