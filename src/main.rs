@@ -4,7 +4,7 @@
 
 pub static YABS: Prog = Prog {
     name: "yabs",
-    vers: "0.1.0",
+    vers: "0.1.1",
     yr: "2016",
 };
 
