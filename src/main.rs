@@ -17,7 +17,6 @@ use rpf::*;
 
 use std::env;
 use util::*;
-use util::build::Desc;
 
 fn print_usage(opts: Options) {
     print!("{0}: {1} {2} {3}\n   or: {1} {2}\nRun yabs with {2} on {3}",

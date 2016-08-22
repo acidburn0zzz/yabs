@@ -10,7 +10,7 @@ extern crate rpf;
 use error::YabsError;
 use rpf::*;
 use ext::*;
-use rustc_serialize::{Decodable, Decoder, Encodable, Encoder, json};
+use rustc_serialize::{Decodable, Encodable, json};
 use walkdir::{WalkDir, WalkDirIterator, DirEntry};
 
 use std::ffi::OsStr;

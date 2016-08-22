@@ -6,7 +6,6 @@ extern crate toml;
 extern crate walkdir;
 
 use std::io;
-use std::io::prelude::*;
 use std::error::*;
 use std::fmt;
 
