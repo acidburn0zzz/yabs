@@ -100,7 +100,6 @@ The following tables describes what keys are available to yabs project files.
 | `lib_dir` | Library directories to use | Array |
 | `inc` | Include directories | Array |
 | `cflags` | Compiler flags | Array |
-| `explicit_cflags` | Flags to be written without being altered | Array |
 | `lflags` | Linker flags | Array |
 | `ignore` | Directories or files to ignore | Array |
 | `before_script` | Scripts to run before a build | Array |
