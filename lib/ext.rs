@@ -29,23 +29,18 @@ pub fn parse_toml_file<T: AsRef<Path> + Clone>(file: T) -> Result<toml::Table, V
             return Err(error_vect);
         }
     };
-    match file.read_to_string(&mut buff) {
-        Ok(s) => s,
-        Err(e) => {
-            error_vect.push(YabsError::Io(e));
-            return Err(error_vect);
-        }
-    };
+    if let Err(err) = file.read_to_string(&mut buff) {
+        error_vect.push(YabsError::Io(err));
+    }
     let mut parser = toml::Parser::new(&buff);
-    match parser.parse() {
-        Some(s) => return Ok(s),
-        None => {
-            for err in parser.errors {
-                error_vect.push(YabsError::TomlParse(err));
-            }
-            return Err(error_vect);
+    if let Some(table) = parser.parse() {
+        return Ok(table);
+    } else {
+        for err in parser.errors {
+            error_vect.push(YabsError::TomlParse(err));
         }
-    };
+    }
+    return Err(error_vect);
 }
 
 pub fn get_assumed_filename() -> Option<String> {

@@ -19,7 +19,6 @@ pub struct Target {
 // General trait for any description.
 pub trait Desc<T> {
     fn new() -> T;
-    fn from_file(file: &str, name: &str) -> Result<T, Vec<YabsError>>;
     fn from_toml_table(table: toml::Value) -> Result<T, YabsError>;
     fn print_json(&self);
 }
@@ -30,7 +29,20 @@ impl<T: Decodable + Encodable + Default> Desc<T> for T {
         Default::default()
     }
 
-    // Propogates a description from a toml file with the key `name`
+    fn from_toml_table(table: toml::Value) -> Result<T, YabsError> {
+        Ok(try!(Decodable::decode(&mut toml::Decoder::new(table.clone()))))
+    }
+
+    fn print_json(&self) {
+        println!("{}", json::as_pretty_json(&self));
+    }
+}
+
+pub trait FromFile<T> {
+    fn from_file(file: &str, name: &str) -> Result<T, Vec<YabsError>>;
+}
+
+impl<T: Decodable + Encodable + Default + Desc<T>> FromFile<T> for T {
     fn from_file(file: &str, name: &str) -> Result<T, Vec<YabsError>> {
         parse_toml_file(file).and_then(|toml| {
             toml.get(name)
@@ -40,14 +52,6 @@ impl<T: Decodable + Encodable + Default> Desc<T> for T {
                         .map_err(|err| vec![YabsError::TomlDecode(err)])
                 })
         })
-    }
-
-    fn from_toml_table(table: toml::Value) -> Result<T, YabsError> {
-        Ok(try!(Decodable::decode(&mut toml::Decoder::new(table.clone()))))
-    }
-
-    fn print_json(&self) {
-        println!("{}", json::as_pretty_json(&self));
     }
 }
 

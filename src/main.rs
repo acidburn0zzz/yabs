@@ -58,8 +58,7 @@ fn main() {
     if matches.opt_present("h") {
         print_usage(opts);
     } else if matches.opt_present("version") {
-        YABS.copyright("Copyright (C) 2015-2016\n",
-                       &["Alberto Corona"]);
+        YABS.copyright("Copyright (C) 2015-2016\n", &["Alberto Corona"]);
     } else {
         if let Some(mut assumed_file_name) = ext::get_assumed_filename() {
             if matches.opt_present("file") {
@@ -95,7 +94,9 @@ fn main() {
                 }
                 Err(e) => {
                     for err in e {
-                        println!("{} {}", "yabs:".paint(Color::Red), err.to_string().paint(Color::Red));
+                        println!("{} {}",
+                                 "yabs:".paint(Color::Red),
+                                 err.to_string().paint(Color::Red));
                     }
                     YABS.exit(ExitStatus::Error);
                 }
