@@ -1,10 +1,8 @@
 extern crate toml;
 extern crate rustc_serialize;
 extern crate walkdir;
-extern crate rpf;
 
 use error::YabsError;
-use rpf::*;
 use ext::*;
 use rustc_serialize::{Decodable, Encodable, json};
 use walkdir::{WalkDir, WalkDirIterator, DirEntry};
@@ -42,6 +40,7 @@ pub trait FromFile<T> {
     fn from_file(file: &str, name: &str) -> Result<T, Vec<YabsError>>;
 }
 
+// FromFile for anything T that implements Desc etc.
 impl<T: Decodable + Encodable + Default + Desc<T>> FromFile<T> for T {
     fn from_file(file: &str, name: &str) -> Result<T, Vec<YabsError>> {
         parse_toml_file(file).and_then(|toml| {
@@ -80,16 +79,13 @@ pub struct ProjDesc {
 }
 
 impl ProjDesc {
-    pub fn concat_clean(&self) -> String {
-        self.prepend_op_vec(&self.clean, "".to_string())
-    }
-
     pub fn is_in_ignore(&self, entry: &DirEntry) -> bool {
         if let Some(ignore) = self.ignore.as_ref() {
             for path in ignore {
-                let entry = entry.path().as_string();
-                if entry.find(path).is_some() {
-                    return true;
+                if let Some(entry_str) = entry.path().to_str() {
+                    if entry_str.find(path).is_some() {
+                        return true;
+                    }
                 }
             }
         }
@@ -110,12 +106,9 @@ impl ProjDesc {
                 if let Some(ext) = file_ext.to_str() {
                     if let Some(lang) = self.lang.as_ref() {
                         if ext == lang {
-                            let mut entry = entry.path().as_string();
-                            if entry.len() > 2 {
-                                entry.remove(0);
-                                entry.remove(0);
+                            if let Some(entry_str) = entry.path().to_str() {
+                                sources.push(entry_str.to_owned());
                             }
-                            sources.push(entry);
                         }
                     }
                 }
@@ -127,7 +120,7 @@ impl ProjDesc {
     }
 
     // Concatenates a vector of strings `list`, prepending each entry with `prepend`
-    pub fn prepend_op_vec(&self, list: &Option<Vec<String>>, prepend: String) -> String {
+    pub fn prepend_op_vec(&self, list: &Option<Vec<String>>, prepend: &str) -> String {
         let mut horrid_string = String::new();
         if let Some(items) = list.as_ref() {
             if let Some(split_last) = items.split_last() {
@@ -135,13 +128,13 @@ impl ProjDesc {
                     if self.is_command(&sub_item) {
                         horrid_string.push_str(&format!("{} ", sub_item));
                     } else {
-                        horrid_string.push_str(&format!("{}{} ", prepend, sub_item));
+                        horrid_string.push_str(&format!("{}{} ", prepend.to_owned(), sub_item));
                     }
                 }
                 if self.is_command(&split_last.0) {
                     horrid_string.push_str(&format!("{} ", split_last.0));
                 } else {
-                    horrid_string.push_str(&format!("{}{}", prepend, split_last.0.clone()));
+                    horrid_string.push_str(&format!("{}{}", prepend.to_owned(), split_last.0.clone()));
                 }
             }
         }
@@ -161,9 +154,9 @@ impl ProjDesc {
         let mut all = String::new();
         let mut target_str = String::new();
         if let Some(targets) = self.target.clone() {
+            all = targets.concat();
             if let Some(static_lib) = self.static_lib {
                 if targets.len() == 1 {
-                    all = self.prepend_op_vec(&self.target, "".to_owned());
                     if static_lib {
                         target_str = format!("$(TARGET): $(OBJ)\n\
                             \t$(AR) $(ARFLAGS) $(TARGET) $(OBJ)\n\n");
@@ -172,7 +165,6 @@ impl ProjDesc {
                             \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBDIR) $(LIBS)\n\n");
                     }
                 } else {
-                    all = self.prepend_op_vec(&self.target, "".to_owned());
                     if static_lib {
                         for target in targets {
                             target_str.push_str(&format!("{0}: $(OBJ)\n\
@@ -191,19 +183,19 @@ impl ProjDesc {
     }
 
     fn gen_lib_dir_list(&self) -> String {
-        return self.prepend_op_vec(&self.lib_dir, "-L".to_owned());
+        return self.prepend_op_vec(&self.lib_dir, "-L");
     }
 
     fn gen_lib_list(&self) -> String {
-        return self.prepend_op_vec(&self.libs, "-l".to_string());
+        return self.prepend_op_vec(&self.libs, "-l");
     }
 
     fn gen_cflags_list(&self) -> String {
-        return self.prepend_op_vec(&self.cflags, "-".to_string());
+        return self.prepend_op_vec(&self.cflags, "-");
     }
 
     fn gen_lflags_list(&self) -> String {
-        return self.prepend_op_vec(&self.lflags, "-".to_string());
+        return self.prepend_op_vec(&self.lflags, "-");
     }
 
     fn gen_src_list(&self) -> String {
@@ -252,23 +244,8 @@ impl ProjDesc {
         return horrid_string;
     }
 
-    fn gen_src_deps(&self) -> String {
-        let mut horrid_string = String::new();
-        let mut lang = self.lang.clone().unwrap_or("cpp".to_owned());
-        lang.insert(0, '.');
-        if let Some(source_list) = self.src.as_ref() {
-            for src in source_list {
-                horrid_string.push_str(&format!("{0}: {1}\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \
-                                                 {0} {1}\n\n",
-                                                src.replace(&lang, ".o"),
-                                                src));
-            }
-        }
-        return horrid_string;
-    }
-
     fn gen_inc_list(&self) -> String {
-        return self.prepend_op_vec(&self.inc, "-I".to_string());
+        return self.prepend_op_vec(&self.inc, "-I");
     }
 
     pub fn gen_make(&mut self) -> Result<String, YabsError> {
@@ -294,15 +271,9 @@ impl ProjDesc {
                 {srcs}\n\n\
                 first: all\n\n\
                 .PHONY: doc clean\n\n\
-                .SUFFIXES: .o .c .cpp .cc .cxx .C\n\n\
-                .cpp.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
-                .cc.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
-                .cxx.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
-                .C.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
-                .c.o:\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o \"$@\" \"$<\"\n\n\
                 all: {all}\n\n\
                 {target_command}\
-                {dep_list}\n\
+                %.o: %.{lang}\n\t$(CC) -c $(CFLAGS) $(INCDIR) -o $@ $<\n\
                 clean:\n\
                 \t$(DEL) $(OBJ)\n\
                 \t$(DEL) {all}\n\
@@ -318,8 +289,8 @@ impl ProjDesc {
                 incdir = &self.gen_inc_list(),
                 lib_dir = &self.gen_lib_dir_list(),
                 srcs = &self.gen_src_list(),
-                dep_list = &self.gen_src_deps(),
-                clean_list = &self.concat_clean()))
+                lang = &self.lang.clone().unwrap_or("c".to_owned()),
+                clean_list = &self.clean.clone().unwrap_or(vec![]).concat()))
     }
 
     pub fn build_bin(&mut self) -> Result<(), YabsError> {
@@ -346,7 +317,7 @@ impl ProjDesc {
                                                  ar = self.ar.as_ref().unwrap_or(&"/usr/bin/env ar".to_owned()),
                                                  ar_flags = self.arflags.as_ref().unwrap_or(&"rcs".to_owned()),
                                                  target = target,
-                                                 obj_list = self.prepend_op_vec(&Some(obj_vec.clone()), "".to_owned()),
+                                                 obj_list = obj_vec.concat(),
                                                  );
                     try!(run_cmd(cmd_string));
                 } else {
@@ -354,8 +325,7 @@ impl ProjDesc {
                                                  cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
                                                  lflags = self.gen_lflags_list(),
                                                  target = target,
-                                                 obj_list = self.prepend_op_vec(&Some(obj_vec.clone()),
-                                                 "".to_owned()),
+                                                 obj_list = obj_vec.concat(),
                                                  lib_dir = self.gen_lib_dir_list(),
                                                  libs = self.gen_lib_list());
                     try!(run_cmd(cmd_string));

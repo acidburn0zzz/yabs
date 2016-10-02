@@ -5,12 +5,12 @@
 extern crate toml;
 extern crate rustc_serialize;
 extern crate walkdir;
-extern crate rpf;
+extern crate ansi_term;
 
 use error::YabsError;
-use rpf::*;
 use ext::*;
 use desc::*;
+use ansi_term::Colour::White;
 
 use std::fs::File;
 use std::io::{Write};
@@ -142,7 +142,7 @@ impl BuildFile {
     pub fn print_sources(&mut self) -> Result<(), YabsError> {
         for profile in &mut self.profiles {
             if let &mut Some(ref mut proj) = &mut profile.proj_desc {
-                println!("{}", profile.name.bold());
+                println!("{}", White.bold().paint(profile.name.clone()));
                 try!(proj.gen_file_list());
                 if let Some(set_sources) = proj.src.as_ref() {
                     for src in set_sources {

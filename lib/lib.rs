@@ -5,7 +5,7 @@
 extern crate toml;
 extern crate rustc_serialize;
 extern crate walkdir;
-extern crate rpf;
+extern crate ansi_term;
 
 pub mod build;
 pub mod error;
