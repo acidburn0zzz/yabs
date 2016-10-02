@@ -141,9 +141,9 @@ impl ProjDesc {
         return horrid_string;
     }
 
-    // Any string that starts with the character "`" is regarded as a command
+    // Any string that starts and ends with the character "`" is regarded as a command
     pub fn is_command(&self, string: &String) -> bool {
-        if string.starts_with("`") {
+        if string.starts_with("`") && string.ends_with("`") {
             return true;
         } else {
             return false;
