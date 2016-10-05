@@ -132,7 +132,7 @@ impl BuildFile {
     pub fn build(&mut self, name: String) -> Result<(), YabsError> {
         self.apply_all();
         if let Some(profile) = self.profiles.iter().find(|ref profile| profile.name == name) {
-            try!(profile.clone().proj_desc.unwrap().build_bin());
+            try!(profile.clone().proj_desc.unwrap_or(Default::default()).build_bin());
             Ok(())
         } else {
             Err(YabsError::NoDesc(name))

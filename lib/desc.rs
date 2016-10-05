@@ -325,7 +325,7 @@ impl ProjDesc {
                                                  cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
                                                  lflags = self.gen_lflags_list(),
                                                  target = target,
-                                                 obj_list = obj_vec.concat(),
+                                                 obj_list = &self.prepend_op_vec(&Some(obj_vec.clone()), " "),
                                                  lib_dir = self.gen_lib_dir_list(),
                                                  libs = self.gen_lib_list());
                     try!(run_cmd(cmd_string));

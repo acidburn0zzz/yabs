@@ -4,7 +4,11 @@
 
 extern crate toml;
 extern crate walkdir;
+extern crate ansi_term;
 
+use ansi_term::Colour::Red;
+
+use std::process::exit;
 use std::io;
 use std::error::*;
 use std::fmt;
@@ -18,6 +22,13 @@ pub enum YabsError {
     NoLang(String),
     NoDesc(String),
     NoAssumedToml(String),
+}
+
+impl YabsError {
+    pub fn exit_with_status(&self, status: i32) {
+        println!("{} {}", Red.paint("error:"), &self);
+        exit(status);
+    }
 }
 
 impl fmt::Display for YabsError {

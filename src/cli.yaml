@@ -1,0 +1,37 @@
+name: yabs
+version: 0.1.1
+author: Alberto Corona <ac@albertocorona.com>
+about: Yet another build system
+args:
+        - file:
+                short: f
+                long: file
+                help: Use a specified TOML file
+                value_name: FILE
+                takes_value: true
+        - make:
+                short: m
+                long: make
+                help: Generate Makefile for a profile
+                value_name: PROFILE
+                takes_value: true
+        - print:
+                short: p
+                long: print
+                help: Print a build profile
+                value_name: PROFILE
+                takes_value: true
+        - profiles:
+                long: profiles
+                help: Print available profiles
+                takes_value: false
+        - build:
+                short: b
+                long: build
+                help: Build a profile
+                value_name: PROFILE
+                takes_value: true
+        - sources:
+                long: sources
+                help: Print source files for all profiles
+                takes_value: false
