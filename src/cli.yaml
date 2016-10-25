@@ -1,5 +1,5 @@
 name: yabs
-version: 0.1.1
+version: 0.1.2
 author: Alberto Corona <ac@albertocorona.com>
 about: Yet another build system
 args:
