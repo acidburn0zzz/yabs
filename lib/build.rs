@@ -116,12 +116,12 @@ impl BuildFile {
     pub fn gen_make(&mut self, name: String) -> Result<(), YabsError> {
         self.apply_all();
         if let Some(profile) = self.profiles.iter().find(|ref profile| profile.name == name) {
-            let mut file = try!(File::create("Makefile"));
+            let mut file = File::create("Makefile")?;
             if let Some(mut proj_desc) = profile.proj_desc.clone() {
-                try!(file.write(try!(proj_desc.gen_make()).as_bytes()));
+                file.write(proj_desc.gen_make()?.as_bytes())?;
             }
             if let Some(doc_desc) = profile.doc_desc.clone() {
-                try!(file.write(doc_desc.gen_make().as_bytes()));
+                file.write(doc_desc.gen_make().as_bytes())?;
             }
             Ok(())
         } else {
@@ -132,7 +132,7 @@ impl BuildFile {
     pub fn build(&mut self, name: String) -> Result<(), YabsError> {
         self.apply_all();
         if let Some(profile) = self.profiles.iter().find(|ref profile| profile.name == name) {
-            try!(profile.clone().proj_desc.unwrap_or(Default::default()).build_bin());
+            profile.clone().proj_desc.unwrap_or(Default::default()).build_bin()?;
             Ok(())
         } else {
             Err(YabsError::NoDesc(name))
@@ -143,7 +143,7 @@ impl BuildFile {
         for profile in &mut self.profiles {
             if let &mut Some(ref mut proj) = &mut profile.proj_desc {
                 println!("{}", White.bold().paint(profile.name.clone()));
-                try!(proj.gen_file_list());
+                proj.gen_file_list()?;
                 if let Some(set_sources) = proj.src.as_ref() {
                     for src in set_sources {
                         println!("{}", src);

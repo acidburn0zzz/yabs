@@ -28,7 +28,7 @@ impl<T: Decodable + Encodable + Default> Desc<T> for T {
     }
 
     fn from_toml_table(table: toml::Value) -> Result<T, YabsError> {
-        Ok(try!(Decodable::decode(&mut toml::Decoder::new(table.clone()))))
+        Ok(Decodable::decode(&mut toml::Decoder::new(table.clone()))?)
     }
 
     fn print_json(&self) {
@@ -100,7 +100,7 @@ impl ProjDesc {
         let mut sources = Vec::new();
         let walk_dir = WalkDir::new(".").into_iter();
         for entry in walk_dir.filter_entry(|e| !&self.is_in_ignore(e)) {
-            let entry = try!(entry);
+            let entry = entry?;
             if entry.path().is_file() {
                 let file_ext = entry.path().extension().unwrap_or(OsStr::new(""));
                 if let Some(ext) = file_ext.to_str() {
@@ -249,7 +249,7 @@ impl ProjDesc {
     }
 
     pub fn gen_make(&mut self) -> Result<String, YabsError> {
-        try!(self.gen_file_list());
+        self.gen_file_list()?;
         let target = &self.gen_target_list();
         Ok(format!(
             "INSTALL\t= /usr/bin/env install\n\
@@ -294,7 +294,7 @@ impl ProjDesc {
     }
 
     pub fn build_bin(&mut self) -> Result<(), YabsError> {
-        try!(self.gen_file_list());
+        self.gen_file_list()?;
         if let Some(src_list) = self.src.as_ref() {
             let mut lang = self.lang.clone().unwrap_or("cpp".to_owned());
             lang.insert(0, '.');
@@ -308,7 +308,7 @@ impl ProjDesc {
                                          source = src,
                                          object = src.replace(&lang, ".o"),
                                          );
-                try!(run_cmd(cmd_string));
+                run_cmd(cmd_string)?;
                 obj_vec.push(src.replace(&lang, ".o"));
             }
             for target in self.target.clone().unwrap_or(vec!["a".to_owned()]) {
@@ -319,7 +319,7 @@ impl ProjDesc {
                                                  target = target,
                                                  obj_list = obj_vec.concat(),
                                                  );
-                    try!(run_cmd(cmd_string));
+                    run_cmd(cmd_string)?;
                 } else {
                     cmd_string = format!("{cc} {lflags} -o {target} {obj_list} {lib_dir} {libs}",
                                                  cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
@@ -328,7 +328,7 @@ impl ProjDesc {
                                                  obj_list = &self.prepend_op_vec(&Some(obj_vec.clone()), " "),
                                                  lib_dir = self.gen_lib_dir_list(),
                                                  libs = self.gen_lib_list());
-                    try!(run_cmd(cmd_string));
+                    run_cmd(cmd_string)?;
                 }
             };
         };
