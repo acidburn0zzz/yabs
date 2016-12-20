@@ -1,68 +1,22 @@
 extern crate toml;
-extern crate rustc_serialize;
 extern crate walkdir;
 
 use error::YabsError;
 use ext::*;
-use rustc_serialize::{Decodable, Encodable, json};
+use desc::desc::*;
 use walkdir::{WalkDir, WalkDirIterator, DirEntry};
 
 use std::ffi::OsStr;
 
-pub struct Target {
-    pub target: String,
-    pub all: String,
-}
-
-// General trait for any description.
-pub trait Desc<T> {
-    fn new() -> T;
-    fn from_toml_table(table: toml::Value) -> Result<T, YabsError>;
-    fn print_json(&self);
-}
-
-impl<T: Decodable + Encodable + Default> Desc<T> for T {
-    // Creates an empty description using `Default`
-    fn new() -> T {
-        Default::default()
-    }
-
-    fn from_toml_table(table: toml::Value) -> Result<T, YabsError> {
-        Ok(Decodable::decode(&mut toml::Decoder::new(table.clone()))?)
-    }
-
-    fn print_json(&self) {
-        println!("{}", json::as_pretty_json(&self));
-    }
-}
-
-pub trait FromFile<T> {
-    fn from_file(file: &str, name: &str) -> Result<T, Vec<YabsError>>;
-}
-
-// FromFile for anything T that implements Desc etc.
-impl<T: Decodable + Encodable + Default + Desc<T>> FromFile<T> for T {
-    fn from_file(file: &str, name: &str) -> Result<T, Vec<YabsError>> {
-        parse_toml_file(file).and_then(|toml| {
-            toml.get(name)
-                .ok_or(vec![YabsError::NoDesc(name.to_owned())])
-                .and_then(|desc| {
-                    Decodable::decode(&mut toml::Decoder::new(desc.clone()))
-                        .map_err(|err| vec![YabsError::TomlDecode(err)])
-                })
-        })
-    }
-}
-
-#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
-pub struct ProjDesc {
+#[derive(Debug,Default,Deserialize,Serialize,Clone,PartialEq)]
+pub struct ProjectDesc {
     name: Option<String>,
     target: Option<Vec<String>>,
     lang: Option<String>,
     os: Option<String>,
     version: Option<String>,
     compiler: Option<String>,
-    pub src: Option<Vec<String>>,
+    src: Option<Vec<String>>,
     libs: Option<Vec<String>>,
     lib_dir: Option<Vec<String>>,
     inc: Option<Vec<String>>,
@@ -78,7 +32,11 @@ pub struct ProjDesc {
     clean: Option<Vec<String>>,
 }
 
-impl ProjDesc {
+impl ProjectDesc {
+    pub fn get_src(&self) -> Option<Vec<String>> {
+        return self.src.clone();
+    }
+
     pub fn is_in_ignore(&self, entry: &DirEntry) -> bool {
         if let Some(ignore) = self.ignore.as_ref() {
             for path in ignore {
@@ -333,29 +291,5 @@ impl ProjDesc {
             };
         };
         Ok(())
-    }
-}
-
-// Descibe how to install this project
-#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
-pub struct InstallDesc {
-    prefix: Option<String>,
-}
-
-// Generate documentation for this project
-#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
-pub struct DocDesc {
-    doc: Option<Vec<String>>,
-}
-
-impl DocDesc {
-    pub fn gen_make(&self) -> String {
-        let mut doc_str = String::from("doc:\n");
-        if let Some(doc) = self.doc.clone() {
-            for line in doc {
-                doc_str.push_str(&format!("\t{}\n", &line));
-            }
-        }
-        return doc_str;
     }
 }

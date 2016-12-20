@@ -3,11 +3,13 @@
 // 3-Clause license. For full terms please see the LICENSE file.
 
 extern crate toml;
-extern crate rustc_serialize;
 extern crate walkdir;
 extern crate ansi_term;
+extern crate serde;
+extern crate serde_json;
 
 pub mod build;
 pub mod error;
 pub mod ext;
+pub mod profile;
 mod desc;

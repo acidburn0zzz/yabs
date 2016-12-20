@@ -3,30 +3,23 @@
 // 3-Clause license. For full terms please see the LICENSE file.
 
 extern crate toml;
-extern crate rustc_serialize;
 extern crate walkdir;
 extern crate ansi_term;
 
+use desc::project::*;
+use desc::install::*;
+use desc::doc::*;
+use desc::desc::*;
+use profile::*;
 use error::YabsError;
 use ext::*;
-use desc::*;
 use ansi_term::Colour::White;
 
 use std::fs::File;
 use std::io::{Write};
 
-// Profile has descriptions that describe build instructions (proj_desc),
-// install instructions (inst_desc), and documentation instructions (doc_desc).
-#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone,PartialEq)]
-pub struct Profile {
-    name: String,
-    proj_desc: Option<ProjDesc>,
-    inst_desc: Option<InstallDesc>,
-    doc_desc: Option<DocDesc>,
-}
-
 // A build file could have multiple `Profile`s
-#[derive(Debug,Default,RustcDecodable,RustcEncodable,Clone)]
+#[derive(Debug,Default,Clone)]
 pub struct BuildFile {
     profiles: Vec<Profile>,
 }
@@ -66,7 +59,7 @@ impl BuildFile {
                             for (key, table) in inner_table {
                                 match key.as_ref() {
                                     "project" => {
-                                        profile.proj_desc = ProjDesc::from_toml_table(table).ok()
+                                        profile.proj_desc = ProjectDesc::from_toml_table(table).ok()
                                     }
                                     "install" => {
                                         profile.inst_desc = InstallDesc::from_toml_table(table).ok()
@@ -87,11 +80,12 @@ impl BuildFile {
             .map_err(|err| err)
     }
 
-    pub fn print_as_json(&mut self) {
+    pub fn print_as_json(&mut self) -> Result<(), YabsError> {
         self.apply_all();
         for profile in &self.profiles {
-            profile.print_json();
+            profile.print_json()?;
         }
+        Ok(())
     }
 
     pub fn print_available_profiles(&mut self) {
@@ -103,13 +97,14 @@ impl BuildFile {
     }
 
     // Prints a profile with name `name` in build file as JSON
-    pub fn print_profile_as_json(&mut self, name: String) {
+    pub fn print_profile_as_json(&mut self, name: String) -> Result<(), YabsError> {
         self.apply_all();
         for profile in &self.profiles {
             if profile.name == name {
-                profile.print_json();
+                profile.print_json()?;
             }
         }
+        Ok(())
     }
 
     // Generate a Makefile using from a profile with name `name`
@@ -144,7 +139,7 @@ impl BuildFile {
             if let &mut Some(ref mut proj) = &mut profile.proj_desc {
                 println!("{}", White.bold().paint(profile.name.clone()));
                 proj.gen_file_list()?;
-                if let Some(set_sources) = proj.src.as_ref() {
+                if let Some(set_sources) = proj.get_src().as_ref() {
                     for src in set_sources {
                         println!("{}", src);
                     }
