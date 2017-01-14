@@ -1,7 +1,10 @@
 // Copyright (c) 2015 - 2016, Alberto Corona <ac@albertocorona.com>
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
+#![feature(proc_macro)]
 
+#[macro_use]
+extern crate serde_derive;
 extern crate toml;
 extern crate walkdir;
 extern crate ansi_term;

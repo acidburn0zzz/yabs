@@ -1,3 +1,7 @@
 extern crate serde;
 
-include!(concat!(env!("OUT_DIR"), "/install.rs"));
+// Descibe how to install this project
+#[derive(Debug,Default,Serialize, Deserialize,Clone,PartialEq)]
+pub struct InstallDesc {
+    prefix: Option<String>,
+}

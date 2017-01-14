@@ -4,19 +4,16 @@ version = "0.1.2"
 authors = ["Alberto Corona <ac@albertocorona.com>>"]
 keywords = ["system", "build", "make"]
 description = "Yet another build system"
-repository = "https://gitlab.com/0X1A/yabs"
+repository = "https://github.com/0X1A/yabs"
 license = "BSD-3-Clause"
 readme = "README.md"
-build = "build.rs"
 
 [dependencies]
 serde = "0.8"
+serde_derive = "0.8"
 serde_json = "0.8"
 walkdir = "1"
 ansi_term = "0.9"
-
-[build-dependencies]
-serde_codegen = "0.8"
 
 [dependencies.toml]
 version = "0.2"
