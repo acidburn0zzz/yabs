@@ -13,6 +13,7 @@ use std::process::exit;
 use std::io;
 use std::error::*;
 use std::fmt;
+use std::string;
 
 #[derive(Debug)]
 pub enum YabsError {
@@ -20,8 +21,10 @@ pub enum YabsError {
     Toml(toml::Error),
     TomlParse(toml::ParserError),
     TomlDecode(toml::DecodeError),
+    Utf8(string::FromUtf8Error),
     Json(serde_json::error::Error),
     WalkDir(walkdir::Error),
+    Command(String, i32),
     NoLang(String),
     NoDesc(String),
     NoAssumedToml(String),
@@ -41,8 +44,10 @@ impl fmt::Display for YabsError {
             YabsError::Toml(ref err) => write!(f, "toml error, {}", err),
             YabsError::TomlParse(ref err) => write!(f, "toml parsing error, {}", err),
             YabsError::TomlDecode(ref err) => write!(f, "toml decoding error, {}", err),
+            YabsError::Utf8(ref err) => write!(f, "UTF-8 conversion error, {}", err),
             YabsError::Json(ref err) => write!(f, "json serialization error, {}", err),
             YabsError::WalkDir(ref err) => write!(f, "directory walking error, {}", err),
+            YabsError::Command(ref cmd, ref exit_status) => write!(f, "command {} exited with status {}", cmd, exit_status),
             YabsError::NoLang(ref profile) => write!(f, "no language found in profile {}", profile),
             YabsError::NoDesc(ref name) => write!(f, "no '{}' section found in project file", name),
             YabsError::NoAssumedToml(ref name) => write!(f, "couldn't find file '{}'", name),
@@ -57,8 +62,10 @@ impl Error for YabsError {
             YabsError::Toml(ref err) => err.description(),
             YabsError::TomlParse(ref err) => err.description(),
             YabsError::TomlDecode(ref err) => err.description(),
+            YabsError::Utf8(ref err) => err.description(),
             YabsError::Json(ref err) => err.description(),
             YabsError::WalkDir(ref err) => err.description(),
+            YabsError::Command(..) => "command exited unsuccessfully",
             YabsError::NoLang(..) => "no language set in profile",
             YabsError::NoDesc(..) => "no desc",
             YabsError::NoAssumedToml(..) => "no assumed toml file",
@@ -71,8 +78,10 @@ impl Error for YabsError {
             YabsError::Toml(ref err) => Some(err),
             YabsError::TomlParse(ref err) => Some(err),
             YabsError::TomlDecode(ref err) => Some(err),
+            YabsError::Utf8(ref err) => Some(err),
             YabsError::Json(ref err) => Some(err),
             YabsError::WalkDir(ref err) => Some(err),
+            YabsError::Command(..) => None,
             YabsError::NoLang(..) => None,
             YabsError::NoDesc(..) => None,
             YabsError::NoAssumedToml(..) => None,
@@ -101,6 +110,12 @@ impl From<toml::ParserError> for YabsError {
 impl From<toml::DecodeError> for YabsError {
     fn from(err: toml::DecodeError) -> YabsError {
         YabsError::TomlDecode(err)
+    }
+}
+
+impl From<string::FromUtf8Error> for YabsError {
+    fn from(err: string::FromUtf8Error) -> YabsError {
+        YabsError::Utf8(err)
     }
 }
 

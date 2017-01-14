@@ -251,7 +251,17 @@ impl ProjectDesc {
                 clean_list = &self.clean.clone().unwrap_or(vec![]).concat()))
     }
 
+    pub fn run_script(&self, script: &Option<Vec<String>>) -> Result<(), YabsError> {
+        if let Some(script) = script.as_ref() {
+            for cmd in script {
+                run_cmd(cmd.to_owned())?;
+            }
+        }
+        Ok(())
+    }
+
     pub fn build_bin(&mut self) -> Result<(), YabsError> {
+        self.run_script(&self.before_script)?;
         self.gen_file_list()?;
         if let Some(src_list) = self.src.as_ref() {
             let mut lang = self.lang.clone().unwrap_or("cpp".to_owned());
@@ -290,6 +300,7 @@ impl ProjectDesc {
                 }
             };
         };
+        self.run_script(&self.after_script)?;
         Ok(())
     }
 }

@@ -55,11 +55,15 @@ pub fn get_assumed_filename() -> Option<String> {
 }
 
 pub fn run_cmd(cmd: String) -> Result<(), YabsError> {
-    let mut command = Command::new("sh")
+    let command = Command::new("sh")
                            .arg("-c")
                            .arg(&cmd)
-                           .spawn()?;
-    command.wait()?;
-    println!("{}", cmd);
+                           .spawn()?
+                           .wait_with_output()?;
+    println!("{}", &cmd);
+    if !command.status.success() {
+        return Err(YabsError::Command(cmd, command.status.code().unwrap_or(1)));
+    }
+    print!("{}", String::from_utf8(command.stdout)?);
     Ok(())
 }
