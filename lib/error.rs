@@ -47,7 +47,7 @@ impl fmt::Display for YabsError {
             YabsError::Utf8(ref err) => write!(f, "UTF-8 conversion error, {}", err),
             YabsError::Json(ref err) => write!(f, "json serialization error, {}", err),
             YabsError::WalkDir(ref err) => write!(f, "directory walking error, {}", err),
-            YabsError::Command(ref cmd, ref exit_status) => write!(f, "command {} exited with status {}", cmd, exit_status),
+            YabsError::Command(ref cmd, ref exit_status) => write!(f, "command '{}' exited with status {}", cmd, exit_status),
             YabsError::NoLang(ref profile) => write!(f, "no language found in profile {}", profile),
             YabsError::NoDesc(ref name) => write!(f, "no '{}' section found in project file", name),
             YabsError::NoAssumedToml(ref name) => write!(f, "couldn't find file '{}'", name),
@@ -128,5 +128,11 @@ impl From<serde_json::error::Error> for YabsError {
 impl From<walkdir::Error> for YabsError {
     fn from(err: walkdir::Error) -> YabsError {
         YabsError::WalkDir(err)
+    }
+}
+
+impl From<YabsError> for Vec<YabsError> {
+    fn from(err: YabsError) -> Vec<YabsError> {
+        vec![err]
     }
 }

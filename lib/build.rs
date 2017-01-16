@@ -59,13 +59,13 @@ impl BuildFile {
                             for (key, table) in inner_table {
                                 match key.as_ref() {
                                     "project" => {
-                                        profile.proj_desc = ProjectDesc::from_toml_table(table).ok()
+                                        profile.proj_desc = Some(ProjectDesc::from_toml_table(table)?)
                                     }
                                     "install" => {
-                                        profile.inst_desc = InstallDesc::from_toml_table(table).ok()
+                                        profile.inst_desc = Some(InstallDesc::from_toml_table(table)?)
                                     }
                                     "doc" => {
-                                        profile.doc_desc = DocDesc::from_toml_table(table).ok()
+                                        profile.doc_desc = Some(DocDesc::from_toml_table(table)?)
                                     }
                                     _ => (),
                                 }

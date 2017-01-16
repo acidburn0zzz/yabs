@@ -20,7 +20,7 @@ pub fn parse_toml_file<T: AsRef<Path> + Clone>(file: T) -> Result<toml::Table, V
         Err(e) => {
             match e.kind() {
                 io::ErrorKind::NotFound => {
-                    error_vect.push(YabsError::NoAssumedToml(file.as_ref().to_str().unwrap().to_string()));
+                    error_vect.push(YabsError::NoAssumedToml(file.as_ref().to_string_lossy().into_owned()));
                 },
                 _ => {
                     error_vect.push(YabsError::Io(e));
@@ -46,7 +46,7 @@ pub fn parse_toml_file<T: AsRef<Path> + Clone>(file: T) -> Result<toml::Table, V
 pub fn get_assumed_filename() -> Option<String> {
     if let Ok(current_dir) = env::current_dir() {
         if let Some(file_stem) = current_dir.components().last() {
-            let mut file_name: String = String::from(file_stem.as_ref().to_str().unwrap_or(""));
+            let mut file_name = file_stem.as_ref().to_string_lossy().into_owned();
             file_name.push_str(".toml");
             return Some(file_name);
         }
@@ -54,7 +54,7 @@ pub fn get_assumed_filename() -> Option<String> {
     None
 }
 
-pub fn run_cmd(cmd: String) -> Result<(), YabsError> {
+pub fn run_cmd(cmd: &String) -> Result<(), YabsError> {
     let command = Command::new("sh")
                            .arg("-c")
                            .arg(&cmd)
@@ -62,7 +62,8 @@ pub fn run_cmd(cmd: String) -> Result<(), YabsError> {
                            .wait_with_output()?;
     println!("{}", &cmd);
     if !command.status.success() {
-        return Err(YabsError::Command(cmd, command.status.code().unwrap_or(1)));
+        print!("{}", String::from_utf8(command.stderr)?);
+        return Err(YabsError::Command(cmd.to_owned(), command.status.code().unwrap_or(1)));
     }
     print!("{}", String::from_utf8(command.stdout)?);
     Ok(())

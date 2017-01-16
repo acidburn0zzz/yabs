@@ -19,14 +19,19 @@ pub struct ProjectDesc {
     compiler: Option<String>,
     src: Option<Vec<String>>,
     libs: Option<Vec<String>>,
+    #[serde(rename = "lib-dir")]
     lib_dir: Option<Vec<String>>,
     inc: Option<Vec<String>>,
     cflags: Option<Vec<String>>,
+    #[serde(rename = "explicit-cflags")]
     explicit_cflags: Option<String>,
     lflags: Option<Vec<String>>,
     ignore: Option<Vec<String>>,
+    #[serde(rename = "before-script")]
     before_script: Option<Vec<String>>,
+    #[serde(rename = "after-script")]
     after_script: Option<Vec<String>>,
+    #[serde(rename = "static-lib")]
     static_lib: Option<bool>,
     ar: Option<String>,
     arflags: Option<String>,
@@ -113,7 +118,8 @@ impl ProjectDesc {
         let mut all = String::new();
         let mut target_str = String::new();
         if let Some(targets) = self.target.clone() {
-            all = targets.concat();
+            all = targets.join(" ");
+            println!("{}", all);
             if let Some(static_lib) = self.static_lib {
                 if targets.len() == 1 {
                     if static_lib {
@@ -249,13 +255,13 @@ impl ProjectDesc {
                 lib_dir = &self.gen_lib_dir_list(),
                 srcs = &self.gen_src_list(),
                 lang = &self.lang.clone().unwrap_or("c".to_owned()),
-                clean_list = &self.clean.clone().unwrap_or(vec![]).concat()))
+                clean_list = &self.clean.clone().unwrap_or(vec![]).join(" ")))
     }
 
     pub fn run_script(&self, script: &Option<Vec<String>>) -> Result<(), YabsError> {
         if let Some(script) = script.as_ref() {
             for cmd in script {
-                run_cmd(cmd.to_owned())?;
+                run_cmd(cmd)?;
             }
         }
         Ok(())
@@ -270,14 +276,13 @@ impl ProjectDesc {
             let mut cmd_string;
             let mut obj_vec = Vec::new();
             for src in src_list {
-                cmd_string = format!("{cc} -c {cflag} {inc} -o {object} {source}",
+                run_cmd(&format!("{cc} -c {cflag} {inc} -o {object} {source}",
                                          cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
                                          cflag = self.gen_cflags_list(),
                                          inc = self.gen_inc_list(),
                                          source = src,
                                          object = src.replace(&lang, ".o"),
-                                         );
-                run_cmd(cmd_string)?;
+                                         ))?;
                 obj_vec.push(src.replace(&lang, ".o"));
             }
             for target in self.target.clone().unwrap_or(vec!["a".to_owned()]) {
@@ -286,9 +291,9 @@ impl ProjectDesc {
                                                  ar = self.ar.as_ref().unwrap_or(&"/usr/bin/env ar".to_owned()),
                                                  ar_flags = self.arflags.as_ref().unwrap_or(&"rcs".to_owned()),
                                                  target = target,
-                                                 obj_list = obj_vec.concat(),
+                                                 obj_list = obj_vec.join(" "),
                                                  );
-                    run_cmd(cmd_string)?;
+                    run_cmd(&cmd_string)?;
                 } else {
                     cmd_string = format!("{cc} {lflags} -o {target} {obj_list} {lib_dir} {libs}",
                                                  cc = self.compiler.as_ref().unwrap_or(&"gcc".to_owned()),
@@ -297,7 +302,7 @@ impl ProjectDesc {
                                                  obj_list = &self.prepend_op_vec(&Some(obj_vec.clone()), " "),
                                                  lib_dir = self.gen_lib_dir_list(),
                                                  libs = self.gen_lib_list());
-                    run_cmd(cmd_string)?;
+                    run_cmd(&cmd_string)?;
                 }
             };
         };
