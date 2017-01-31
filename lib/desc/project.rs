@@ -119,7 +119,6 @@ impl ProjectDesc {
         let mut target_str = String::new();
         if let Some(targets) = self.target.clone() {
             all = targets.join(" ");
-            println!("{}", all);
             if let Some(static_lib) = self.static_lib {
                 if targets.len() == 1 {
                     if static_lib {
@@ -140,6 +139,16 @@ impl ProjectDesc {
                             target_str.push_str(&format!("{0}: $(OBJ)\n\
                                     \t$(CC) $(LFLAGS) -o {0} $(OBJ) $(LIBDIR) $(LIBS)\n\n", target));
                         }
+                    }
+                }
+            } else {
+                if targets.len() == 1 {
+                    target_str = format!("$(TARGET): $(OBJ)\n\
+                        \t$(CC) $(LFLAGS) -o $(TARGET) $(OBJ) $(LIBDIR) $(LIBS)\n\n");
+                } else {
+                    for target in targets {
+                        target_str.push_str(&format!("{0}: $(OBJ)\n\
+                                    \t$(CC) $(LFLAGS) -o {0} $(OBJ) $(LIBDIR) $(LIBS)\n\n", target));
                     }
                 }
             }
