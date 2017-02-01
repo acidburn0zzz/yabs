@@ -8,6 +8,7 @@ use desc::desc::*;
 use walkdir::{WalkDir, WalkDirIterator, DirEntry};
 
 use std::ffi::OsStr;
+use std::env;
 
 #[derive(Debug,Default,Deserialize,Serialize,Clone,PartialEq)]
 pub struct ProjectDesc {
@@ -278,6 +279,7 @@ impl ProjectDesc {
 
     pub fn build_bin(&mut self) -> Result<(), YabsError> {
         self.run_script(&self.before_script)?;
+        env::set_var("VERSION", format!("\"{}\"", &self.version.clone().unwrap_or("0.0.1".to_owned())));
         self.gen_file_list()?;
         if let Some(src_list) = self.src.as_ref() {
             let mut lang = self.lang.clone().unwrap_or("cpp".to_owned());
