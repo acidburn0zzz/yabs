@@ -1,6 +1,8 @@
 [linux_c.project]
+target = ["linux_c"]
 lang = "c"
 
 [linux_cpp.project]
+target = ["linux_cpp"]
 compiler = "g++"
 lang = "cpp"

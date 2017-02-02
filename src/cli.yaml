@@ -35,3 +35,11 @@ args:
                 long: sources
                 help: Print source files for all profiles
                 takes_value: false
+subcommands:
+        - new:
+                about: Create a new yabs project
+                args:
+                        - bin:
+                                long: bin
+                                value_name: NAME
+                                takes_value: true

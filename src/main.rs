@@ -5,32 +5,37 @@
 extern crate util;
 #[macro_use]
 extern crate clap;
-extern crate ansi_term;
+#[macro_use]
+extern crate log;
 
 use clap::App;
 use std::process::exit;
-use ansi_term::Colour::{Red, White};
 use util::*;
 use util::error::YabsError;
 
-fn print_error(error: YabsError) {
-    println!("{} {}",
-             Red.bold().paint("error:"),
-             White.bold().paint(error.to_string()));
-}
-
 fn print_error_vect(errors: Vec<YabsError>) {
     for error in errors {
-        println!("{} {}",
-                 Red.bold().paint("error:"),
-                 White.bold().paint(error.to_string()));
+        error!("{}", error.to_string());
     }
 }
 
 fn run() -> i32 {
     let yaml = load_yaml!("cli.yaml");
+    if let Err(error) = logger::Logger::init() {
+        error!("{}", error.to_string());
+        return 1;
+    };
     let matches = App::from_yaml(yaml).get_matches();
-    if let Some(mut assumed_file_name) = ext::get_assumed_filename() {
+    if let Some(matches) = matches.subcommand_matches("new") {
+        if matches.is_present("bin") {
+            if let Some(value) = matches.value_of("bin") {
+                if let Err(error) = new::new_project(&value.to_owned(), false) {
+                    error!("{}", error.to_string());
+                    return 1;
+                }
+            }
+        }
+    } else if let Some(mut assumed_file_name) = ext::get_assumed_filename() {
         if let Some(file) = matches.value_of("file") {
             assumed_file_name = file.to_owned();
         }
@@ -43,8 +48,8 @@ fn run() -> i32 {
                     &build_file.gen_make(makefile.to_owned());
                 }
                 if let Some(build) = matches.value_of("build") {
-                    if let Err(err) = build_file.build(build.to_owned()) {
-                        print_error(err);
+                    if let Err(error) = build_file.build(build.to_owned()) {
+                        error!("{}", error.to_string());
                         return 2;
                     }
                 }

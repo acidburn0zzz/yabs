@@ -6,14 +6,13 @@ extern crate toml;
 extern crate walkdir;
 extern crate ansi_term;
 extern crate serde_json;
+extern crate log;
 
-use ansi_term::Colour::Red;
-
-use std::process::exit;
 use std::io;
 use std::error::*;
 use std::fmt;
 use std::string;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub enum YabsError {
@@ -23,18 +22,13 @@ pub enum YabsError {
     TomlDecode(toml::DecodeError),
     Utf8(string::FromUtf8Error),
     Json(serde_json::error::Error),
+    Log(log::SetLoggerError),
     WalkDir(walkdir::Error),
     Command(String, i32),
     NoLang(String),
     NoDesc(String),
     NoAssumedToml(String),
-}
-
-impl YabsError {
-    pub fn exit_with_status(&self, status: i32) {
-        println!("{} {}", Red.paint("error:"), &self);
-        exit(status);
-    }
+    DirExists(PathBuf),
 }
 
 impl fmt::Display for YabsError {
@@ -46,11 +40,13 @@ impl fmt::Display for YabsError {
             YabsError::TomlDecode(ref err) => write!(f, "toml decoding error, {}", err),
             YabsError::Utf8(ref err) => write!(f, "UTF-8 conversion error, {}", err),
             YabsError::Json(ref err) => write!(f, "json serialization error, {}", err),
+            YabsError::Log(ref err) => write!(f, "log set error, {}", err),
             YabsError::WalkDir(ref err) => write!(f, "directory walking error, {}", err),
             YabsError::Command(ref cmd, ref exit_status) => write!(f, "command '{}' exited with status {}", cmd, exit_status),
             YabsError::NoLang(ref profile) => write!(f, "no language found in profile {}", profile),
             YabsError::NoDesc(ref name) => write!(f, "no '{}' section found in project file", name),
             YabsError::NoAssumedToml(ref name) => write!(f, "couldn't find file '{}'", name),
+            YabsError::DirExists(ref dir) => write!(f, "directory '{}' already exists", dir.display()),
         }
     }
 }
@@ -64,11 +60,13 @@ impl Error for YabsError {
             YabsError::TomlDecode(ref err) => err.description(),
             YabsError::Utf8(ref err) => err.description(),
             YabsError::Json(ref err) => err.description(),
+            YabsError::Log(ref err) => err.description(),
             YabsError::WalkDir(ref err) => err.description(),
             YabsError::Command(..) => "command exited unsuccessfully",
             YabsError::NoLang(..) => "no language set in profile",
             YabsError::NoDesc(..) => "no desc",
             YabsError::NoAssumedToml(..) => "no assumed toml file",
+            YabsError::DirExists(..) => "directory already exists",
         }
     }
 
@@ -80,11 +78,13 @@ impl Error for YabsError {
             YabsError::TomlDecode(ref err) => Some(err),
             YabsError::Utf8(ref err) => Some(err),
             YabsError::Json(ref err) => Some(err),
+            YabsError::Log(ref err) => Some(err),
             YabsError::WalkDir(ref err) => Some(err),
             YabsError::Command(..) => None,
             YabsError::NoLang(..) => None,
             YabsError::NoDesc(..) => None,
             YabsError::NoAssumedToml(..) => None,
+            YabsError::DirExists(..) => None,
         }
     }
 }
@@ -110,6 +110,12 @@ impl From<toml::ParserError> for YabsError {
 impl From<toml::DecodeError> for YabsError {
     fn from(err: toml::DecodeError) -> YabsError {
         YabsError::TomlDecode(err)
+    }
+}
+
+impl From<log::SetLoggerError> for YabsError {
+    fn from(err: log::SetLoggerError) -> YabsError {
+        YabsError::Log(err)
     }
 }
 
