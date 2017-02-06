@@ -2,7 +2,3 @@ language: rust
 rust: stable
 script:
         - cargo build -j2
-
-branches:
-        only:
-                - rust-port
