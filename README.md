@@ -2,7 +2,7 @@
 Yet another build system. A C and C++ build system, with projects described
 using TOML.
 
-[![](https://gitlab.com/0X1A/yabs/badges/master/build.svg)](https://gitlab.com/0X1A/yabs/builds)
+[![Build Status](https://travis-ci.org/0X1A/yabs.svg?branch=master)](https://travis-ci.org/0X1A/yabs)
 
 ## Get Yabs
 To install yabs simply run `cargo install yabs`. If you are installing from 
