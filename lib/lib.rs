@@ -9,7 +9,6 @@ extern crate walkdir;
 extern crate ansi_term;
 extern crate serde;
 extern crate serde_json;
-#[macro_use]
 extern crate log;
 
 pub mod build;
