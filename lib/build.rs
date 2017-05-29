@@ -66,7 +66,6 @@ impl BuildFile {
     }
 
     fn build_all_binaries(&mut self) -> Result<(), YabsError> {
-        &self.project.run_script(&self.project.before_script)?;
         if !&self.binaries.is_some() {
             return Ok(());
         }
@@ -88,7 +87,6 @@ impl BuildFile {
                 &self.build_binary(binary)?;
             }
         }
-        &self.project.run_script(&self.project.after_script)?;
         Ok(())
     }
 
@@ -146,8 +144,10 @@ impl BuildFile {
     }
 
     pub fn build(&mut self) -> Result<(), YabsError> {
+        &self.project.run_script(&self.project.before_script)?;
         &self.build_all_binaries()?;
         &self.build_library()?;
+        &self.project.run_script(&self.project.after_script)?;
         Ok(())
     }
 
