@@ -1,8 +1,13 @@
 # yabs
+[![Build Status](https://travis-ci.org/0X1A/yabs.svg?branch=master)](https://travis-ci.org/0X1A/yabs)
+
 Yet another build system. A C and C++ build system, with projects described
 using TOML.
 
-[![Build Status](https://travis-ci.org/0X1A/yabs.svg?branch=master)](https://travis-ci.org/0X1A/yabs)
+**Note**: Yabs is still very much a work in progress and is subject to change.
+Until yabs reaches version `1.0.0`, it should be assumed that yabs will continue 
+to change.
+
 
 ## Get Yabs
 To install yabs simply run `cargo install yabs`. If you are installing from 
@@ -18,22 +23,25 @@ Output of `yabs -h`
 
 ```
 yabs 0.1.2
+Alberto Corona <ac@albertocorona.com>
 Yet another build system
 
 USAGE:
     yabs [FLAGS] [OPTIONS] [SUBCOMMAND]
 
 FLAGS:
-    -h, --help        Prints help information
-        --profiles    Print available profiles
-        --sources     Print source files for all profiles
-    -V, --version     Prints version information
+    -b, --build      Build the entire project
+        --clean      Removes object files, binaries and libraries
+    -h, --help       Prints help information
+        --sources    Print source files for all profiles
+    -V, --version    Prints version information
 
 OPTIONS:
-    -b, --build <PROFILE>    Build a profile
-    -f, --file <FILE>        Use a specified TOML file
-    -m, --make <PROFILE>     Generate Makefile for a profile
-    -p, --print <PROFILE>    Print a build profile
+    -f, --file <FILE>    Use a specified TOML file
+
+SUBCOMMANDS:
+    help    Prints this message or the help of the given subcommand(s)
+    new     Create a new yabs project
 
 ```
 
@@ -41,74 +49,69 @@ OPTIONS:
 `yabs` uses TOML to define projects. For example, a project in C++ using libraries such as SDL2, SDL2-image, SDL2-ttf, and Lua 5.3 would look similar to the following:
 
 ```toml
-[linux.project]
+[project]
 name = "kuma"
-target = ["kuma"]
 lang = "cpp"
 compiler = "g++"
-cflags = ["std=c++11"]
-inc = [
-    "src",
-    "`pkg-config --cflags lua5.3 SDL2_image SDL2_ttf`",
-]
-libs = [
-        "`pkg-config --libs lua5.3 SDL2_image SDL2_ttf`",
+compiler-flags = ["std=c++14", "O0", "Wall", "Wextra", "g", "D_DEBUG_"]
+include = ["src","`pkg-config --cflags sdl2 lua5.3`", "/usr/include/yaml-cpp", "third_party/sol2/single/sol"]
+libraries = [
+	"`pkg-config --libs sdl2 SDL2_image SDL2_ttf SDL2_mixer lua5.3 yaml-cpp`",
 ]
 ignore = [
 	"tests/",
+	"src/scratch.cpp",
+	"src/scratch0.cpp",
+	"third_party/",
 ]
-static-lib = false
+clean = [
+	'-r doc/html doc/latex',
+]
 
-[static_lib.project]
+[[bin]]
 name = "kuma"
-static-lib = true
-arflags = "rcs"
-target = ["libkuma.a"]
-lang = "cpp"
-comp = "g++"
-cflags = ["std=c++11"]
-inc = ["src", "/usr/include/SDL2",]
-libs = [
-	"SDL2",
-	"SDL2-image",
-	"SDL2-ttf",
-	"lua",
-]
-ignore = [
-	"src/main.cpp",
-	"tests/",
-]
+path = "./src/main.cpp"
+
+
+[[lib]]
+name = "libkuma.a"
+path = "libkuma.a"
 ```
 
 Here `[linux.project]` defines a toml table, which then defines the project corresponding to the key 'linux'.
 
 ### Building a Project
-`yabs` can build a project directly though this does not support multiple jobs. In the prior example two projects were defined: `linux` and `static-lib`. To build `linux` one would simply run `yabs -b linux`.
-
-### Generating a Makefile
-`yabs` can also generate Makefiles for projects. This can be done with `-m`, using our previous example: `yabs -m linux`. This would create a Makefile for our project `linux`.
+Currently `yabs` builds all targets listed in `[[bin]]` and `[[lib]]` sections
 
 # Keys and Values
 The following tables describes what keys are available to yabs project files.
 
+### [project]
 | Key    | Value                           | Type |
 | ---    | -----                           | ---- |
 | `name`   | Name for project                | String |
-| `target` | Name for target binary          | Array |
 | `lang`   | Extension used for source files | String |
-| `os` | Operating system | String |
 | `version` | Version number | String |
 | `compiler` | Compiler to use | String |
 | `src` | Source files | Array |
-| `libs` | Libraries to link | Array |
-| `lib-dir` | Library directories to use | Array |
-| `inc` | Include directories | Array |
-| `cflags` | Compiler flags | Array |
-| `lflags` | Linker flags | Array |
+| `libraries` | Libraries to link | Array |
+| `librariy-directories` | Library directories to use | Array |
+| `include` | Include directories | Array |
+| `compiler-flags` | Compiler flags | Array |
+| `liner-flags` | Linker flags | Array |
 | `ignore` | Directories or files to ignore | Array |
 | `before-script` | Scripts to run before a build | Array |
 | `after-script` |  Scripts to run after a build | Array |
-| `static-lib` | Whether the project is a static library | Boolean |
 | `ar` | Archiving tool to use | String |
 | `arflags` | Flags for archiving tool | Array |
-| `clean` | Extra items to clean, these are removed using `rm -r` | Array |
+
+### [[bin]]
+| Key    | Value                           | Type |
+| ---    | -----                           | ---- |
+| `name` | Name and path for the binary | String |
+| `path` | Path for the binary entry point (`main`) | String |
+
+### [[lib]]
+| Key    | Value                           | Type |
+| ---    | -----                           | ---- |
+| `path` | Path for library file to be created | String|

@@ -11,13 +11,6 @@ extern crate log;
 use clap::App;
 use std::process::exit;
 use util::*;
-use util::error::YabsError;
-
-fn print_error_vect(errors: Vec<YabsError>) {
-    for error in errors {
-        error!("{}", error.to_string());
-    }
-}
 
 fn run() -> i32 {
     let yaml = load_yaml!("cli.yaml");
@@ -41,14 +34,8 @@ fn run() -> i32 {
         }
         match build::BuildFile::from_file(&assumed_file_name) {
             Ok(mut build_file) => {
-                if let Some(print) = matches.value_of("print") {
-                    &build_file.print_profile_as_json(print.to_owned());
-                }
-                if let Some(makefile) = matches.value_of("make") {
-                    &build_file.gen_make(makefile.to_owned());
-                }
-                if let Some(build) = matches.value_of("build") {
-                    if let Err(error) = build_file.build(build.to_owned()) {
+                if matches.is_present("build") {
+                    if let Err(error) = build_file.build() {
                         error!("{}", error.to_string());
                         return 2;
                     }
@@ -56,14 +43,17 @@ fn run() -> i32 {
                 if matches.is_present("sources") {
                     &build_file.print_sources();
                 }
-                if matches.is_present("profiles") {
-                    &build_file.print_available_profiles();
+                if matches.is_present("clean") {
+                    if let Err(error) = build_file.clean() {
+                        error!("{}", error.to_string());
+                        return 2;
+                    }
                 }
-            },
-            Err(err) => {
-                print_error_vect(err);
+            }
+            Err(e) => {
+                error!("{}", e.to_string());
                 return 2;
-            },
+            }
         };
     }
     0

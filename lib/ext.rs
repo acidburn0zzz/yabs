@@ -4,43 +4,18 @@
 
 extern crate toml;
 
-use std::fs::File;
-use std::path::Path;
-use std::io;
-use std::io::Read;
-use std::env;
-use std::process::Command;
 use error::YabsError;
+use std::env;
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
+use std::process::Command;
 
-pub fn parse_toml_file<T: AsRef<Path> + Clone>(file: T) -> Result<toml::Table, Vec<YabsError>> {
+pub fn parse_toml_file<T: AsRef<Path> + Clone>(file: T) -> Result<String, YabsError> {
     let mut buff = String::new();
-    let mut error_vect = Vec::new();
-    let mut file = match File::open(&file) {
-        Ok(s) => s,
-        Err(e) => {
-            match e.kind() {
-                io::ErrorKind::NotFound => {
-                    error_vect.push(YabsError::NoAssumedToml(file.as_ref().to_string_lossy().into_owned()));
-                },
-                _ => {
-                    error_vect.push(YabsError::Io(e));
-                },
-            };
-            return Err(error_vect);
-        }
-    };
-    if let Err(err) = file.read_to_string(&mut buff) {
-        error_vect.push(YabsError::Io(err));
-    }
-    let mut parser = toml::Parser::new(&buff);
-    if let Some(table) = parser.parse() {
-        return Ok(table);
-    } else {
-        for err in parser.errors {
-            error_vect.push(YabsError::TomlParse(err));
-        }
-    }
-    return Err(error_vect);
+    let mut file = File::open(&file)?;
+    file.read_to_string(&mut buff)?;
+    return Ok(buff);
 }
 
 pub fn get_assumed_filename() -> Option<String> {
@@ -56,10 +31,10 @@ pub fn get_assumed_filename() -> Option<String> {
 
 pub fn run_cmd(cmd: &String) -> Result<(), YabsError> {
     let command = Command::new("sh")
-                           .arg("-c")
-                           .arg(&cmd)
-                           .spawn()?
-                           .wait_with_output()?;
+        .arg("-c")
+        .arg(&cmd)
+        .spawn()?
+        .wait_with_output()?;
     println!("{}", &cmd);
     if !command.status.success() {
         print!("{}", String::from_utf8(command.stderr)?);
@@ -67,4 +42,19 @@ pub fn run_cmd(cmd: &String) -> Result<(), YabsError> {
     }
     print!("{}", String::from_utf8(command.stdout)?);
     Ok(())
+}
+
+pub trait PrependEach<T> {
+    fn prepend_each(&self, pre: &str) -> Vec<String>;
+}
+
+// self.include.prepend_each("-I");
+impl PrependEach<String> for Vec<String> {
+    fn prepend_each(&self, pre: &str) -> Vec<String> {
+        let mut clone = self.clone();
+        for each in clone.iter_mut() {
+            *each = pre.to_owned() + each;
+        }
+        return clone;
+    }
 }

@@ -9,15 +9,15 @@ license = "BSD-3-Clause"
 readme = "README.md"
 
 [dependencies]
-serde = "0.8"
-serde_derive = "0.8"
+serde = "0.9"
+serde_derive = "0.9"
 serde_json = "0.8"
 walkdir = "1"
 ansi_term = "0.9"
 log = "0.3"
 
 [dependencies.toml]
-version = "0.2"
+version = "0.3"
 features = ["serde"]
 default-features = false
 

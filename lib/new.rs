@@ -7,20 +7,21 @@ use std::path::{Path, PathBuf};
 pub fn new_project(name: &String, lib: bool) -> Result<(), YabsError> {
     let dir = Path::new(name);
     if dir.exists() {
-        return Err(YabsError::DirExists(dir.to_path_buf())); 
+        return Err(YabsError::DirExists(dir.to_path_buf()));
     }
     fs::create_dir_all(dir)?;
     fs::create_dir_all(dir.join("src"))?;
     match lib {
         true => create_bin_files(dir.to_path_buf(), name)?,
-        false => ()
+        false => (),
     };
     Ok(create_bin_files(dir.to_path_buf(), name)?)
 }
 
 pub fn create_bin_files(path: PathBuf, name: &String) -> Result<(), YabsError> {
-    fs::File::create(path.join(format!("{}.toml", name))).and_then(|mut file| {
-        Ok(file.write_all(format!("[{0}.project]\n\
+    fs::File::create(path.join(format!("{}.toml", name)))
+        .and_then(|mut file| {
+            Ok(file.write_all(format!("[{0}.project]\n\
                 name = \"{0}\"\n\
                 version = \"0.0.1\"\n\
                 target = [\"{0}\"]\n\
@@ -38,14 +39,16 @@ pub fn create_bin_files(path: PathBuf, name: &String) -> Result<(), YabsError> {
                 before-script = []\n\
                 after-script = []\n\
                 clean = []
-                ", name).as_bytes())?)
-    })?;
-    fs::File::create(path.join("src/main.cpp")).and_then(|mut src| {
-        Ok(src.write_all(
-            b"#include <iostream>\n\n\
+                ",
+                                      name)
+                                      .as_bytes())?)
+        })?;
+    fs::File::create(path.join("src/main.cpp"))
+        .and_then(|mut src| {
+                      Ok(src.write_all(b"#include <iostream>\n\n\
             int main() {\n\
             \treturn 0;\n\
             }")?)
-    })?;
+                  })?;
     Ok(())
 }

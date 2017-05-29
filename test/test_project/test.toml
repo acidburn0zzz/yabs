@@ -1,8 +1,16 @@
-[linux_c.project]
-target = ["linux_c"]
+[project]
+name = "test"
 lang = "c"
-
-[linux_cpp.project]
-target = ["linux_cpp"]
 compiler = "g++"
-lang = "cpp"
+src = [
+	"./main_c.c",
+	"./main_cpp.cpp"
+]
+
+[[bin]]
+name = "main_c"
+path = "./main_c.c"
+
+[[bin]]
+name = "main_cpp"
+path = "./main_cpp.cpp"

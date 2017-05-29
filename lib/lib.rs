@@ -9,12 +9,12 @@ extern crate walkdir;
 extern crate ansi_term;
 extern crate serde;
 extern crate serde_json;
+#[macro_use]
 extern crate log;
 
 pub mod build;
 pub mod error;
 pub mod ext;
-pub mod profile;
 pub mod new;
 pub mod logger;
 mod desc;

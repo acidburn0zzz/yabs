@@ -2,146 +2,178 @@
 // All rights reserved. This file is part of yabs, distributed under the BSD
 // 3-Clause license. For full terms please see the LICENSE file.
 
+extern crate serde;
 extern crate toml;
 extern crate walkdir;
 extern crate ansi_term;
 
 use desc::project::*;
-use desc::install::*;
-use desc::doc::*;
-use desc::desc::*;
-use profile::*;
 use error::YabsError;
-use ext::*;
-use ansi_term::Colour::White;
+use ext::{PrependEach, run_cmd};
+use std::fs;
 
 use std::fs::File;
-use std::io::{Write};
+use std::io::prelude::*;
+use std::path::{Path, PathBuf};
 
 // A build file could have multiple `Profile`s
-#[derive(Debug,Default,Clone)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct BuildFile {
-    profiles: Vec<Profile>,
+    project: ProjectDesc,
+    #[serde(rename = "bin")]
+    binaries: Option<Vec<Binary>>,
+    #[serde(rename = "lib")]
+    libraries: Option<Vec<Library>>,
 }
 
 impl BuildFile {
-    // TODO: Find a better way to do this
-    pub fn apply_all(&mut self) {
-        let mut all: Profile = Default::default();
-        for profile in &self.profiles {
-            if profile.name == "all" {
-                all = profile.clone();
-            }
-        }
-        for profile in &mut self.profiles {
-            if let Some(proj_desc) = all.proj_desc.clone() {
-                profile.proj_desc = Some(proj_desc);
-            }
-            if let Some(inst_desc) = all.inst_desc.clone() {
-                profile.inst_desc = Some(inst_desc);
-            }
-            if let Some(doc_desc) = all.doc_desc.clone() {
-                profile.doc_desc = Some(doc_desc);
-            }
+    // Creates a `Profiles` from a toml file. Is essentiall `BuildFile::new`
+    pub fn from_file(file: &str) -> Result<BuildFile, YabsError> {
+        let mut buffer = String::new();
+        let mut file = File::open(file)?;
+        file.read_to_string(&mut buffer)?;
+        let mut build_file: BuildFile = toml::from_str(&buffer)?;
+        build_file.project.find_source_files()?;
+        Ok(build_file)
+    }
+
+    pub fn print_sources(&mut self) {
+        for target in self.project.file_mod_map.keys() {
+            info!("{}", target.source().display());
         }
     }
 
-    // Creates a `Profiles` from a toml file.
-    pub fn from_file(file: &str) -> Result<BuildFile, Vec<YabsError>> {
-        let mut build_file: BuildFile = Default::default();
-        parse_toml_file(file)
-            .and_then(|toml| {
-                for (key, table) in toml {
-                    let mut profile: Profile = Default::default();
-                    profile.name = key.clone();
-                    match table {
-                        toml::Value::Table(inner_table) => {
-                            for (key, table) in inner_table {
-                                match key.as_ref() {
-                                    "project" => {
-                                        profile.proj_desc = Some(ProjectDesc::from_toml_table(table)?)
-                                    }
-                                    "install" => {
-                                        profile.inst_desc = Some(InstallDesc::from_toml_table(table)?)
-                                    }
-                                    "doc" => {
-                                        profile.doc_desc = Some(DocDesc::from_toml_table(table)?)
-                                    }
-                                    _ => (),
-                                }
-                            }
-                        }
-                        _ => (),
-                    };
-                    build_file.profiles.push(profile);
+    fn build_object(&self, target: &Target) -> Result<(), YabsError> {
+        Ok(run_cmd(&format!("{CC} -c {CFLAGS} {INC} -o {OBJ} {SRC}",
+                           CC = &self.project
+                                     .compiler
+                                     .as_ref()
+                                     .unwrap_or(&String::from("gcc")),
+                           CFLAGS = &self.project
+                                         .compiler_flags
+                                         .as_ref()
+                                         .unwrap_or(&vec![])
+                                         .prepend_each("-")
+                                         .join(" "),
+                           INC = &self.project
+                                      .include
+                                      .as_ref()
+                                      .unwrap_or(&vec![])
+                                      .prepend_each("-I")
+                                      .join(" "),
+                           OBJ = target.object().to_str().unwrap(),
+                           SRC = target.source().to_str().unwrap()))?)
+    }
+
+    fn build_all_binaries(&mut self) -> Result<(), YabsError> {
+        &self.project.run_script(&self.project.before_script)?;
+        if !&self.binaries.is_some() {
+            return Ok(());
+        }
+        for binary in self.binaries.clone().unwrap().iter() {
+            if Path::new(&binary.name()).exists() {
+                let binary_modtime = fs::metadata(&binary.name())?.modified()?;
+                for (target, modtime) in &self.project.file_mod_map {
+                    if modtime > &binary_modtime {
+                        &self.build_object(target)?;
+                    }
                 }
-                Ok(build_file)
-            })
-            .map_err(|err| err)
+                &self.build_binary(binary)?;
+            } else {
+                for target in self.project.file_mod_map.keys() {
+                    if !target.object().exists() {
+                        &self.build_object(target)?;
+                    }
+                }
+                &self.build_binary(binary)?;
+            }
+        }
+        &self.project.run_script(&self.project.after_script)?;
+        Ok(())
     }
 
-    pub fn print_as_json(&mut self) -> Result<(), YabsError> {
-        self.apply_all();
-        for profile in &self.profiles {
-            profile.print_json()?;
+    fn build_binary(&self, binary: &Binary) -> Result<(), YabsError> {
+        // need obj list that omits all other binary paths but includes the entry point
+        // we want
+        let object_list = &self.project
+                               .object_list_as_string(Some(self.binaries
+                                                               .clone()
+                                                               .unwrap()
+                                                               .into_iter()
+                                                               .filter(|ref bin| {
+                                                                           bin.path() !=
+                                                                           binary.path()
+                                                                       })
+                                                               .collect::<Vec<Binary>>()))?;
+        Ok(run_cmd(&format!("{CC} {LFLAGS} -o {BIN} {OBJ_LIST} {LIB_DIR} {LIBS}",
+                           CC = &self.project
+                                     .compiler
+                                     .as_ref()
+                                     .unwrap_or(&String::from("gcc")),
+                           LFLAGS = &self.project
+                                         .lflags
+                                         .as_ref()
+                                         .unwrap_or(&vec![])
+                                         .prepend_each("-")
+                                         .join(" "),
+                           BIN = binary.name(),
+                           OBJ_LIST = object_list,
+                           LIB_DIR = &self.project
+                                          .lib_dir
+                                          .as_ref()
+                                          .unwrap_or(&vec![])
+                                          .prepend_each("-L")
+                                          .join(" "),
+                           LIBS = &self.project.libs_as_string()))?)
+    }
+
+    fn build_library(&mut self) -> Result<(), YabsError> {
+        if !self.libraries.is_some() {
+            return Ok(());
+        }
+        for library in self.libraries.clone().unwrap().iter() {
+            let object_list = &self.project.object_list_as_string(None)?;
+            run_cmd(&format!("{AR} {ARFLAGS} {LIB} {OBJ_LIST}",
+                            AR = &self.project.ar.as_ref().unwrap_or(&String::from("ar")),
+                            ARFLAGS = &self.project
+                                           .arflags
+                                           .as_ref()
+                                           .unwrap_or(&String::from("rcs")),
+                            LIB = library.path().to_str().unwrap(),
+                            OBJ_LIST = object_list))?
         }
         Ok(())
     }
 
-    pub fn print_available_profiles(&mut self) {
-        self.apply_all();
-        for profile in &self.profiles {
-            print!("{} ", profile.name);
-        }
-        print!("\n");
-    }
-
-    // Prints a profile with name `name` in build file as JSON
-    pub fn print_profile_as_json(&mut self, name: String) -> Result<(), YabsError> {
-        self.apply_all();
-        for profile in &self.profiles {
-            if profile.name == name {
-                profile.print_json()?;
-            }
-        }
+    pub fn build(&mut self) -> Result<(), YabsError> {
+        &self.build_all_binaries()?;
+        &self.build_library()?;
         Ok(())
     }
 
-    // Generate a Makefile using from a profile with name `name`
-    pub fn gen_make(&mut self, name: String) -> Result<(), YabsError> {
-        self.apply_all();
-        if let Some(profile) = self.profiles.iter().find(|ref profile| profile.name == name) {
-            let mut file = File::create("Makefile")?;
-            if let Some(mut proj_desc) = profile.proj_desc.clone() {
-                file.write(proj_desc.gen_make()?.as_bytes())?;
+    pub fn clean(&self) -> Result<(), YabsError> {
+        for target in self.project.file_mod_map.keys() {
+            if target.object().exists() {
+                if let Ok(_) = fs::remove_file(target.object()) {
+                    info!("removed object '{}'", target.object().display());
+                }
             }
-            if let Some(doc_desc) = profile.doc_desc.clone() {
-                file.write(doc_desc.gen_make().as_bytes())?;
+        }
+        if let Some(binaries) = self.binaries.clone() {
+            for binary in binaries {
+                let bin_path = PathBuf::from(binary.name());
+                if bin_path.exists() {
+                    if let Ok(_) = fs::remove_file(&bin_path) {
+                        info!("removed binary '{}'", bin_path.display());
+                    }
+                }
             }
-            Ok(())
-        } else {
-            Err(YabsError::NoDesc(name))
         }
-    }
-
-    pub fn build(&mut self, name: String) -> Result<(), YabsError> {
-        self.apply_all();
-        if let Some(profile) = self.profiles.iter().find(|ref profile| profile.name == name) {
-            profile.clone().proj_desc.unwrap_or(Default::default()).build_bin()?;
-            Ok(())
-        } else {
-            Err(YabsError::NoDesc(name))
-        }
-    }
-
-    pub fn print_sources(&mut self) -> Result<(), YabsError> {
-        for profile in &mut self.profiles {
-            if let &mut Some(ref mut proj) = &mut profile.proj_desc {
-                println!("{}", White.bold().paint(profile.name.clone()));
-                proj.gen_file_list()?;
-                if let Some(set_sources) = proj.get_src().as_ref() {
-                    for src in set_sources {
-                        println!("{}", src);
+        if let Some(libraries) = self.libraries.clone() {
+            for library in libraries {
+                if library.path().exists() {
+                    if let Ok(_) = fs::remove_file(library.path()) {
+                        info!("removed library '{}'", library.path().display());
                     }
                 }
             }
@@ -151,26 +183,16 @@ impl BuildFile {
 }
 
 #[test]
+#[should_panic]
 fn test_empty_buildfile() {
     let bf = BuildFile::from_file("test/empty.toml").unwrap();
-    assert_eq!(bf.profiles.len(), 0);
+    assert_eq!(bf.binaries.unwrap().len(), 0);
 }
 
 #[test]
 #[should_panic]
 fn test_non_empty_buildfile() {
     let bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
-    assert_eq!(bf.profiles.len(), 0);
-}
-
-#[test]
-fn test_buildfile_gen_make() {
-    let mut bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
-    assert_eq!(bf.gen_make("linux_cpp".to_owned()).unwrap(), ());
-}
-
-#[test]
-fn test_buildfile_build() {
-    let mut bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
-    assert_eq!(bf.build("linux_cpp".to_owned()).unwrap(), ());
+    let default_proj: ProjectDesc = Default::default();
+    assert_eq!(bf.project, default_proj);
 }

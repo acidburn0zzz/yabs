@@ -8,18 +8,17 @@ extern crate ansi_term;
 extern crate serde_json;
 extern crate log;
 
-use std::io;
 use std::error::*;
 use std::fmt;
-use std::string;
+use std::io;
 use std::path::PathBuf;
+use std::string;
 
 #[derive(Debug)]
 pub enum YabsError {
     Io(io::Error),
-    Toml(toml::Error),
-    TomlParse(toml::ParserError),
-    TomlDecode(toml::DecodeError),
+    TomlSer(toml::ser::Error),
+    TomlDe(toml::de::Error),
     Utf8(string::FromUtf8Error),
     Json(serde_json::error::Error),
     Log(log::SetLoggerError),
@@ -35,18 +34,21 @@ impl fmt::Display for YabsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             YabsError::Io(ref err) => write!(f, "I/O error, {}", err),
-            YabsError::Toml(ref err) => write!(f, "toml error, {}", err),
-            YabsError::TomlParse(ref err) => write!(f, "toml parsing error, {}", err),
-            YabsError::TomlDecode(ref err) => write!(f, "toml decoding error, {}", err),
+            YabsError::TomlSer(ref err) => write!(f, "toml serialization error, {}", err),
+            YabsError::TomlDe(ref err) => write!(f, "toml deserialization error, {}", err),
             YabsError::Utf8(ref err) => write!(f, "UTF-8 conversion error, {}", err),
             YabsError::Json(ref err) => write!(f, "json serialization error, {}", err),
             YabsError::Log(ref err) => write!(f, "log set error, {}", err),
             YabsError::WalkDir(ref err) => write!(f, "directory walking error, {}", err),
-            YabsError::Command(ref cmd, ref exit_status) => write!(f, "command '{}' exited with status {}", cmd, exit_status),
+            YabsError::Command(ref cmd, ref exit_status) => {
+                write!(f, "command '{}' exited with status {}", cmd, exit_status)
+            }
             YabsError::NoLang(ref profile) => write!(f, "no language found in profile {}", profile),
             YabsError::NoDesc(ref name) => write!(f, "no '{}' section found in project file", name),
             YabsError::NoAssumedToml(ref name) => write!(f, "couldn't find file '{}'", name),
-            YabsError::DirExists(ref dir) => write!(f, "directory '{}' already exists", dir.display()),
+            YabsError::DirExists(ref dir) => {
+                write!(f, "directory '{}' already exists", dir.display())
+            }
         }
     }
 }
@@ -55,9 +57,8 @@ impl Error for YabsError {
     fn description(&self) -> &str {
         match *self {
             YabsError::Io(ref err) => err.description(),
-            YabsError::Toml(ref err) => err.description(),
-            YabsError::TomlParse(ref err) => err.description(),
-            YabsError::TomlDecode(ref err) => err.description(),
+            YabsError::TomlSer(ref err) => err.description(),
+            YabsError::TomlDe(ref err) => err.description(),
             YabsError::Utf8(ref err) => err.description(),
             YabsError::Json(ref err) => err.description(),
             YabsError::Log(ref err) => err.description(),
@@ -73,9 +74,8 @@ impl Error for YabsError {
     fn cause(&self) -> Option<&Error> {
         match *self {
             YabsError::Io(ref err) => Some(err),
-            YabsError::Toml(ref err) => Some(err),
-            YabsError::TomlParse(ref err) => Some(err),
-            YabsError::TomlDecode(ref err) => Some(err),
+            YabsError::TomlSer(ref err) => Some(err),
+            YabsError::TomlDe(ref err) => Some(err),
             YabsError::Utf8(ref err) => Some(err),
             YabsError::Json(ref err) => Some(err),
             YabsError::Log(ref err) => Some(err),
@@ -95,21 +95,15 @@ impl From<io::Error> for YabsError {
     }
 }
 
-impl From<toml::Error> for YabsError {
-    fn from(err: toml::Error) -> YabsError {
-        YabsError::Toml(err)
+impl From<toml::ser::Error> for YabsError {
+    fn from(err: toml::ser::Error) -> YabsError {
+        YabsError::TomlSer(err)
     }
 }
 
-impl From<toml::ParserError> for YabsError {
-    fn from(err: toml::ParserError) -> YabsError {
-        YabsError::TomlParse(err)
-    }
-}
-
-impl From<toml::DecodeError> for YabsError {
-    fn from(err: toml::DecodeError) -> YabsError {
-        YabsError::TomlDecode(err)
+impl From<toml::de::Error> for YabsError {
+    fn from(err: toml::de::Error) -> YabsError {
+        YabsError::TomlDe(err)
     }
 }
 
