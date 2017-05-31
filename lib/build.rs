@@ -71,9 +71,8 @@ impl BuildFile {
         }
         for binary in self.binaries.clone().unwrap().iter() {
             if Path::new(&binary.name()).exists() {
-                let binary_modtime = fs::metadata(&binary.name())?.modified()?;
                 for (target, modtime) in &self.project.file_mod_map {
-                    if modtime > &binary_modtime {
+                    if modtime > &fs::metadata(&binary.name())?.modified()? {
                         &self.build_object(target)?;
                     }
                 }
@@ -91,18 +90,20 @@ impl BuildFile {
     }
 
     fn build_binary(&self, binary: &Binary) -> Result<(), YabsError> {
-        // need obj list that omits all other binary paths but includes the entry point
-        // we want
-        let object_list = &self.project
-                               .object_list_as_string(Some(self.binaries
-                                                               .clone()
-                                                               .unwrap()
-                                                               .into_iter()
-                                                               .filter(|ref bin| {
-                                                                           bin.path() !=
-                                                                           binary.path()
-                                                                       })
-                                                               .collect::<Vec<Binary>>()))?;
+        let object_list;
+        if self.binaries.as_ref().unwrap().len() == 1 {
+            object_list = self.project.object_list_as_string(None)?;
+        } else {
+            object_list = self.project
+                .object_list_as_string(Some(self.binaries
+                                                .clone()
+                                                .unwrap()
+                                                .into_iter()
+                                                .filter(|ref bin| {
+                                                            bin.path() != binary.path()
+                                                        })
+                                                .collect::<Vec<Binary>>()))?;
+        }
         Ok(run_cmd(&format!("{CC} {LFLAGS} -o {BIN} {OBJ_LIST} {LIB_DIR} {LIBS}",
                            CC = &self.project
                                      .compiler

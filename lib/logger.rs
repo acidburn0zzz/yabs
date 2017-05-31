@@ -30,7 +30,7 @@ impl log::Log for Logger {
                 }
                 LogLevel::Warn => {}
                 LogLevel::Info => {
-                    println!("{}: {}", Colour::Green.bold().paint("yabs"), record.args());
+                    println!("{}", record.args());
                 }
                 LogLevel::Debug => {}
                 LogLevel::Trace => {}
