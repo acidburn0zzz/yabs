@@ -3,12 +3,12 @@ version: 0.1.2
 author: Alberto Corona <ac@albertocorona.com>
 about: Yet another build system
 args:
-        - file:
-                short: f
-                long: file
-                help: Use a specified TOML file
-                value_name: FILE
-                takes_value: true
+        #- file:
+                #short: f
+                #long: file
+                #help: Use a specified TOML file
+                #value_name: FILE
+                #takes_value: true
         - build:
                 short: b
                 long: build

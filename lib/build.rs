@@ -9,10 +9,11 @@ extern crate ansi_term;
 
 use desc::project::*;
 use error::YabsError;
-use ext::{PrependEach, run_cmd};
+use ext::{PrependEach, run_cmd, get_assumed_filename_for_dir};
 use std::fs;
 
 use std::fs::File;
+use std::env;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 
@@ -28,9 +29,9 @@ pub struct BuildFile {
 
 impl BuildFile {
     // Creates a `Profiles` from a toml file. Is essentiall `BuildFile::new`
-    pub fn from_file(file: &str) -> Result<BuildFile, YabsError> {
+    pub fn from_file<T: AsRef<Path>>(filepath: &T) -> Result<BuildFile, YabsError> {
         let mut buffer = String::new();
-        let mut file = File::open(file)?;
+        let mut file = File::open(filepath)?;
         file.read_to_string(&mut buffer)?;
         let mut build_file: BuildFile = toml::from_str(&buffer)?;
         build_file.project.find_source_files()?;
@@ -183,17 +184,40 @@ impl BuildFile {
     }
 }
 
+pub fn find_build_file(dir: &mut PathBuf) -> Result<BuildFile, YabsError> {
+    loop {
+        if let Some(filepath) = check_dir(&dir) {
+            env::set_current_dir(&dir)?;
+            return Ok(BuildFile::from_file(&dir.join(filepath))?);
+        } else {
+            if !dir.pop() {
+                break;
+            }
+        }
+    }
+    Err(YabsError::NoAssumedToml(dir.to_str().unwrap().to_owned()))
+}
+
+fn check_dir(dir: &PathBuf) -> Option<PathBuf> {
+    if let Some(assumed) = get_assumed_filename_for_dir(dir) {
+        if dir.join(&assumed).exists() {
+            return Some(dir.join(assumed));
+        }
+    }
+    None
+}
+
 #[test]
 #[should_panic]
 fn test_empty_buildfile() {
-    let bf = BuildFile::from_file("test/empty.toml").unwrap();
+    let bf = BuildFile::from_file(&"test/empty.toml").unwrap();
     assert_eq!(bf.binaries.unwrap().len(), 0);
 }
 
 #[test]
 #[should_panic]
 fn test_non_empty_buildfile() {
-    let bf = BuildFile::from_file("test/test_project/test.toml").unwrap();
+    let bf = BuildFile::from_file(&"test/test_project/test.toml").unwrap();
     let default_proj: ProjectDesc = Default::default();
     assert_eq!(bf.project, default_proj);
 }

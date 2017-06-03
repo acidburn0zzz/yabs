@@ -8,7 +8,7 @@ use error::YabsError;
 use std::env;
 use std::fs::File;
 use std::io::Read;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 pub fn parse_toml_file<T: AsRef<Path> + Clone>(file: T) -> Result<String, YabsError> {
@@ -25,6 +25,13 @@ pub fn get_assumed_filename() -> Option<String> {
             file_name.push_str(".toml");
             return Some(file_name);
         }
+    }
+    None
+}
+
+pub fn get_assumed_filename_for_dir(dir: &PathBuf) -> Option<PathBuf> {
+    if let Some(file_stem) = dir.file_stem() {
+        return Some(PathBuf::from(file_stem.to_string_lossy().into_owned() + ".toml"));
     }
     None
 }

@@ -10,6 +10,7 @@ extern crate log;
 
 use clap::App;
 use std::process::exit;
+use std::env;
 use util::*;
 
 fn run() -> i32 {
@@ -28,33 +29,25 @@ fn run() -> i32 {
                 }
             }
         }
-    } else if let Some(mut assumed_file_name) = ext::get_assumed_filename() {
-        if let Some(file) = matches.value_of("file") {
-            assumed_file_name = file.to_owned();
+    }
+    if let Ok(ref mut cwd) = env::current_dir() {
+        if let Ok(mut build_file) = build::find_build_file(cwd) {
+            if matches.is_present("build") {
+                if let Err(error) = build_file.build() {
+                    error!("{}", error.to_string());
+                    return 2;
+                }
+            }
+            if matches.is_present("sources") {
+                &build_file.print_sources();
+            }
+            if matches.is_present("clean") {
+                if let Err(error) = build_file.clean() {
+                    error!("{}", error.to_string());
+                    return 2;
+                }
+            }
         }
-        match build::BuildFile::from_file(&assumed_file_name) {
-            Ok(mut build_file) => {
-                if matches.is_present("build") {
-                    if let Err(error) = build_file.build() {
-                        error!("{}", error.to_string());
-                        return 2;
-                    }
-                }
-                if matches.is_present("sources") {
-                    &build_file.print_sources();
-                }
-                if matches.is_present("clean") {
-                    if let Err(error) = build_file.clean() {
-                        error!("{}", error.to_string());
-                        return 2;
-                    }
-                }
-            }
-            Err(e) => {
-                error!("{}", e.to_string());
-                return 2;
-            }
-        };
     }
     0
 }
