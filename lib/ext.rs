@@ -4,7 +4,7 @@
 
 extern crate toml;
 
-use error::YabsError;
+use error::{YabsError, YabsErrorKind};
 use std::env;
 use std::fs::File;
 use std::io::Read;
@@ -45,7 +45,7 @@ pub fn run_cmd(cmd: &String) -> Result<(), YabsError> {
     println!("{}", &cmd);
     if !command.status.success() {
         print!("{}", String::from_utf8(command.stderr)?);
-        return Err(YabsError::Command(cmd.to_owned(), command.status.code().unwrap_or(1)));
+        bail!(YabsErrorKind::Command(cmd.to_owned(), command.status.code().unwrap_or(1)));
     }
     print!("{}", String::from_utf8(command.stdout)?);
     Ok(())

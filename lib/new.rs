@@ -1,4 +1,4 @@
-use error::YabsError;
+use error::{YabsError, YabsErrorKind};
 
 use std::fs;
 use std::io::Write;
@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 pub fn new_project(name: &String, lib: bool) -> Result<(), YabsError> {
     let dir = Path::new(name);
     if dir.exists() {
-        return Err(YabsError::DirExists(dir.to_path_buf()));
+        bail!(YabsErrorKind::DirExists(dir.to_path_buf()));
     }
     fs::create_dir_all(dir)?;
     fs::create_dir_all(dir.join("src"))?;

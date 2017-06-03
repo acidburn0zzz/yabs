@@ -8,7 +8,7 @@ extern crate walkdir;
 extern crate ansi_term;
 
 use desc::project::*;
-use error::YabsError;
+use error::{YabsError, YabsErrorKind};
 use ext::{PrependEach, run_cmd, get_assumed_filename_for_dir};
 use std::fs;
 
@@ -195,7 +195,7 @@ pub fn find_build_file(dir: &mut PathBuf) -> Result<BuildFile, YabsError> {
             }
         }
     }
-    Err(YabsError::NoAssumedToml(dir.to_str().unwrap().to_owned()))
+    bail!(YabsErrorKind::NoAssumedToml(dir.to_str().unwrap().to_owned()))
 }
 
 fn check_dir(dir: &PathBuf) -> Option<PathBuf> {

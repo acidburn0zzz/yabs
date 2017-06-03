@@ -31,21 +31,27 @@ fn run() -> i32 {
         }
     }
     if let Ok(ref mut cwd) = env::current_dir() {
-        if let Ok(mut build_file) = build::find_build_file(cwd) {
-            if matches.is_present("build") {
-                if let Err(error) = build_file.build() {
-                    error!("{}", error.to_string());
-                    return 2;
+        match build::find_build_file(cwd) {
+            Ok(mut build_file) => {
+                if matches.is_present("build") {
+                    if let Err(error) = build_file.build() {
+                        error!("{}", error.to_string());
+                        return 2;
+                    }
                 }
-            }
-            if matches.is_present("sources") {
-                &build_file.print_sources();
-            }
-            if matches.is_present("clean") {
-                if let Err(error) = build_file.clean() {
-                    error!("{}", error.to_string());
-                    return 2;
+                if matches.is_present("sources") {
+                    &build_file.print_sources();
                 }
+                if matches.is_present("clean") {
+                    if let Err(error) = build_file.clean() {
+                        error!("{}", error.to_string());
+                        return 2;
+                    }
+                }
+            },
+            Err(error) => {
+                error!("{}", error.to_string());
+                return 2;
             }
         }
     }

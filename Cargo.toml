@@ -15,6 +15,7 @@ serde_json = "0.8"
 walkdir = "1"
 ansi_term = "0.9"
 log = "0.3"
+error-chain = "0.10"
 
 [dependencies.toml]
 version = "0.3"
