@@ -27,13 +27,13 @@ impl log::Log for Logger {
             match record.level() {
                 LogLevel::Error => {
                     println!("{}: {}", Colour::Red.bold().paint("error"), record.args());
-                }
-                LogLevel::Warn => {}
+                },
+                LogLevel::Warn => {},
                 LogLevel::Info => {
                     println!("{}", record.args());
-                }
-                LogLevel::Debug => {}
-                LogLevel::Trace => {}
+                },
+                LogLevel::Debug => {},
+                LogLevel::Trace => {},
             };
         }
     }

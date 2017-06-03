@@ -9,8 +9,8 @@ extern crate clap;
 extern crate log;
 
 use clap::App;
-use std::process::exit;
 use std::env;
+use std::process::exit;
 use util::*;
 
 fn run() -> i32 {
@@ -52,7 +52,7 @@ fn run() -> i32 {
             Err(error) => {
                 error!("{}", error.to_string());
                 return 2;
-            }
+            },
         }
     }
     0

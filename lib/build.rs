@@ -9,11 +9,11 @@ extern crate ansi_term;
 
 use desc::project::*;
 use error::{YabsError, YabsErrorKind};
-use ext::{PrependEach, run_cmd, get_assumed_filename_for_dir};
+use ext::{PrependEach, get_assumed_filename_for_dir, run_cmd};
+use std::env;
 use std::fs;
 
 use std::fs::File;
-use std::env;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 
@@ -46,10 +46,7 @@ impl BuildFile {
 
     fn build_object(&self, target: &Target) -> Result<(), YabsError> {
         Ok(run_cmd(&format!("{CC} -c {CFLAGS} {INC} -o {OBJ} {SRC}",
-                           CC = &self.project
-                                     .compiler
-                                     .as_ref()
-                                     .unwrap_or(&String::from("gcc")),
+                           CC = &self.project.compiler.as_ref().unwrap_or(&String::from("gcc")),
                            CFLAGS = &self.project
                                          .compiler_flags
                                          .as_ref()
@@ -95,21 +92,19 @@ impl BuildFile {
         if self.binaries.as_ref().unwrap().len() == 1 {
             object_list = self.project.object_list_as_string(None)?;
         } else {
-            object_list = self.project
-                .object_list_as_string(Some(self.binaries
-                                                .clone()
-                                                .unwrap()
-                                                .into_iter()
-                                                .filter(|ref bin| {
-                                                            bin.path() != binary.path()
-                                                        })
-                                                .collect::<Vec<Binary>>()))?;
+            object_list =
+                self.project
+                    .object_list_as_string(Some(self.binaries
+                                                    .clone()
+                                                    .unwrap()
+                                                    .into_iter()
+                                                    .filter(|ref bin| {
+                                                                bin.path() != binary.path()
+                                                            })
+                                                    .collect::<Vec<Binary>>()))?;
         }
         Ok(run_cmd(&format!("{CC} {LFLAGS} -o {BIN} {OBJ_LIST} {LIB_DIR} {LIBS}",
-                           CC = &self.project
-                                     .compiler
-                                     .as_ref()
-                                     .unwrap_or(&String::from("gcc")),
+                           CC = &self.project.compiler.as_ref().unwrap_or(&String::from("gcc")),
                            LFLAGS = &self.project
                                          .lflags
                                          .as_ref()
@@ -135,10 +130,8 @@ impl BuildFile {
             let object_list = &self.project.object_list_as_string(None)?;
             run_cmd(&format!("{AR} {ARFLAGS} {LIB} {OBJ_LIST}",
                             AR = &self.project.ar.as_ref().unwrap_or(&String::from("ar")),
-                            ARFLAGS = &self.project
-                                           .arflags
-                                           .as_ref()
-                                           .unwrap_or(&String::from("rcs")),
+                            ARFLAGS =
+                                &self.project.arflags.as_ref().unwrap_or(&String::from("rcs")),
                             LIB = library.path().to_str().unwrap(),
                             OBJ_LIST = object_list))?
         }

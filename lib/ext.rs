@@ -37,11 +37,7 @@ pub fn get_assumed_filename_for_dir(dir: &PathBuf) -> Option<PathBuf> {
 }
 
 pub fn run_cmd(cmd: &String) -> Result<(), YabsError> {
-    let command = Command::new("sh")
-        .arg("-c")
-        .arg(&cmd)
-        .spawn()?
-        .wait_with_output()?;
+    let command = Command::new("sh").arg("-c").arg(&cmd).spawn()?.wait_with_output()?;
     println!("{}", &cmd);
     if !command.status.success() {
         print!("{}", String::from_utf8(command.stderr)?);

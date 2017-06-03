@@ -41,7 +41,7 @@ pub fn create_bin_files(path: PathBuf, name: &String) -> Result<(), YabsError> {
                 clean = []
                 ",
                                       name)
-                                      .as_bytes())?)
+                                  .as_bytes())?)
         })?;
     fs::File::create(path.join("src/main.cpp"))
         .and_then(|mut src| {

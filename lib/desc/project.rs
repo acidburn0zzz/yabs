@@ -205,7 +205,8 @@ impl ProjectDesc {
         Ok(())
     }
 
-    // Any string that starts and ends with the character "`" is regarded as a command
+    // Any string that starts and ends with the character "`" is regarded as a
+    // command
     pub fn is_command(&self, string: &String) -> bool {
         string.starts_with("`") && string.ends_with("`")
     }
