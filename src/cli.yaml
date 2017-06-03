@@ -14,6 +14,11 @@ args:
                 long: build
                 help: Build the entire project
                 takes_value: false
+        - jobs:
+                short: j
+                long: jobs
+                help: Child processes to spawn
+                takes_value: true
         - sources:
                 long: sources
                 help: Print source files for all profiles

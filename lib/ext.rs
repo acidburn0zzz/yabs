@@ -9,7 +9,34 @@ use std::env;
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Child, Command};
+
+pub struct Job {
+    process: Child,
+    pub command: String,
+}
+
+impl Job {
+    pub fn new(raw: (String, Child)) -> Job {
+        Job {
+            command: raw.0,
+            process: raw.1,
+        }
+    }
+
+    pub fn yield_self(&mut self) -> Result<(), YabsError> {
+        let status = self.process.wait()?;
+        if !status.success() {
+            if let Some(ref mut stderr) = self.process.stderr {
+                let mut buffer = String::new();
+                stderr.read_to_string(&mut buffer)?;
+                info!("{}", buffer);
+            }
+            bail!(YabsErrorKind::Command(self.command.clone(), status.code().unwrap_or(1)));
+        }
+        Ok(())
+    }
+}
 
 pub fn parse_toml_file<T: AsRef<Path> + Clone>(file: T) -> Result<String, YabsError> {
     let mut buff = String::new();
@@ -45,6 +72,10 @@ pub fn run_cmd(cmd: &String) -> Result<(), YabsError> {
     }
     print!("{}", String::from_utf8(command.stdout)?);
     Ok(())
+}
+
+pub fn spawn_cmd(cmd: &String) -> Result<Child, YabsError> {
+    Ok(Command::new("sh").arg("-c").arg(&cmd).spawn()?)
 }
 
 pub trait PrependEach<T> {

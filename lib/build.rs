@@ -9,13 +9,15 @@ extern crate ansi_term;
 
 use desc::project::*;
 use error::{YabsError, YabsErrorKind};
-use ext::{PrependEach, get_assumed_filename_for_dir, run_cmd};
+use ext::{Job, PrependEach, get_assumed_filename_for_dir, run_cmd, spawn_cmd};
+
+use std::collections::BTreeSet;
 use std::env;
 use std::fs;
-
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+use std::process::Child;
 
 // A build file could have multiple `Profile`s
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -44,6 +46,28 @@ impl BuildFile {
         }
     }
 
+    fn spawn_build_object(&self, target: &Target) -> Result<(String, Child), YabsError> {
+        let command = &format!("{CC} -c {CFLAGS} {INC} -o {OBJ} {SRC}",
+                CC =
+                    &self.project.compiler.as_ref().unwrap_or(&String::from("gcc")),
+                CFLAGS = &self.project
+                              .compiler_flags
+                              .as_ref()
+                              .unwrap_or(&vec![])
+                              .prepend_each("-")
+                              .join(" "),
+                INC = &self.project
+                           .include
+                           .as_ref()
+                           .unwrap_or(&vec![])
+                           .prepend_each("-I")
+                           .join(" "),
+                OBJ = target.object().to_str().unwrap(),
+                SRC = target.source().to_str().unwrap());
+        let child = spawn_cmd(&command)?;
+        Ok((command.to_owned(), child))
+    }
+
     fn build_object(&self, target: &Target) -> Result<(), YabsError> {
         Ok(run_cmd(&format!("{CC} -c {CFLAGS} {INC} -o {OBJ} {SRC}",
                            CC = &self.project.compiler.as_ref().unwrap_or(&String::from("gcc")),
@@ -63,25 +87,66 @@ impl BuildFile {
                            SRC = target.source().to_str().unwrap()))?)
     }
 
-    fn build_all_binaries(&mut self) -> Result<(), YabsError> {
+    fn build_all_binaries(&mut self, jobs: usize) -> Result<(), YabsError> {
+        let mut queue = BTreeSet::new();
         if !&self.binaries.is_some() {
             return Ok(());
         }
         for binary in self.binaries.clone().unwrap().iter() {
             if Path::new(&binary.name()).exists() {
                 for (target, modtime) in &self.project.file_mod_map {
-                    if modtime > &fs::metadata(&binary.name())?.modified()? {
-                        &self.build_object(target)?;
+                    if modtime > &fs::metadata(&binary.name())?.modified()? ||
+                       !target.object().exists() {
+                        queue.insert(target.clone());
                     }
                 }
-                &self.build_binary(binary)?;
             } else {
-                for target in self.project.file_mod_map.keys() {
+                for (target, _) in &self.project.file_mod_map {
                     if !target.object().exists() {
-                        &self.build_object(target)?;
+                        queue.insert(target.clone());
                     }
                 }
-                &self.build_binary(binary)?;
+            }
+        }
+
+        &self.run_job_queue(queue.iter().cloned().collect(), jobs)?;
+        for binary in self.binaries.clone().unwrap().iter() {
+            &self.build_binary(binary)?;
+        }
+        Ok(())
+    }
+
+    fn run_job_queue(&mut self, mut job_queue: Vec<Target>, jobs: usize) -> Result<(), YabsError> {
+        let mut job_processes: Vec<Job> = Vec::new();
+        loop {
+            if job_processes.len() < jobs {
+                if let Some(target) = job_queue.pop() {
+                    let job = Job::new(self.spawn_build_object(&target)?);
+                    info!("{}", job.command);
+                    job_processes.push(job);
+                }
+            } else {
+                loop {
+                    if job_processes.is_empty() {
+                        break;
+                    } else {
+                        if let Some(mut job) = job_processes.pop() {
+                            job.yield_self()?;
+                        }
+                    }
+                }
+            }
+            if job_queue.is_empty() {
+                break;
+            }
+        }
+        loop {
+            if job_processes.is_empty() {
+                break;
+            } else {
+                if let Some(mut job) = job_processes.pop() {
+                    job.yield_self()?;
+                }
             }
         }
         Ok(())
@@ -138,9 +203,9 @@ impl BuildFile {
         Ok(())
     }
 
-    pub fn build(&mut self) -> Result<(), YabsError> {
+    pub fn build(&mut self, jobs: usize) -> Result<(), YabsError> {
         &self.project.run_script(&self.project.before_script)?;
-        &self.build_all_binaries()?;
+        &self.build_all_binaries(jobs)?;
         &self.build_library()?;
         &self.project.run_script(&self.project.after_script)?;
         Ok(())

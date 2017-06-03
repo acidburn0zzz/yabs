@@ -3,6 +3,7 @@
 // 3-Clause license. For full terms please see the LICENSE file.
 
 extern crate util;
+extern crate num_cpus;
 #[macro_use]
 extern crate clap;
 #[macro_use]
@@ -34,7 +35,17 @@ fn run() -> i32 {
         match build::find_build_file(cwd) {
             Ok(mut build_file) => {
                 if matches.is_present("build") {
-                    if let Err(error) = build_file.build() {
+                    let mut jobs = num_cpus::get();
+                    if let Some(jobs_given) = matches.value_of("jobs") {
+                        match jobs_given.parse::<usize>() {
+                            Ok(j) => jobs = j,
+                            Err(error) => {
+                                error!("{}", error.to_string());
+                                return 2;
+                            },
+                        }
+                    }
+                    if let Err(error) = build_file.build(jobs) {
                         error!("{}", error.to_string());
                         return 2;
                     }

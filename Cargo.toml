@@ -16,6 +16,7 @@ walkdir = "1"
 ansi_term = "0.9"
 log = "0.3"
 error-chain = "0.10"
+num_cpus = "1.0"
 
 [dependencies.toml]
 version = "0.3"
