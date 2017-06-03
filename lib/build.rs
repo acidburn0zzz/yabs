@@ -118,7 +118,7 @@ impl BuildFile {
 
     fn run_job_queue(&mut self, mut job_queue: Vec<Target>, jobs: usize) -> Result<(), YabsError> {
         let mut job_processes: Vec<Job> = Vec::new();
-        loop {
+        while !job_queue.is_empty() {
             if job_processes.len() < jobs {
                 if let Some(target) = job_queue.pop() {
                     let job = Job::new(self.spawn_build_object(&target)?);
@@ -126,27 +126,16 @@ impl BuildFile {
                     job_processes.push(job);
                 }
             } else {
-                loop {
-                    if job_processes.is_empty() {
-                        break;
-                    } else {
-                        if let Some(mut job) = job_processes.pop() {
-                            job.yield_self()?;
-                        }
+                while !job_processes.is_empty() {
+                    if let Some(mut job) = job_processes.pop() {
+                        job.yield_self()?;
                     }
                 }
             }
-            if job_queue.is_empty() {
-                break;
-            }
         }
-        loop {
-            if job_processes.is_empty() {
-                break;
-            } else {
-                if let Some(mut job) = job_processes.pop() {
-                    job.yield_self()?;
-                }
+        while !job_processes.is_empty() {
+            if let Some(mut job) = job_processes.pop() {
+                job.yield_self()?;
             }
         }
         Ok(())
