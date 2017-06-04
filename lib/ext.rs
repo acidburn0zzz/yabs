@@ -13,7 +13,7 @@ use std::process::{Child, Command};
 
 pub struct Job {
     process: Child,
-    pub command: String,
+    command: String,
 }
 
 impl Job {
@@ -24,6 +24,10 @@ impl Job {
         }
     }
 
+    pub fn command(&self) -> String {
+        self.command.clone()
+    }
+
     pub fn yield_self(&mut self) -> Result<(), YabsError> {
         let status = self.process.wait()?;
         if !status.success() {
@@ -32,7 +36,7 @@ impl Job {
                 stderr.read_to_string(&mut buffer)?;
                 info!("{}", buffer);
             }
-            bail!(YabsErrorKind::Command(self.command.clone(), status.code().unwrap_or(1)));
+            bail!(YabsErrorKind::Command(self.command(), status.code().unwrap_or(1)));
         }
         Ok(())
     }

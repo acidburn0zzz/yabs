@@ -129,9 +129,9 @@ impl ProjectDesc {
                 }
             }
         }
-        let lib_string = lib_list.prepend_each("-l").join(" ");
-        let cmd_string = cmd_list.join(" ");
-        lib_string + &cmd_string
+        lib_list = lib_list.prepend_each("-l");
+        lib_list.extend(cmd_list);
+        lib_list.join(" ")
     }
 
     // We don't care if a path is invalid UTF-8.

@@ -64,8 +64,7 @@ impl BuildFile {
                            .join(" "),
                 OBJ = target.object().to_str().unwrap(),
                 SRC = target.source().to_str().unwrap());
-        let child = spawn_cmd(&command)?;
-        Ok((command.to_owned(), child))
+        Ok((command.to_owned(), spawn_cmd(&command)?))
     }
 
     fn build_object(&self, target: &Target) -> Result<(), YabsError> {
@@ -122,7 +121,7 @@ impl BuildFile {
             if job_processes.len() < jobs {
                 if let Some(target) = job_queue.pop() {
                     let job = Job::new(self.spawn_build_object(&target)?);
-                    info!("{}", job.command);
+                    info!("{}", job.command());
                     job_processes.push(job);
                 }
             } else {
