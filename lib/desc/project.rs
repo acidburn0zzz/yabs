@@ -1,12 +1,13 @@
 extern crate serde;
 extern crate toml;
 extern crate walkdir;
+extern crate regex;
 
 use error::YabsError;
 use ext::*;
+use regex::Regex;
 use std::collections::BTreeMap;
 
-use std::ffi::OsStr;
 use std::fs::metadata;
 use std::path::PathBuf;
 use std::time::SystemTime;
@@ -67,7 +68,8 @@ impl Library {
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 pub struct ProjectDesc {
     pub name: Option<String>,
-    pub lang: String,
+    #[serde(rename = "file-extensions")]
+    pub file_exts: Vec<String>,
     pub version: Option<String>,
     pub compiler: Option<String>,
     pub src: Option<Vec<PathBuf>>,
@@ -157,18 +159,19 @@ impl ProjectDesc {
         Ok(obj_str_list.join(" "))
     }
 
-    // This might become a pain point when we decided to support mixed language
-    // projects
+    // Sources are found with a regular expression "(.*)\.[EXTENSIONS]+$"
+    // where extensions would be the joined list given in 'file-extensions' in
+    // a configuration file. The filename is then stored in the "(.*)" group
     pub fn find_source_files(&mut self) -> Result<(), YabsError> {
-        // If sources are listed don't walk the current directory for files
+        // If sources are listed don't walk the current directory for files.
         if self.src.is_some() {
+            let regex = Regex::new(&format!("(.*)\\.[{}]+$", self.file_exts.join("|")))?;
             for entry in self.src.clone().unwrap() {
-                let modified_time = metadata(&entry)?.modified()?;
                 if let Some(src_str) = entry.clone().to_str() {
                     &self.file_mod_map
-                         .insert(Target::new(entry,
-                                             PathBuf::from(src_str.replace(&self.lang, "o"))),
-                                 modified_time);
+                         .insert(Target::new(entry.clone(),
+                                             PathBuf::from(String::from(regex.replace(src_str, "${1}.o")))),
+                                 metadata(&entry)?.modified()?);
                 }
             }
         } else {
@@ -177,24 +180,20 @@ impl ProjectDesc {
         Ok(())
     }
 
+    // Same regex used as `find_source_files`
     fn walk_current_dir(&mut self) -> Result<(), YabsError> {
+        let regex = Regex::new(&format!("(.*)\\.[{}]+$", self.file_exts.join("|")))?;
         let mut sources = Vec::new();
         let mut file_mod_map = BTreeMap::new();
         let walk_dir = WalkDir::new(".").into_iter();
         for entry in walk_dir.filter_entry(|e| !&self.is_in_ignore(e)) {
             let entry = entry?;
             if entry.path().is_file() {
-                let file_ext = entry.path().extension().unwrap_or(OsStr::new(""));
-                if let Some(ext) = file_ext.to_str() {
-                    if ext == &self.lang {
-                        if let Some(src_str) = entry.path().to_str() {
-                            let modified_time = metadata(entry.path())?.modified()?;
-                            file_mod_map
-                                .insert(Target::new(entry.path().to_path_buf(),
-                                                    PathBuf::from(src_str.replace(&self.lang,
-                                                                                  "o"))),
-                                        modified_time);
-                        }
+                if let Some(filename_str) = entry.path().to_str() {
+                    if regex.is_match(filename_str) {
+                        file_mod_map.insert(Target::new(entry.path().to_path_buf(),
+                                                        PathBuf::from(String::from(regex.replace(filename_str, "${1}.o")))),
+                                            metadata(entry.path())?.modified()?);
                     }
                 }
             }

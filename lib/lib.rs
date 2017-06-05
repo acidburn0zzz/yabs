@@ -9,6 +9,7 @@ extern crate serde_derive;
 extern crate toml;
 extern crate walkdir;
 extern crate ansi_term;
+extern crate regex;
 extern crate serde;
 #[macro_use]
 extern crate error_chain;

@@ -8,6 +8,7 @@ extern crate walkdir;
 extern crate ansi_term;
 extern crate serde_json;
 extern crate log;
+extern crate regex;
 
 error_chain! {
     types {
@@ -20,6 +21,7 @@ error_chain! {
         WalkDir(::walkdir::Error);
         SetLog(::log::SetLoggerError);
         UTF8(::std::string::FromUtf8Error);
+        Regex(::regex::Error);
     }
 
     errors {

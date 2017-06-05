@@ -1,11 +1,7 @@
 [project]
 name = "test"
-lang = "c"
+file-extensions = ["c", "cpp"]
 compiler = "g++"
-src = [
-	"./main_c.c",
-	"./main_cpp.cpp"
-]
 
 [[bin]]
 name = "main_c"

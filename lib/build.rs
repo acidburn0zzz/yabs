@@ -67,25 +67,6 @@ impl BuildFile {
         Ok((command.to_owned(), spawn_cmd(&command)?))
     }
 
-    fn build_object(&self, target: &Target) -> Result<(), YabsError> {
-        Ok(run_cmd(&format!("{CC} -c {CFLAGS} {INC} -o {OBJ} {SRC}",
-                           CC = &self.project.compiler.as_ref().unwrap_or(&String::from("gcc")),
-                           CFLAGS = &self.project
-                                         .compiler_flags
-                                         .as_ref()
-                                         .unwrap_or(&vec![])
-                                         .prepend_each("-")
-                                         .join(" "),
-                           INC = &self.project
-                                      .include
-                                      .as_ref()
-                                      .unwrap_or(&vec![])
-                                      .prepend_each("-I")
-                                      .join(" "),
-                           OBJ = target.object().to_str().unwrap(),
-                           SRC = target.source().to_str().unwrap()))?)
-    }
-
     fn build_all_binaries(&mut self, jobs: usize) -> Result<(), YabsError> {
         let mut queue = BTreeSet::new();
         if !&self.binaries.is_some() {
