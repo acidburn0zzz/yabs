@@ -19,6 +19,22 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::Child;
 
+pub trait Buildable<T> {
+    fn path(&self) -> PathBuf;
+}
+
+impl<T> Buildable<T> for Binary {
+    fn path(&self) -> PathBuf {
+        PathBuf::from(self.name())
+    }
+}
+
+impl<T> Buildable<T> for Library {
+    fn path(&self) -> PathBuf {
+        self.path()
+    }
+}
+
 // A build file could have multiple `Profile`s
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct BuildFile {
@@ -67,36 +83,40 @@ impl BuildFile {
         Ok((command.to_owned(), spawn_cmd(&command)?))
     }
 
-    fn build_all_binaries(&mut self, jobs: usize) -> Result<(), YabsError> {
+    fn build_object_queue<T: Buildable<T>>(&self,
+                                           build_target: &T)
+                                           -> Result<Vec<Target>, YabsError> {
         let mut queue = BTreeSet::new();
+        let target_path = build_target.path();
+        if target_path.exists() {
+            for (target, modtime) in &self.project.file_mod_map {
+                if modtime > &fs::metadata(&target_path)?.modified()? || !target.object().exists() {
+                    queue.insert(target.clone());
+                }
+            }
+        } else {
+            for (target, _) in &self.project.file_mod_map {
+                if !target.object().exists() {
+                    queue.insert(target.clone());
+                }
+            }
+        }
+        Ok(queue.iter().cloned().collect())
+    }
+
+    fn build_all_binaries(&mut self, jobs: usize) -> Result<(), YabsError> {
         if !&self.binaries.is_some() {
             return Ok(());
         }
         for binary in self.binaries.clone().unwrap().iter() {
-            if Path::new(&binary.name()).exists() {
-                for (target, modtime) in &self.project.file_mod_map {
-                    if modtime > &fs::metadata(&binary.name())?.modified()? ||
-                       !target.object().exists() {
-                        queue.insert(target.clone());
-                    }
-                }
-            } else {
-                for (target, _) in &self.project.file_mod_map {
-                    if !target.object().exists() {
-                        queue.insert(target.clone());
-                    }
-                }
-            }
-        }
-
-        &self.run_job_queue(queue.iter().cloned().collect(), jobs)?;
-        for binary in self.binaries.clone().unwrap().iter() {
+            let job_queue = self.build_object_queue(binary)?;
+            &self.run_job_queue(job_queue, jobs)?;
             &self.build_binary(binary)?;
         }
         Ok(())
     }
 
-    fn run_job_queue(&mut self, mut job_queue: Vec<Target>, jobs: usize) -> Result<(), YabsError> {
+    fn run_job_queue(&self, mut job_queue: Vec<Target>, jobs: usize) -> Result<(), YabsError> {
         let mut job_processes: Vec<Job> = Vec::new();
         while !job_queue.is_empty() {
             if job_processes.len() < jobs {
@@ -156,18 +176,56 @@ impl BuildFile {
                            LIBS = &self.project.libs_as_string()))?)
     }
 
-    fn build_library(&mut self) -> Result<(), YabsError> {
+    pub fn build_library(&self, library: &Library) -> Result<(), YabsError> {
+        let object_list = &self.project.object_list_as_string(None)?;
+        Ok(run_cmd(&format!("{AR} {ARFLAGS} {LIB} {OBJ_LIST}",
+                           AR = &self.project.ar.as_ref().unwrap_or(&String::from("ar")),
+                           ARFLAGS =
+                               &self.project.arflags.as_ref().unwrap_or(&String::from("rcs")),
+                           LIB = library.path().to_str().unwrap(),
+                           OBJ_LIST = object_list))?)
+    }
+
+    pub fn build_library_with_name(&mut self, name: &str, jobs: usize) -> Result<(), YabsError> {
+        if let Some(libraries) = self.libraries.as_ref() {
+            if let Some(library) = libraries.into_iter()
+                                            .find(|&lib| {
+                                                      lib.name() == name
+                                                  }) {
+                let job_queue = self.build_object_queue(library)?;
+                &self.run_job_queue(job_queue, jobs)?;
+                &self.build_library(library)?;
+            }
+        } else {
+            bail!(YabsErrorKind::TargetNotFound("library".to_owned(), name.to_owned()))
+        }
+        Ok(())
+    }
+
+    pub fn build_binary_with_name(&mut self, name: &str, jobs: usize) -> Result<(), YabsError> {
+        if let Some(binaries) = self.binaries.as_ref() {
+            if let Some(binary) = binaries.into_iter()
+                                          .find(|&bin| {
+                                                    bin.name() == name
+                                                }) {
+                let job_queue = self.build_object_queue(binary)?;
+                &self.run_job_queue(job_queue, jobs)?;
+                &self.build_binary(&binary)?;
+            }
+        } else {
+            bail!(YabsErrorKind::TargetNotFound("binary".to_owned(), name.to_owned()))
+        }
+        Ok(())
+    }
+
+    pub fn build_all_libraries(&mut self, jobs: usize) -> Result<(), YabsError> {
         if !self.libraries.is_some() {
             return Ok(());
         }
         for library in self.libraries.clone().unwrap().iter() {
-            let object_list = &self.project.object_list_as_string(None)?;
-            run_cmd(&format!("{AR} {ARFLAGS} {LIB} {OBJ_LIST}",
-                            AR = &self.project.ar.as_ref().unwrap_or(&String::from("ar")),
-                            ARFLAGS =
-                                &self.project.arflags.as_ref().unwrap_or(&String::from("rcs")),
-                            LIB = library.path().to_str().unwrap(),
-                            OBJ_LIST = object_list))?
+            let job_queue = self.build_object_queue(library)?;
+            &self.run_job_queue(job_queue, jobs)?;
+            &self.build_library(library)?;
         }
         Ok(())
     }
@@ -175,7 +233,7 @@ impl BuildFile {
     pub fn build(&mut self, jobs: usize) -> Result<(), YabsError> {
         &self.project.run_script(&self.project.before_script)?;
         &self.build_all_binaries(jobs)?;
-        &self.build_library()?;
+        &self.build_all_libraries(jobs)?;
         &self.project.run_script(&self.project.after_script)?;
         Ok(())
     }
@@ -212,6 +270,7 @@ impl BuildFile {
 }
 
 pub fn find_build_file(dir: &mut PathBuf) -> Result<BuildFile, YabsError> {
+    let original = dir.clone();
     loop {
         if let Some(filepath) = check_dir(&dir) {
             env::set_current_dir(&dir)?;
@@ -222,7 +281,7 @@ pub fn find_build_file(dir: &mut PathBuf) -> Result<BuildFile, YabsError> {
             }
         }
     }
-    bail!(YabsErrorKind::NoAssumedToml(dir.to_str().unwrap().to_owned()))
+    bail!(YabsErrorKind::NoAssumedToml(original.to_str().unwrap().to_owned()))
 }
 
 fn check_dir(dir: &PathBuf) -> Option<PathBuf> {

@@ -56,10 +56,15 @@ impl Target {
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Library {
+    name: String,
     path: PathBuf,
 }
 
 impl Library {
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
+
     pub fn path(&self) -> PathBuf {
         self.path.clone()
     }

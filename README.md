@@ -27,22 +27,18 @@ Alberto Corona <ac@albertocorona.com>
 Yet another build system
 
 USAGE:
-    yabs [FLAGS] [OPTIONS] [SUBCOMMAND]
+    yabs [FLAGS] [SUBCOMMAND]
 
 FLAGS:
-    -b, --build      Build the entire project
-        --clean      Removes object files, binaries and libraries
     -h, --help       Prints help information
         --sources    Print source files for all profiles
     -V, --version    Prints version information
 
-OPTIONS:
-    -j, --jobs <jobs>    Child processes to spawn
-
 SUBCOMMANDS:
-    help    Prints this message or the help of the given subcommand(s)
-    new     Create a new yabs project
-
+    build    Build a binary or library, builds all binaries and libraries if no options are given
+    clean    Removes all object files, binaries and libraries built by yabs
+    help     Prints this message or the help of the given subcommand(s)
+    new      Create a new yabs project
 ```
 
 ## Defining a Project
@@ -70,6 +66,7 @@ path = "./src/main.cpp"
 
 
 [[lib]]
+name = "libkuma"
 path = "libkuma.a"
 ```
 
@@ -107,4 +104,5 @@ The following tables describes what keys are available to yabs project files.
 ### [[lib]]
 | Key    | Value                           | Type |
 | ---    | -----                           | ---- |
+| `name` | Name of library | String |
 | `path` | Path for library file to be created | String|

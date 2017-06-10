@@ -9,23 +9,9 @@ args:
                 #help: Use a specified TOML file
                 #value_name: FILE
                 #takes_value: true
-        - build:
-                short: b
-                long: build
-                help: Build the entire project
-                takes_value: false
-        - jobs:
-                short: j
-                long: jobs
-                help: Child processes to spawn
-                takes_value: true
         - sources:
                 long: sources
                 help: Print source files for all profiles
-                takes_value: false
-        - clean:
-                long: clean
-                help: Removes object files, binaries and libraries
                 takes_value: false
 subcommands:
         - new:
@@ -35,3 +21,23 @@ subcommands:
                                 long: bin
                                 value_name: NAME
                                 takes_value: true
+        - build:
+                about: Build a binary or library, builds all binaries and libraries if no options are given
+                args:
+                        - bin:
+                                long: bin
+                                value_name: BINARY_NAME
+                                takes_value: true
+                                help: Build a binary with name BINARY_NAME
+                        - lib:
+                                long: lib
+                                value_name: LIBRARY_NAME
+                                takes_value: true
+                                help: Build a library with name LIBRARY_NAME
+                        - jobs:
+                                short: j
+                                long: jobs
+                                help: Child processes to spawn
+                                takes_value: true
+        - clean:
+              about: Removes all object files, binaries and libraries built by yabs

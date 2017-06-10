@@ -27,7 +27,7 @@ error_chain! {
     errors {
         NoAssumedToml(path: String) {
             description("no assumed toml file found")
-                display("could not find assumed toml file: '{}'", path)
+                display("could not find assumed toml file in '{}' or in any parent directory", path)
         }
         Command(cmd: String, status: i32) {
             description("command exited unsuccessfully")
@@ -36,6 +36,10 @@ error_chain! {
         DirExists(path: ::std::path::PathBuf) {
             description("directory already exists")
                 display("directory '{}' already exists", path.display())
+        }
+        TargetNotFound(ttype: String, name: String) {
+            description("target not found")
+                display("no {} with name '{}' found", ttype, name)
         }
     }
 }
