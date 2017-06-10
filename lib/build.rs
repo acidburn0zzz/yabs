@@ -47,7 +47,7 @@ impl BuildFile {
     }
 
     fn spawn_build_object(&self, target: &Target) -> Result<(String, Child), YabsError> {
-        let command = &format!("{CC} -c {CFLAGS} {INC} -o {OBJ} {SRC}",
+        let command = &format!("{CC} -c {CFLAGS} {INC} -o \"{OBJ}\" \"{SRC}\"",
                 CC =
                     &self.project.compiler.as_ref().unwrap_or(&String::from("gcc")),
                 CFLAGS = &self.project

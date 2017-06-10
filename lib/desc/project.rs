@@ -146,13 +146,13 @@ impl ProjectDesc {
                 for bin in exclude {
                     if target.source.canonicalize()? != bin.path().canonicalize()? {
                         if let Some(obj_str) = target.object.to_str() {
-                            obj_str_list.push(obj_str.to_owned());
+                            obj_str_list.push(format!("\"{}\"", obj_str.to_owned()));
                         }
                     }
                 }
             } else {
                 if let Some(obj_str) = target.object.to_str() {
-                    obj_str_list.push(obj_str.to_owned());
+                    obj_str_list.push(format!("\"{}\"", obj_str.to_owned()));
                 }
             }
         }
