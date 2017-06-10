@@ -21,24 +21,26 @@ pub fn new_project(name: &String, lib: bool) -> Result<(), YabsError> {
 pub fn create_bin_files(path: PathBuf, name: &String) -> Result<(), YabsError> {
     fs::File::create(path.join(format!("{}.toml", name)))
         .and_then(|mut file| {
-            Ok(file.write_all(format!("[{0}.project]\n\
+            Ok(file.write_all(format!("[project]\n\
                 name = \"{0}\"\n\
                 version = \"0.0.1\"\n\
                 target = [\"{0}\"]\n\
-                lang = \"cpp\"\n\
+                file-extensions = [\"cpp\"]\n\
                 compiler = \"g++\"\n\
-                cflags = []\n\
+                compiler-flags = []\n\
                 src = [\n\
                 \t\"src/main.cpp\"\n\
                 ]\n\
-                libs = []\n\
-                lib-dir = []\n\
-                inc = []\n\
-                lflags = []\n\
+                libraries = []\n\
+                library-directories = []\n\
+                include = []\n\
+                linker-flags = []\n\
                 ignore = []\n\
                 before-script = []\n\
-                after-script = []\n\
-                clean = []
+                after-script = []\n\n\
+                [[bin]]\n\
+                name = \"{0}\"\n\
+                path = \"./src/main.cpp\"
                 ",
                                       name)
                                   .as_bytes())?)

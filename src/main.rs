@@ -30,8 +30,7 @@ fn run() -> i32 {
                 }
             }
         }
-    }
-    if let Ok(ref mut cwd) = env::current_dir() {
+    } else if let Ok(ref mut cwd) = env::current_dir() {
         match build::find_build_file(cwd) {
             Ok(mut build_file) => {
                 if matches.is_present("build") {
