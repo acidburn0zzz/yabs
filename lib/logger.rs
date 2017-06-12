@@ -28,12 +28,10 @@ impl log::Log for Logger {
                 LogLevel::Error => {
                     println!("{}: {}", Colour::Red.bold().paint("error"), record.args());
                 },
-                LogLevel::Warn => {},
                 LogLevel::Info => {
                     println!("{}", record.args());
                 },
-                LogLevel::Debug => {},
-                LogLevel::Trace => {},
+                _ => {},
             };
         }
     }

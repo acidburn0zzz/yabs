@@ -68,11 +68,11 @@ fn run() -> ExitStatus {
                     } else {
                         return check_error(build_file.build(jobs), ExitStatus::BuildError);
                     }
-                } else if let Some(_) = matches.subcommand_matches("clean") {
+                } else if matches.subcommand_matches("clean").is_some() {
                     return check_error(build_file.clean(), ExitStatus::GeneralError);
                 }
                 if matches.is_present("sources") {
-                    &build_file.print_sources();
+                    build_file.print_sources();
                 }
             },
             Err(error) => {
@@ -86,6 +86,6 @@ fn run() -> ExitStatus {
 
 fn main() {
     match run() {
-        error @ _ => exit(error as i32),
+        error => exit(error as i32),
     }
 }

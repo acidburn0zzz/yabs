@@ -6,7 +6,7 @@ extern crate regex;
 use error::YabsError;
 use ext::*;
 use regex::Regex;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use std::fs::metadata;
 use std::path::PathBuf;
@@ -54,10 +54,22 @@ impl Target {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Ord, Eq, PartialOrd)]
+enum LibType {
+    #[serde(rename = "static")]
+    Static,
+    #[serde(rename = "dynamic")]
+    Dynamic,
+}
+
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Library {
     name: String,
+    #[serde(skip_serializing)]
+    #[serde(skip_deserializing)]
     path: PathBuf,
+    #[serde(rename = "types")]
+    lib_types: BTreeSet<LibType>,
 }
 
 impl Library {
@@ -67,6 +79,34 @@ impl Library {
 
     pub fn path(&self) -> PathBuf {
         self.path.clone()
+    }
+
+    pub fn is_static(&self) -> bool {
+        self.lib_types.contains(&LibType::Static)
+    }
+
+    pub fn is_dynamic(&self) -> bool {
+        self.lib_types.contains(&LibType::Dynamic)
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn static_file_name(&self) -> PathBuf {
+        PathBuf::from(self.name() + ".lib")
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    pub fn static_file_name(&self) -> PathBuf {
+        PathBuf::from(self.name() + ".a")
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn dynamic_file_name(&self) -> PathBuf {
+        PathBuf::from(self.name() + ".dll")
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    pub fn dynamic_file_name(&self) -> PathBuf {
+        PathBuf::from(self.name() + ".so")
     }
 }
 
@@ -129,7 +169,7 @@ impl ProjectDesc {
         let mut cmd_list: Vec<String> = Vec::new();
         if let Some(libs) = self.libs.as_ref() {
             for lib in libs {
-                if self.is_command(&lib) {
+                if self.is_command(lib) {
                     cmd_list.push(lib.clone());
                 } else {
                     lib_list.push(lib.clone());
@@ -155,10 +195,8 @@ impl ProjectDesc {
                         }
                     }
                 }
-            } else {
-                if let Some(obj_str) = target.object.to_str() {
-                    obj_str_list.push(format!("\"{}\"", obj_str.to_owned()));
-                }
+            } else if let Some(obj_str) = target.object.to_str() {
+                obj_str_list.push(format!("\"{}\"", obj_str.to_owned()));
             }
         }
         Ok(obj_str_list.join(" "))
@@ -173,14 +211,14 @@ impl ProjectDesc {
             let regex = Regex::new(&format!("(.*)\\.[{}]+$", self.file_exts.join("|")))?;
             for entry in self.src.clone().unwrap() {
                 if let Some(src_str) = entry.clone().to_str() {
-                    &self.file_mod_map
+                    self.file_mod_map
                          .insert(Target::new(entry.clone(),
                                              PathBuf::from(String::from(regex.replace(src_str, "${1}.o")))),
                                  metadata(&entry)?.modified()?);
                 }
             }
         } else {
-            &self.walk_current_dir()?;
+            self.walk_current_dir()?;
         }
         Ok(())
     }
@@ -211,8 +249,8 @@ impl ProjectDesc {
 
     // Any string that starts and ends with the character "`" is regarded as a
     // command
-    pub fn is_command(&self, string: &String) -> bool {
-        string.starts_with("`") && string.ends_with("`")
+    pub fn is_command(&self, string: &str) -> bool {
+        string.starts_with('`') && string.ends_with('`')
     }
 
     pub fn run_script(&self, script: &Option<Vec<String>>) -> Result<(), YabsError> {

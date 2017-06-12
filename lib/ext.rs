@@ -46,7 +46,7 @@ pub fn parse_toml_file<T: AsRef<Path> + Clone>(file: T) -> Result<String, YabsEr
     let mut buff = String::new();
     let mut file = File::open(&file)?;
     file.read_to_string(&mut buff)?;
-    return Ok(buff);
+    Ok(buff)
 }
 
 pub fn get_assumed_filename() -> Option<String> {
@@ -67,7 +67,7 @@ pub fn get_assumed_filename_for_dir(dir: &PathBuf) -> Option<PathBuf> {
     None
 }
 
-pub fn run_cmd(cmd: &String) -> Result<(), YabsError> {
+pub fn run_cmd(cmd: &str) -> Result<(), YabsError> {
     let command = Command::new("sh").arg("-c").arg(&cmd).spawn()?.wait_with_output()?;
     println!("{}", &cmd);
     if !command.status.success() {
@@ -78,7 +78,7 @@ pub fn run_cmd(cmd: &String) -> Result<(), YabsError> {
     Ok(())
 }
 
-pub fn spawn_cmd(cmd: &String) -> Result<Child, YabsError> {
+pub fn spawn_cmd(cmd: &str) -> Result<Child, YabsError> {
     Ok(Command::new("sh").arg("-c").arg(&cmd).spawn()?)
 }
 
@@ -90,9 +90,9 @@ pub trait PrependEach<T> {
 impl PrependEach<String> for Vec<String> {
     fn prepend_each(&self, pre: &str) -> Vec<String> {
         let mut clone = self.clone();
-        for each in clone.iter_mut() {
+        for each in &mut clone {
             *each = pre.to_owned() + each;
         }
-        return clone;
+        clone
     }
 }

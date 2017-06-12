@@ -80,7 +80,7 @@ impl BuildFile {
                            .join(" "),
                 OBJ = target.object().to_str().unwrap(),
                 SRC = target.source().to_str().unwrap());
-        Ok((command.to_owned(), spawn_cmd(&command)?))
+        Ok((command.to_owned(), spawn_cmd(command)?))
     }
 
     fn build_object_queue<T: Buildable<T>>(&self,
@@ -95,7 +95,7 @@ impl BuildFile {
                 }
             }
         } else {
-            for (target, _) in &self.project.file_mod_map {
+            for target in self.project.file_mod_map.keys() {
                 if !target.object().exists() {
                     queue.insert(target.clone());
                 }
@@ -108,10 +108,10 @@ impl BuildFile {
         if !&self.binaries.is_some() {
             return Ok(());
         }
-        for binary in self.binaries.clone().unwrap().iter() {
-            let job_queue = self.build_object_queue(binary)?;
-            &self.run_job_queue(job_queue, jobs)?;
-            &self.build_binary(binary)?;
+        for binary in self.binaries.clone().unwrap() {
+            let job_queue = self.build_object_queue(&binary)?;
+            self.run_job_queue(job_queue, jobs)?;
+            self.build_binary(&binary)?;
         }
         Ok(())
     }
@@ -142,21 +142,17 @@ impl BuildFile {
     }
 
     fn build_binary(&self, binary: &Binary) -> Result<(), YabsError> {
-        let object_list;
-        if self.binaries.as_ref().unwrap().len() == 1 {
-            object_list = self.project.object_list_as_string(None)?;
+        let object_list = if self.binaries.as_ref().unwrap().len() == 1 {
+            self.project.object_list_as_string(None)?
         } else {
-            object_list =
-                self.project
-                    .object_list_as_string(Some(self.binaries
-                                                    .clone()
-                                                    .unwrap()
-                                                    .into_iter()
-                                                    .filter(|ref bin| {
-                                                                bin.path() != binary.path()
-                                                            })
-                                                    .collect::<Vec<Binary>>()))?;
-        }
+            self.project
+                .object_list_as_string(Some(self.binaries
+                                                .clone()
+                                                .unwrap()
+                                                .into_iter()
+                                                .filter(|bin| bin.path() != binary.path())
+                                                .collect::<Vec<Binary>>()))?
+        };
         Ok(run_cmd(&format!("{CC} {LFLAGS} -o {BIN} {OBJ_LIST} {LIB_DIR} {LIBS}",
                            CC = &self.project.compiler.as_ref().unwrap_or(&String::from("gcc")),
                            LFLAGS = &self.project
@@ -176,14 +172,33 @@ impl BuildFile {
                            LIBS = &self.project.libs_as_string()))?)
     }
 
-    pub fn build_library(&self, library: &Library) -> Result<(), YabsError> {
+    pub fn build_static_library(&self, library: &Library) -> Result<(), YabsError> {
         let object_list = &self.project.object_list_as_string(None)?;
         Ok(run_cmd(&format!("{AR} {ARFLAGS} {LIB} {OBJ_LIST}",
                            AR = &self.project.ar.as_ref().unwrap_or(&String::from("ar")),
                            ARFLAGS =
                                &self.project.arflags.as_ref().unwrap_or(&String::from("rcs")),
-                           LIB = library.path().to_str().unwrap(),
+                           LIB = library.static_file_name().display(),
                            OBJ_LIST = object_list))?)
+    }
+
+    pub fn build_dynamic_library(&self, library: &Library) -> Result<(), YabsError> {
+        let object_list = &self.project.object_list_as_string(None)?;
+        Ok(run_cmd(&format!("{CC} -shared -o {LIB} {OBJ_LIST} {LIBS}",
+                           CC = &self.project.compiler.as_ref().unwrap_or(&String::from("gcc")),
+                           LIB = library.dynamic_file_name().display(),
+                           OBJ_LIST = object_list,
+                           LIBS = &self.project.libs_as_string()))?)
+    }
+
+    pub fn build_library(&self, library: &Library) -> Result<(), YabsError> {
+        if library.is_static() {
+            self.build_static_library(library)?;
+        }
+        if library.is_dynamic() {
+            self.build_dynamic_library(library)?;
+        }
+        Ok(())
     }
 
     pub fn build_library_with_name(&mut self, name: &str, jobs: usize) -> Result<(), YabsError> {
@@ -193,8 +208,8 @@ impl BuildFile {
                                                       lib.name() == name
                                                   }) {
                 let job_queue = self.build_object_queue(library)?;
-                &self.run_job_queue(job_queue, jobs)?;
-                &self.build_library(library)?;
+                self.run_job_queue(job_queue, jobs)?;
+                self.build_library(library)?;
             }
         } else {
             bail!(YabsErrorKind::TargetNotFound("library".to_owned(), name.to_owned()))
@@ -209,8 +224,8 @@ impl BuildFile {
                                                     bin.name() == name
                                                 }) {
                 let job_queue = self.build_object_queue(binary)?;
-                &self.run_job_queue(job_queue, jobs)?;
-                &self.build_binary(&binary)?;
+                self.run_job_queue(job_queue, jobs)?;
+                self.build_binary(binary)?;
             }
         } else {
             bail!(YabsErrorKind::TargetNotFound("binary".to_owned(), name.to_owned()))
@@ -222,46 +237,46 @@ impl BuildFile {
         if !self.libraries.is_some() {
             return Ok(());
         }
-        for library in self.libraries.clone().unwrap().iter() {
-            let job_queue = self.build_object_queue(library)?;
-            &self.run_job_queue(job_queue, jobs)?;
-            &self.build_library(library)?;
+        for library in self.libraries.clone().unwrap() {
+            let job_queue = self.build_object_queue(&library)?;
+            self.run_job_queue(job_queue, jobs)?;
+            self.build_library(&library)?;
         }
         Ok(())
     }
 
     pub fn build(&mut self, jobs: usize) -> Result<(), YabsError> {
-        &self.project.run_script(&self.project.before_script)?;
-        &self.build_all_binaries(jobs)?;
-        &self.build_all_libraries(jobs)?;
-        &self.project.run_script(&self.project.after_script)?;
+        self.project.run_script(&self.project.before_script)?;
+        self.build_all_binaries(jobs)?;
+        self.build_all_libraries(jobs)?;
+        self.project.run_script(&self.project.after_script)?;
         Ok(())
     }
 
     pub fn clean(&self) -> Result<(), YabsError> {
         for target in self.project.file_mod_map.keys() {
-            if target.object().exists() {
-                if let Ok(_) = fs::remove_file(target.object()) {
-                    info!("removed object '{}'", target.object().display());
-                }
+            if target.object().exists() && fs::remove_file(target.object()).is_ok() {
+                info!("removed object '{}'", target.object().display());
             }
         }
         if let Some(binaries) = self.binaries.clone() {
             for binary in binaries {
                 let bin_path = PathBuf::from(binary.name());
-                if bin_path.exists() {
-                    if let Ok(_) = fs::remove_file(&bin_path) {
-                        info!("removed binary '{}'", bin_path.display());
-                    }
+                if bin_path.exists() && fs::remove_file(&bin_path).is_ok() {
+                    info!("removed binary '{}'", bin_path.display());
                 }
             }
         }
         if let Some(libraries) = self.libraries.clone() {
             for library in libraries {
-                if library.path().exists() {
-                    if let Ok(_) = fs::remove_file(library.path()) {
-                        info!("removed library '{}'", library.path().display());
-                    }
+                if library.dynamic_file_name().exists() &&
+                   fs::remove_file(library.dynamic_file_name()).is_ok() {
+                    info!("removed library '{}'",
+                          library.dynamic_file_name().display());
+                }
+                if library.static_file_name().exists() &&
+                   fs::remove_file(library.static_file_name()).is_ok() {
+                    info!("removed library '{}'", library.static_file_name().display());
                 }
             }
         }
@@ -272,13 +287,11 @@ impl BuildFile {
 pub fn find_build_file(dir: &mut PathBuf) -> Result<BuildFile, YabsError> {
     let original = dir.clone();
     loop {
-        if let Some(filepath) = check_dir(&dir) {
+        if let Some(filepath) = check_dir(dir) {
             env::set_current_dir(&dir)?;
             return Ok(BuildFile::from_file(&dir.join(filepath))?);
-        } else {
-            if !dir.pop() {
-                break;
-            }
+        } else if !dir.pop() {
+            break;
         }
     }
     bail!(YabsErrorKind::NoAssumedToml(original.to_str().unwrap().to_owned()))
