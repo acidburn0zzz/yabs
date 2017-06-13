@@ -22,7 +22,7 @@ To build `yabs` you will need `rustc` and `cargo`. Simply run `cargo build
 Output of `yabs -h`
 
 ```
-yabs 0.1.2
+yabs 0.2.0
 Alberto Corona <ac@albertocorona.com>
 Yet another build system
 
