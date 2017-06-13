@@ -1,0 +1,15 @@
+[project]
+compiler = "g++"
+file-extensions = ["cpp"]
+compiler-flags = ["std=c++11", "O3", "fPIC"]
+include = ["../test_lib_src"]
+
+src = [
+	"../test_lib_src/test.cpp"
+]
+
+[[lib]]
+name = "libyabs_test"
+types = [
+	"static",
+]

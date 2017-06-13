@@ -1,0 +1,18 @@
+[project]
+name = "example"
+compiler = "g++"
+compiler-flags = ["std=c++11"]
+file-extensions = ["cpp", "c"]
+
+after-script = [
+	"./cpp_bin",
+	"./c_bin"
+]
+
+[[bin]]
+name = "cpp_bin"
+path = "src/cpp/main.cpp"
+
+[[bin]]
+name = "c_bin"
+path = "src/c/main.c"
