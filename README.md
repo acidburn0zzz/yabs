@@ -31,7 +31,7 @@ USAGE:
 
 FLAGS:
     -h, --help       Prints help information
-        --sources    Print source files for all profiles
+        --sources    Print source files found by yabs or listed in 'src'
     -V, --version    Prints version information
 
 SUBCOMMANDS:
@@ -67,7 +67,7 @@ path = "./src/main.cpp"
 
 [[lib]]
 name = "libkuma"
-path = "libkuma.a"
+types = ["static"]
 ```
 
 ### Building a Project
@@ -105,4 +105,4 @@ The following tables describes what keys are available to yabs project files.
 | Key    | Value                           | Type |
 | ---    | -----                           | ---- |
 | `name` | Name of library | String |
-| `path` | Path for library file to be created | String|
+| `types` | Library types to create | Array |

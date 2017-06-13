@@ -11,7 +11,7 @@ args:
                 #takes_value: true
         - sources:
                 long: sources
-                help: Print source files for all profiles
+                help: Print source files found by yabs or listed in 'src'
                 takes_value: false
 subcommands:
         - new:
