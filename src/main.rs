@@ -25,8 +25,10 @@ enum ExitStatus {
 fn check_error<T, E: Display>(result: Result<T, E>, status: ExitStatus) -> ExitStatus {
     if let Err(error) = result {
         error!("{}", error.to_string());
+        return status;
+    } else {
+        return ExitStatus::Success;
     }
-    status
 }
 
 fn run() -> ExitStatus {
